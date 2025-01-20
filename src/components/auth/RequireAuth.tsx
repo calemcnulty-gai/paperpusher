@@ -1,9 +1,10 @@
 import { Navigate, useLocation } from "react-router-dom"
-import { useAuth } from "./AuthProvider"
+import { useSelector } from "react-redux"
 import { Loader2 } from "lucide-react"
+import { RootState } from "@/store"
 
 export const RequireAuth = ({ children }: { children: React.ReactNode }) => {
-  const { user, loading } = useAuth()
+  const { user, loading } = useSelector((state: RootState) => state.auth)
   const location = useLocation()
 
   console.log("RequireAuth - Current location:", location.pathname)

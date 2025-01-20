@@ -3,6 +3,8 @@ import { Toaster as Sonner } from "@/components/ui/sonner"
 import { TooltipProvider } from "@/components/ui/tooltip"
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query"
 import { BrowserRouter, Routes, Route } from "react-router-dom"
+import { Provider } from "react-redux"
+import { store } from "@/store"
 import { AuthProvider } from "@/components/auth/AuthProvider"
 import { RequireAuth } from "@/components/auth/RequireAuth"
 import Index from "./pages/Index"
@@ -12,35 +14,37 @@ import Tickets from "./pages/Tickets"
 const queryClient = new QueryClient()
 
 const App = () => (
-  <QueryClientProvider client={queryClient}>
-    <TooltipProvider>
-      <AuthProvider>
-        <Toaster />
-        <Sonner />
-        <BrowserRouter>
-          <Routes>
-            <Route path="/auth" element={<Auth />} />
-            <Route
-              path="/"
-              element={
-                <RequireAuth>
-                  <Index />
-                </RequireAuth>
-              }
-            />
-            <Route
-              path="/tickets"
-              element={
-                <RequireAuth>
-                  <Tickets />
-                </RequireAuth>
-              }
-            />
-          </Routes>
-        </BrowserRouter>
-      </AuthProvider>
-    </TooltipProvider>
-  </QueryClientProvider>
+  <Provider store={store}>
+    <QueryClientProvider client={queryClient}>
+      <TooltipProvider>
+        <AuthProvider>
+          <Toaster />
+          <Sonner />
+          <BrowserRouter>
+            <Routes>
+              <Route path="/auth" element={<Auth />} />
+              <Route
+                path="/"
+                element={
+                  <RequireAuth>
+                    <Index />
+                  </RequireAuth>
+                }
+              />
+              <Route
+                path="/tickets"
+                element={
+                  <RequireAuth>
+                    <Tickets />
+                  </RequireAuth>
+                }
+              />
+            </Routes>
+          </BrowserRouter>
+        </AuthProvider>
+      </TooltipProvider>
+    </QueryClientProvider>
+  </Provider>
 )
 
 export default App
