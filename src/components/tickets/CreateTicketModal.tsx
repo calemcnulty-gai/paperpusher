@@ -1,6 +1,6 @@
 import { useState } from "react"
 import { useForm } from "react-hook-form"
-import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog"
+import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog"
 import { Button } from "@/components/ui/button"
 import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from "@/components/ui/form"
 import { Input } from "@/components/ui/input"
@@ -9,12 +9,13 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { Plus } from "lucide-react"
 import { useToast } from "@/components/ui/use-toast"
 import { supabase } from "@/integrations/supabase/client"
-import { useQueryClient } from "@tanstack/react-query"
+import { useQuery, useQueryClient } from "@tanstack/react-query"
 
 type TicketFormData = {
   subject: string
   description: string
   priority: "low" | "medium" | "high" | "urgent"
+  assigned_to?: string
 }
 
 export function CreateTicketModal() {
@@ -22,11 +23,25 @@ export function CreateTicketModal() {
   const { toast } = useToast()
   const queryClient = useQueryClient()
   
+  const { data: agents } = useQuery({
+    queryKey: ["agents"],
+    queryFn: async () => {
+      const { data, error } = await supabase
+        .from("profiles")
+        .select("id, full_name")
+        .eq("role", "agent")
+      
+      if (error) throw error
+      return data
+    }
+  })
+  
   const form = useForm<TicketFormData>({
     defaultValues: {
       subject: "",
       description: "",
-      priority: "medium"
+      priority: "medium",
+      assigned_to: undefined
     }
   })
 
@@ -36,6 +51,7 @@ export function CreateTicketModal() {
         subject: data.subject,
         description: data.description,
         priority: data.priority,
+        assigned_to: data.assigned_to,
         customer_id: (await supabase.auth.getUser()).data.user?.id,
       })
 
@@ -70,6 +86,9 @@ export function CreateTicketModal() {
       <DialogContent className="sm:max-w-[425px]">
         <DialogHeader>
           <DialogTitle>Create New Ticket</DialogTitle>
+          <DialogDescription>
+            Fill out the form below to create a new support ticket.
+          </DialogDescription>
         </DialogHeader>
         <Form {...form}>
           <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4">
@@ -125,6 +144,33 @@ export function CreateTicketModal() {
                       <SelectItem value="medium">Medium</SelectItem>
                       <SelectItem value="high">High</SelectItem>
                       <SelectItem value="urgent">Urgent</SelectItem>
+                    </SelectContent>
+                  </Select>
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
+            <FormField
+              control={form.control}
+              name="assigned_to"
+              render={({ field }) => (
+                <FormItem>
+                  <FormLabel>Assign To</FormLabel>
+                  <Select
+                    onValueChange={field.onChange}
+                    defaultValue={field.value}
+                  >
+                    <FormControl>
+                      <SelectTrigger>
+                        <SelectValue placeholder="Select an agent" />
+                      </SelectTrigger>
+                    </FormControl>
+                    <SelectContent>
+                      {agents?.map((agent) => (
+                        <SelectItem key={agent.id} value={agent.id}>
+                          {agent.full_name}
+                        </SelectItem>
+                      ))}
                     </SelectContent>
                   </Select>
                   <FormMessage />
