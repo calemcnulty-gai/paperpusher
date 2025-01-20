@@ -12,6 +12,7 @@ import {
 import { Badge } from "@/components/ui/badge"
 import { format } from "date-fns"
 import { Loader2 } from "lucide-react"
+import { CreateTicketModal } from "@/components/tickets/CreateTicketModal"
 
 const fetchTickets = async () => {
   const { data, error } = await supabase
@@ -60,6 +61,7 @@ const Tickets = () => {
       <div className="space-y-4">
         <div className="flex justify-between items-center">
           <h1 className="text-2xl font-bold">Tickets</h1>
+          <CreateTicketModal />
         </div>
 
         {isLoading ? (
