@@ -1,69 +1,79 @@
-# Welcome to your Lovable project
+# Welcome to AutoCRM
 
 ## Project info
 
 **URL**: https://lovable.dev/projects/6d017fd8-0b57-4c54-b70f-d63b5a35fe7b
 
-## How can I edit this code?
+## Technologies
 
-There are several ways of editing your application.
+This project uses a modern tech stack focused on maintainability and scalability:
 
-**Use Lovable**
+- TypeScript for type safety
+- React 18 with Vite for fast development
+- Redux (@reduxjs/toolkit) for centralized state management
+- TanStack Query for server state and data fetching
+- shadcn/ui (Radix UI primitives) for accessible components
+- Tailwind CSS for styling
+- Supabase for backend services
+- AWS Amplify for deployment
 
-Simply visit the [Lovable Project](https://lovable.dev/projects/6d017fd8-0b57-4c54-b70f-d63b5a35fe7b) and start prompting.
+## State Management Guidelines
 
-Changes made via Lovable will be committed automatically to this repo.
+We use Redux as our primary state management solution. Here's what you need to know:
 
-**Use your preferred IDE**
+1. **Redux Store Organization**
+   - Feature-based slices (auth, tickets, users, etc.)
+   - Async operations via createAsyncThunk
+   - Strict TypeScript typing for actions and state
+   - Normalized state shape for relational data
 
-If you want to work locally using your own IDE, you can clone this repo and push changes. Pushed changes will also be reflected in Lovable.
+2. **When to Use Redux vs TanStack Query**
+   - Redux: Application state, shared business logic, UI state
+   - TanStack Query: Server state, data fetching, caching
+
+3. **Best Practices**
+   - Use Redux Toolkit's createSlice for reducers
+   - Implement memoized selectors for derived data
+   - Keep reducers pure and predictable
+   - Document state shape and actions
+
+## Getting Started
 
 The only requirement is having Node.js & npm installed - [install with nvm](https://github.com/nvm-sh/nvm#installing-and-updating)
 
-Follow these steps:
-
 ```sh
-# Step 1: Clone the repository using the project's Git URL.
+# Step 1: Clone the repository
 git clone <YOUR_GIT_URL>
 
-# Step 2: Navigate to the project directory.
+# Step 2: Navigate to the project directory
 cd <YOUR_PROJECT_NAME>
 
-# Step 3: Install the necessary dependencies.
+# Step 3: Install dependencies
 npm i
 
-# Step 4: Start the development server with auto-reloading and an instant preview.
+# Step 4: Start the development server
 npm run dev
 ```
 
-**Edit a file directly in GitHub**
+## Development Workflow
 
-- Navigate to the desired file(s).
-- Click the "Edit" button (pencil icon) at the top right of the file view.
-- Make your changes and commit the changes.
+You can edit this project in several ways:
+
+**Use Lovable**
+Visit the [Lovable Project](https://lovable.dev/projects/6d017fd8-0b57-4c54-b70f-d63b5a35fe7b) and start prompting.
+Changes made via Lovable will be committed automatically.
+
+**Use your preferred IDE**
+Clone the repo and push changes. Pushed changes will be reflected in Lovable.
+
+**Edit directly in GitHub**
+Navigate to files and use the "Edit" button (pencil icon).
 
 **Use GitHub Codespaces**
+Launch a new Codespace from the "Code" button in the repository.
 
-- Navigate to the main page of your repository.
-- Click on the "Code" button (green button) near the top right.
-- Select the "Codespaces" tab.
-- Click on "New codespace" to launch a new Codespace environment.
-- Edit files directly within the Codespace and commit and push your changes once you're done.
+## Deployment
 
-## What technologies are used for this project?
+Open [Lovable](https://lovable.dev/projects/6d017fd8-0b57-4c54-b70f-d63b5a35fe7b) and click on Share -> Publish.
 
-This project is built with .
-
-- Vite
-- TypeScript
-- React
-- shadcn-ui
-- Tailwind CSS
-
-## How can I deploy this project?
-
-Simply open [Lovable](https://lovable.dev/projects/6d017fd8-0b57-4c54-b70f-d63b5a35fe7b) and click on Share -> Publish.
-
-## I want to use a custom domain - is that possible?
-
-We don't support custom domains (yet). If you want to deploy your project under your own domain then we recommend using Netlify. Visit our docs for more details: [Custom domains](https://docs.lovable.dev/tips-tricks/custom-domain/)
+For custom domains, we recommend using Netlify. See our docs: [Custom domains](https://docs.lovable.dev/tips-tricks/custom-domain/)
