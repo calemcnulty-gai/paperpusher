@@ -15,6 +15,10 @@ import { Loader2 } from "lucide-react"
 import { CreateTicketModal } from "@/components/tickets/CreateTicketModal"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
 import { useToast } from "@/components/ui/use-toast"
+import { Database } from "@/integrations/supabase/types"
+
+type TicketStatus = Database['public']['Enums']['ticket_status']
+type TicketPriority = Database['public']['Enums']['ticket_priority']
 
 const fetchTickets = async () => {
   const { data, error } = await supabase
@@ -30,24 +34,24 @@ const fetchTickets = async () => {
   return data
 }
 
-const getStatusColor = (status: string) => {
+const getStatusColor = (status: TicketStatus) => {
   const colors = {
     open: "bg-blue-500",
     pending: "bg-yellow-500",
     resolved: "bg-green-500",
     closed: "bg-gray-500",
   }
-  return colors[status as keyof typeof colors] || "bg-gray-500"
+  return colors[status] || "bg-gray-500"
 }
 
-const getPriorityColor = (priority: string) => {
+const getPriorityColor = (priority: TicketPriority) => {
   const colors = {
     low: "bg-gray-500",
     medium: "bg-yellow-500",
     high: "bg-orange-500",
     urgent: "bg-red-500",
   }
-  return colors[priority as keyof typeof colors] || "bg-gray-500"
+  return colors[priority] || "bg-gray-500"
 }
 
 const Tickets = () => {
@@ -57,7 +61,7 @@ const Tickets = () => {
   })
   const { toast } = useToast()
 
-  const handleStatusChange = async (ticketId: string, newStatus: string) => {
+  const handleStatusChange = async (ticketId: string, newStatus: TicketStatus) => {
     try {
       const { error } = await supabase
         .from("tickets")
@@ -81,7 +85,7 @@ const Tickets = () => {
     }
   }
 
-  const handlePriorityChange = async (ticketId: string, newPriority: string) => {
+  const handlePriorityChange = async (ticketId: string, newPriority: TicketPriority) => {
     try {
       const { error } = await supabase
         .from("tickets")
@@ -142,7 +146,7 @@ const Tickets = () => {
                       {canEdit ? (
                         <Select
                           value={ticket.status}
-                          onValueChange={(value) => handleStatusChange(ticket.id, value)}
+                          onValueChange={(value) => handleStatusChange(ticket.id, value as TicketStatus)}
                         >
                           <SelectTrigger className="w-[120px]">
                             <SelectValue />
@@ -155,7 +159,7 @@ const Tickets = () => {
                           </SelectContent>
                         </Select>
                       ) : (
-                        <Badge className={`${getStatusColor(ticket.status)}`}>
+                        <Badge className={`${getStatusColor(ticket.status as TicketStatus)}`}>
                           {ticket.status}
                         </Badge>
                       )}
@@ -164,7 +168,7 @@ const Tickets = () => {
                       {canEdit ? (
                         <Select
                           value={ticket.priority}
-                          onValueChange={(value) => handlePriorityChange(ticket.id, value)}
+                          onValueChange={(value) => handlePriorityChange(ticket.id, value as TicketPriority)}
                         >
                           <SelectTrigger className="w-[120px]">
                             <SelectValue />
@@ -177,7 +181,7 @@ const Tickets = () => {
                           </SelectContent>
                         </Select>
                       ) : (
-                        <Badge className={`${getPriorityColor(ticket.priority)}`}>
+                        <Badge className={`${getPriorityColor(ticket.priority as TicketPriority)}`}>
                           {ticket.priority}
                         </Badge>
                       )}
