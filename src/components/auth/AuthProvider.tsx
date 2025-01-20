@@ -5,7 +5,7 @@ import { supabase } from "@/integrations/supabase/client"
 type Profile = {
   id: string
   full_name: string | null
-  role: string | null
+  role: string | null  // Explicitly mark as nullable
   email: string
 }
 
@@ -53,8 +53,14 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         throw error
       }
 
+      // Validate that we have the required fields, even if some are null
+      if (!data.id || !data.email) {
+        console.error("Invalid profile data:", data)
+        throw new Error("Invalid profile data")
+      }
+
       console.log("Profile data received:", data)
-      return data
+      return data as Profile
     } catch (error) {
       console.error("Exception in fetchProfile:", error)
       return null
