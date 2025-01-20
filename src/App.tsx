@@ -7,6 +7,7 @@ import { AuthProvider } from "@/components/auth/AuthProvider"
 import { RequireAuth } from "@/components/auth/RequireAuth"
 import Index from "./pages/Index"
 import Auth from "./pages/Auth"
+import Tickets from "./pages/Tickets"
 
 const queryClient = new QueryClient()
 
@@ -24,6 +25,14 @@ const App = () => (
               element={
                 <RequireAuth>
                   <Index />
+                </RequireAuth>
+              }
+            />
+            <Route
+              path="/tickets"
+              element={
+                <RequireAuth>
+                  <Tickets />
                 </RequireAuth>
               }
             />
