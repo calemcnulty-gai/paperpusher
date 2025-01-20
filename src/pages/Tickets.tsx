@@ -13,13 +13,15 @@ import { Badge } from "@/components/ui/badge"
 import { format } from "date-fns"
 import { Loader2 } from "lucide-react"
 import { CreateTicketModal } from "@/components/tickets/CreateTicketModal"
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
+import { useToast } from "@/components/ui/use-toast"
 
 const fetchTickets = async () => {
   const { data, error } = await supabase
     .from("tickets")
     .select(`
       *,
-      customer:profiles!tickets_customer_id_fkey(full_name),
+      customer:profiles!tickets_customer_id_fkey(full_name, role),
       assignee:profiles!tickets_assigned_to_fkey(full_name)
     `)
     .order("created_at", { ascending: false })
@@ -49,12 +51,63 @@ const getPriorityColor = (priority: string) => {
 }
 
 const Tickets = () => {
-  const { data: tickets, isLoading } = useQuery({
+  const { data: tickets, isLoading, refetch } = useQuery({
     queryKey: ["tickets"],
     queryFn: fetchTickets,
   })
+  const { toast } = useToast()
 
-  console.log("Tickets data:", tickets)
+  const handleStatusChange = async (ticketId: string, newStatus: string) => {
+    try {
+      const { error } = await supabase
+        .from("tickets")
+        .update({ status: newStatus })
+        .eq("id", ticketId)
+
+      if (error) throw error
+
+      toast({
+        title: "Success",
+        description: "Ticket status updated successfully",
+      })
+      refetch()
+    } catch (error) {
+      console.error("Error updating ticket status:", error)
+      toast({
+        variant: "destructive",
+        title: "Error",
+        description: "Failed to update ticket status",
+      })
+    }
+  }
+
+  const handlePriorityChange = async (ticketId: string, newPriority: string) => {
+    try {
+      const { error } = await supabase
+        .from("tickets")
+        .update({ priority: newPriority })
+        .eq("id", ticketId)
+
+      if (error) throw error
+
+      toast({
+        title: "Success",
+        description: "Ticket priority updated successfully",
+      })
+      refetch()
+    } catch (error) {
+      console.error("Error updating ticket priority:", error)
+      toast({
+        variant: "destructive",
+        title: "Error",
+        description: "Failed to update ticket priority",
+      })
+    }
+  }
+
+  const isAgent = tickets?.[0]?.customer?.role === 'agent'
+  const isAdmin = tickets?.[0]?.customer?.role === 'admin'
+  const canEdit = isAgent || isAdmin
 
   return (
     <MainLayout>
@@ -86,14 +139,48 @@ const Tickets = () => {
                   <TableRow key={ticket.id}>
                     <TableCell className="font-medium">{ticket.subject}</TableCell>
                     <TableCell>
-                      <Badge className={`${getStatusColor(ticket.status)}`}>
-                        {ticket.status}
-                      </Badge>
+                      {canEdit ? (
+                        <Select
+                          value={ticket.status}
+                          onValueChange={(value) => handleStatusChange(ticket.id, value)}
+                        >
+                          <SelectTrigger className="w-[120px]">
+                            <SelectValue />
+                          </SelectTrigger>
+                          <SelectContent>
+                            <SelectItem value="open">Open</SelectItem>
+                            <SelectItem value="pending">Pending</SelectItem>
+                            <SelectItem value="resolved">Resolved</SelectItem>
+                            <SelectItem value="closed">Closed</SelectItem>
+                          </SelectContent>
+                        </Select>
+                      ) : (
+                        <Badge className={`${getStatusColor(ticket.status)}`}>
+                          {ticket.status}
+                        </Badge>
+                      )}
                     </TableCell>
                     <TableCell>
-                      <Badge className={`${getPriorityColor(ticket.priority)}`}>
-                        {ticket.priority}
-                      </Badge>
+                      {canEdit ? (
+                        <Select
+                          value={ticket.priority}
+                          onValueChange={(value) => handlePriorityChange(ticket.id, value)}
+                        >
+                          <SelectTrigger className="w-[120px]">
+                            <SelectValue />
+                          </SelectTrigger>
+                          <SelectContent>
+                            <SelectItem value="low">Low</SelectItem>
+                            <SelectItem value="medium">Medium</SelectItem>
+                            <SelectItem value="high">High</SelectItem>
+                            <SelectItem value="urgent">Urgent</SelectItem>
+                          </SelectContent>
+                        </Select>
+                      ) : (
+                        <Badge className={`${getPriorityColor(ticket.priority)}`}>
+                          {ticket.priority}
+                        </Badge>
+                      )}
                     </TableCell>
                     <TableCell>{ticket.customer?.full_name}</TableCell>
                     <TableCell>{ticket.assignee?.full_name || "Unassigned"}</TableCell>
