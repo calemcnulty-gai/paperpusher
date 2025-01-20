@@ -5,7 +5,7 @@ import { ThemeSupa } from "@supabase/auth-ui-shared"
 import { supabase } from "@/integrations/supabase/client"
 import { Alert, AlertDescription } from "@/components/ui/alert"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
-import { useToast } from "@/components/ui/use-toast"
+import { useToast } from "@/hooks/use-toast"
 
 const Auth = () => {
   const navigate = useNavigate()
@@ -74,7 +74,7 @@ const Auth = () => {
             }}
             providers={["google", "github"]}
             redirectTo={window.location.origin}
-            view="magic_link"
+            view="sign_in"
             showLinks={true}
           />
         </CardContent>
