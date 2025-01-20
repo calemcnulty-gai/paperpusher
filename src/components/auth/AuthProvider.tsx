@@ -23,7 +23,6 @@ const AuthContext = createContext<AuthContextType>({
   loading: true,
 })
 
-// Separate hook declaration from export
 function useAuth() {
   const context = useContext(AuthContext)
   if (context === undefined) {
@@ -40,26 +39,18 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   const [profile, setProfile] = useState<Profile | null>(null)
   const [loading, setLoading] = useState(true)
 
-  // Fetch profile data
   const fetchProfile = async (userId: string) => {
     console.log("Fetching profile for user:", userId)
     try {
-      const { data, error, status } = await supabase
+      const { data, error } = await supabase
         .from("profiles")
-        .select("*")
+        .select("id, full_name, role, email")
         .eq("id", userId)
-        .maybeSingle()
-
-      console.log("Profile fetch response:", { data, error, status })
+        .single()
 
       if (error) {
         console.error("Error fetching profile:", error)
-        return null
-      }
-
-      if (!data) {
-        console.log("No profile found for user:", userId)
-        return null
+        throw error
       }
 
       console.log("Profile data received:", data)
@@ -73,27 +64,28 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   useEffect(() => {
     let mounted = true
 
-    // Get initial session
     const initializeAuth = async () => {
       try {
         console.log("Initializing auth...")
-        const { data: { session }, error } = await supabase.auth.getSession()
+        const { data: { session: currentSession }, error: sessionError } = await supabase.auth.getSession()
         
-        if (error) {
-          console.error("Error getting session:", error)
+        if (sessionError) {
+          console.error("Error getting session:", sessionError)
           return
         }
 
         if (!mounted) return
 
-        console.log("Session retrieved:", session)
-        setSession(session)
-        setUser(session?.user ?? null)
+        console.log("Session retrieved:", currentSession)
         
-        if (session?.user) {
-          const profile = await fetchProfile(session.user.id)
-          if (mounted) {
-            setProfile(profile)
+        if (currentSession?.user) {
+          setSession(currentSession)
+          setUser(currentSession.user)
+          
+          const userProfile = await fetchProfile(currentSession.user.id)
+          if (mounted && userProfile) {
+            console.log("Setting profile:", userProfile)
+            setProfile(userProfile)
           }
         }
       } catch (error) {
@@ -107,21 +99,23 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
 
     initializeAuth()
 
-    // Listen for auth changes
     const {
       data: { subscription },
-    } = supabase.auth.onAuthStateChange(async (event, session) => {
-      console.log("Auth state changed:", event, session)
+    } = supabase.auth.onAuthStateChange(async (event, currentSession) => {
+      console.log("Auth state changed:", event, currentSession)
       
       if (!mounted) return
 
-      setSession(session)
-      setUser(session?.user ?? null)
+      setSession(currentSession)
+      setUser(currentSession?.user ?? null)
       
-      if (session?.user) {
-        const profile = await fetchProfile(session.user.id)
-        if (mounted) {
-          setProfile(profile)
+      if (currentSession?.user) {
+        const userProfile = await fetchProfile(currentSession.user.id)
+        if (mounted && userProfile) {
+          console.log("Setting profile after auth change:", userProfile)
+          setProfile(userProfile)
+        } else {
+          setProfile(null)
         }
       } else {
         setProfile(null)
