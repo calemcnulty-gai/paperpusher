@@ -35,6 +35,16 @@ export function TicketDetailsModal({ ticket, isOpen, onClose, canReply }: Ticket
   const handleSubmitReply = async () => {
     if (!ticket || !reply.trim()) return
 
+    const { data: { user } } = await supabase.auth.getUser()
+    if (!user) {
+      toast({
+        variant: "destructive",
+        title: "Error",
+        description: "You must be logged in to reply",
+      })
+      return
+    }
+
     setIsSubmitting(true)
     try {
       const { error } = await supabase
@@ -42,7 +52,8 @@ export function TicketDetailsModal({ ticket, isOpen, onClose, canReply }: Ticket
         .insert({
           ticket_id: ticket.id,
           message: reply.trim(),
-          is_internal: false
+          is_internal: false,
+          sender_id: user.id
         })
 
       if (error) throw error
