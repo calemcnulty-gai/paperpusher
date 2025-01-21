@@ -7,6 +7,12 @@ import { QueryClient } from "@tanstack/react-query"
 // Create a singleton QueryClient instance
 const queryClient = new QueryClient()
 
+interface TeamMemberPayload {
+  team_id: string
+  user_id: string
+  role: string
+}
+
 export const setupRealtimeSubscriptions = () => {
   return async (dispatch: AppDispatch) => {
     console.log("Setting up realtime subscriptions...")
@@ -19,11 +25,17 @@ export const setupRealtimeSubscriptions = () => {
         (payload) => {
           console.log('Team members change received:', payload)
           if (payload.eventType === 'INSERT') {
-            dispatch(addTeamMember(payload.new))
+            const newMember = payload.new as TeamMemberPayload
+            dispatch(addTeamMember({
+              teamId: newMember.team_id,
+              userId: newMember.user_id,
+              role: newMember.role
+            }))
           } else if (payload.eventType === 'DELETE') {
+            const oldMember = payload.old as TeamMemberPayload
             dispatch(removeTeamMember({
-              teamId: payload.old.team_id,
-              userId: payload.old.user_id
+              teamId: oldMember.team_id,
+              userId: oldMember.user_id
             }))
           }
         }

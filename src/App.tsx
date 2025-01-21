@@ -4,7 +4,7 @@ import { TooltipProvider } from "@/components/ui/tooltip"
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query"
 import { BrowserRouter, Routes, Route } from "react-router-dom"
 import { Provider } from "react-redux"
-import { store } from "@/store"
+import { store, AppDispatch } from "@/store"
 import { AuthProvider } from "@/components/auth/AuthProvider"
 import { RequireAuth } from "@/components/auth/RequireAuth"
 import { useEffect } from "react"
@@ -21,7 +21,7 @@ import TeamMembers from "./pages/TeamMembers"
 const queryClient = new QueryClient()
 
 const AppContent = () => {
-  const dispatch = useDispatch()
+  const dispatch = useDispatch<AppDispatch>()
 
   useEffect(() => {
     dispatch(setupRealtimeSubscriptions())
