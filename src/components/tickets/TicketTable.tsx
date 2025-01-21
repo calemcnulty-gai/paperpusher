@@ -37,12 +37,7 @@ export function TicketTable({ tickets, isLoading, canEdit }: TicketTableProps) {
   const dispatch = useDispatch<AppDispatch>()
   const profiles = useSelector((state: RootState) => state.profiles.profiles)
   const agents = profiles
-    .filter(profile => profile.role === 'agent' || profile.role === 'admin')
-    .map(profile => ({
-      ...profile,
-      created_at: profile.created_at || new Date().toISOString(),
-      updated_at: profile.updated_at || new Date().toISOString()
-    })) as Profile[]
+    .filter(profile => profile.role === 'agent' || profile.role === 'admin') as Profile[]
   
   useEffect(() => {
     console.log("Dispatching fetchProfiles")
