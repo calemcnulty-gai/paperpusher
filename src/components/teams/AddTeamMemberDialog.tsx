@@ -1,6 +1,5 @@
 import { useState } from "react"
 import { useDispatch } from "react-redux"
-import { useParams } from "react-router-dom"
 import { AppDispatch } from "@/store"
 import { addTeamMember } from "@/store/teamsSlice"
 import { Profile } from "@/types/profiles"
@@ -24,10 +23,10 @@ export interface AddTeamMemberDialogProps {
   isOpen: boolean
   onClose: () => void
   availableUsers: Profile[]
+  teamId: string
 }
 
-export function AddTeamMemberDialog({ isOpen, onClose, availableUsers }: AddTeamMemberDialogProps) {
-  const { teamId } = useParams<{ teamId: string }>()
+export function AddTeamMemberDialog({ isOpen, onClose, availableUsers, teamId }: AddTeamMemberDialogProps) {
   const dispatch = useDispatch<AppDispatch>()
   const [selectedUserId, setSelectedUserId] = useState<string>("")
   const [role, setRole] = useState<string>("member")

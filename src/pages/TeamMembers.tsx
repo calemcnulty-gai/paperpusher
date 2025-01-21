@@ -1,17 +1,19 @@
 import { useEffect, useState } from "react"
-import { useParams } from "react-router-dom"
+import { useParams, useNavigate } from "react-router-dom"
 import { supabase } from "@/integrations/supabase/client"
 import { useQuery } from "@tanstack/react-query"
 import { Profile } from "@/types/profiles"
 import { AddTeamMemberDialog } from "@/components/teams/AddTeamMemberDialog"
 import { TeamMembersList } from "@/components/teams/TeamMembersList"
 import { Button } from "@/components/ui/button"
-import { Loader2, UserPlus } from "lucide-react"
+import { Loader2, UserPlus, ArrowLeft } from "lucide-react"
 import { useToast } from "@/components/ui/use-toast"
 import { TeamMember } from "@/store/teamsSlice"
+import { MainLayout } from "@/components/layout/MainLayout"
 
 const TeamMembers = () => {
   const { teamId } = useParams<{ teamId: string }>()
+  const navigate = useNavigate()
   const [isAddMemberOpen, setIsAddMemberOpen] = useState(false)
   const { toast } = useToast()
 
@@ -117,40 +119,54 @@ const TeamMembers = () => {
   })
 
   if (!teamId) {
-    return <div>Team ID is required</div>
+    return (
+      <MainLayout>
+        <div>Team ID is required</div>
+      </MainLayout>
+    )
   }
 
   const isLoading = loadingTeamMembers || loadingProfiles || loadingAvailableUsers
 
   return (
-    <div className="container mx-auto py-6">
-      <div className="flex justify-between items-center mb-6">
-        <h1 className="text-2xl font-bold">{team?.name} - Team Members</h1>
-        <Button onClick={() => setIsAddMemberOpen(true)}>
-          <UserPlus className="w-4 h-4 mr-2" />
-          Add Member
-        </Button>
-      </div>
-
-      {isLoading ? (
-        <div className="flex justify-center">
-          <Loader2 className="h-8 w-8 animate-spin" />
+    <MainLayout>
+      <div className="space-y-6">
+        <div className="flex items-center gap-4">
+          <Button variant="ghost" onClick={() => navigate('/teams')}>
+            <ArrowLeft className="h-4 w-4 mr-2" />
+            Back to Teams
+          </Button>
+          <h1 className="text-2xl font-bold">{team?.name}</h1>
         </div>
-      ) : (
-        <>
-          <TeamMembersList 
-            teamMembers={teamMembers} 
-            profiles={profiles}
-          />
-          
-          <AddTeamMemberDialog 
-            isOpen={isAddMemberOpen}
-            onClose={() => setIsAddMemberOpen(false)}
-            availableUsers={availableUsers}
-          />
-        </>
-      )}
-    </div>
+
+        <div className="flex justify-end">
+          <Button onClick={() => setIsAddMemberOpen(true)}>
+            <UserPlus className="w-4 h-4 mr-2" />
+            Add Member
+          </Button>
+        </div>
+
+        {isLoading ? (
+          <div className="flex justify-center">
+            <Loader2 className="h-8 w-8 animate-spin" />
+          </div>
+        ) : (
+          <>
+            <TeamMembersList 
+              teamMembers={teamMembers} 
+              profiles={profiles}
+            />
+            
+            <AddTeamMemberDialog 
+              isOpen={isAddMemberOpen}
+              onClose={() => setIsAddMemberOpen(false)}
+              availableUsers={availableUsers}
+              teamId={teamId}
+            />
+          </>
+        )}
+      </div>
+    </MainLayout>
   )
 }
 
