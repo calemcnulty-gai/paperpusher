@@ -38,7 +38,10 @@ export function TicketRow({
   onClick 
 }: TicketRowProps) {
   return (
-    <TableRow>
+    <TableRow 
+      className="cursor-pointer hover:bg-muted/50" 
+      onClick={onClick}
+    >
       <TableCell className="font-medium">{ticket.subject}</TableCell>
       <TicketStatusCell
         status={ticket.status}
@@ -67,7 +70,10 @@ export function TicketRow({
         <Button 
           variant="outline" 
           size="sm"
-          onClick={onClick}
+          onClick={(e) => {
+            e.stopPropagation()
+            onClick()
+          }}
         >
           Manage
         </Button>
