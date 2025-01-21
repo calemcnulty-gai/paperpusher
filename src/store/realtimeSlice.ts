@@ -24,6 +24,7 @@ export const setupRealtimeSubscriptions = () => {
         { event: '*', schema: 'public', table: 'team_members' },
         (payload) => {
           console.log('Team members change received:', payload)
+          
           if (payload.eventType === 'INSERT') {
             const newMember = payload.new as TeamMemberPayload
             dispatch(addTeamMember({
@@ -33,10 +34,15 @@ export const setupRealtimeSubscriptions = () => {
             }))
           } else if (payload.eventType === 'DELETE') {
             const oldMember = payload.old as TeamMemberPayload
+            console.log('Deleting team member:', oldMember)
             dispatch(removeTeamMember({
               teamId: oldMember.team_id,
               userId: oldMember.user_id
             }))
+            // Invalidate the team members query for the specific team
+            queryClient.invalidateQueries({ 
+              queryKey: ['team-members', oldMember.team_id] 
+            })
           }
         }
       )

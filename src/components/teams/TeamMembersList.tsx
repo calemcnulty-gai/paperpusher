@@ -6,6 +6,7 @@ import { useDispatch } from "react-redux"
 import { removeTeamMember } from "@/store/teamsSlice"
 import { useParams } from "react-router-dom"
 import { AppDispatch } from "@/store"
+import { useQueryClient } from "@tanstack/react-query"
 
 interface TeamMembersListProps {
   teamMembers: TeamMember[]
@@ -16,12 +17,18 @@ export function TeamMembersList({ teamMembers, profiles }: TeamMembersListProps)
   const { teamId } = useParams()
   const { toast } = useToast()
   const dispatch = useDispatch<AppDispatch>()
+  const queryClient = useQueryClient()
 
   const handleRemoveMember = async (userId: string) => {
     if (!teamId) return
 
     try {
+      console.log("Removing team member:", { teamId, userId })
       await dispatch(removeTeamMember({ teamId, userId })).unwrap()
+      
+      // Invalidate the team members query to trigger a refresh
+      queryClient.invalidateQueries({ queryKey: ["team-members", teamId] })
+      
       toast({
         title: "Team member removed",
         description: "The user has been removed from the team.",
