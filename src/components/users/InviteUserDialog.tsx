@@ -71,23 +71,7 @@ export function InviteUserDialog({ open, onOpenChange }: InviteUserDialogProps) 
       setIsLoading(true)
       console.log("Sending invitation:", values)
 
-      // Get current user's ID
-      const { data: { user } } = await supabase.auth.getUser()
-      if (!user) throw new Error("Not authenticated")
-
-      // Create invitation record
-      const { error: inviteError } = await supabase
-        .from("invitations")
-        .insert({
-          email: values.email,
-          role: values.role,
-          team_id: values.teamId,
-          invited_by: user.id,
-        })
-
-      if (inviteError) throw inviteError
-
-      // Send invitation email via edge function
+      // Send invitation via edge function
       const { error: emailError } = await supabase.functions.invoke(
         "send-invitation",
         {
