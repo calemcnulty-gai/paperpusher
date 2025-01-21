@@ -3,9 +3,9 @@ import { useQuery } from "@tanstack/react-query"
 import { supabase } from "@/integrations/supabase/client"
 import { Loader2 } from "lucide-react"
 import { DataTable } from "@/components/ui/data-table"
-import { Button } from "@/components/ui/button"
-import { useToast } from "@/components/ui/use-toast"
+import { useToast } from "@/hooks/use-toast"
 import { columns } from "@/components/projects/ProjectColumns"
+import { CreateProjectModal } from "@/components/projects/CreateProjectModal"
 
 const Projects = () => {
   const { toast } = useToast()
@@ -35,7 +35,7 @@ const Projects = () => {
       <div className="space-y-4">
         <div className="flex justify-between items-center">
           <h1 className="text-2xl font-bold">Projects</h1>
-          <Button>Create Project</Button>
+          <CreateProjectModal />
         </div>
 
         {isLoading ? (
