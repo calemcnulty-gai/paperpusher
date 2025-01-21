@@ -1,42 +1,21 @@
-import { useEffect, useState } from "react"
+import { useState } from "react"
 import { useParams, useNavigate } from "react-router-dom"
-import { supabase } from "@/integrations/supabase/client"
 import { useQuery } from "@tanstack/react-query"
+import { supabase } from "@/integrations/supabase/client"
 import { Profile } from "@/types/profiles"
 import { AddTeamMemberDialog } from "@/components/teams/AddTeamMemberDialog"
 import { TeamMembersList } from "@/components/teams/TeamMembersList"
 import { Button } from "@/components/ui/button"
 import { Loader2, UserPlus, ArrowLeft } from "lucide-react"
-import { useToast } from "@/components/ui/use-toast"
-import { TeamMember } from "@/store/teamsSlice"
 import { MainLayout } from "@/components/layout/MainLayout"
+import { useTeamMembers } from "@/hooks/useTeamMembers"
 
 const TeamMembers = () => {
   const { teamId } = useParams<{ teamId: string }>()
   const navigate = useNavigate()
   const [isAddMemberOpen, setIsAddMemberOpen] = useState(false)
-  const { toast } = useToast()
 
-  const { data: teamMembers = [], isLoading: loadingTeamMembers } = useQuery({
-    queryKey: ["team-members", teamId],
-    queryFn: async () => {
-      if (!teamId) return []
-      
-      console.log("Fetching team members for team:", teamId)
-      const { data: members, error } = await supabase
-        .from('team_members')
-        .select('*')
-        .eq('team_id', teamId)
-      
-      if (error) {
-        console.error("Error fetching team members:", error)
-        throw error
-      }
-      console.log("Fetched team members:", members)
-      return members as TeamMember[]
-    },
-    enabled: !!teamId
-  })
+  const { data: teamMembers = [], isLoading: loadingTeamMembers } = useTeamMembers(teamId)
 
   const { data: profiles = {}, isLoading: loadingProfiles } = useQuery({
     queryKey: ["profiles"],

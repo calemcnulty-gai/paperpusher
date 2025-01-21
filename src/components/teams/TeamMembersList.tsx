@@ -1,13 +1,7 @@
 import { TeamMember } from "@/store/teamsSlice"
 import { Profile } from "@/types/profiles"
-import { Button } from "@/components/ui/button"
-import { useToast } from "@/components/ui/use-toast"
-import { useDispatch } from "react-redux"
-import { removeTeamMember } from "@/store/teamsSlice"
+import { TeamMemberActions } from "./TeamMemberActions"
 import { useParams } from "react-router-dom"
-import { AppDispatch } from "@/store"
-import { useQueryClient } from "@tanstack/react-query"
-import { supabase } from "@/integrations/supabase/client"
 
 interface TeamMembersListProps {
   teamMembers: TeamMember[]
@@ -16,47 +10,8 @@ interface TeamMembersListProps {
 
 export function TeamMembersList({ teamMembers, profiles }: TeamMembersListProps) {
   const { teamId } = useParams()
-  const { toast } = useToast()
-  const dispatch = useDispatch<AppDispatch>()
-  const queryClient = useQueryClient()
 
-  const handleRemoveMember = async (userId: string) => {
-    if (!teamId) return
-
-    try {
-      console.log("Removing team member:", { teamId, userId })
-      
-      // First, delete from Supabase
-      const { error } = await supabase
-        .from('team_members')
-        .delete()
-        .eq('team_id', teamId)
-        .eq('user_id', userId)
-
-      if (error) {
-        console.error("Supabase error removing team member:", error)
-        throw error
-      }
-
-      // Then update Redux store
-      await dispatch(removeTeamMember({ teamId, userId })).unwrap()
-      
-      // Invalidate the team members query to trigger a refresh
-      queryClient.invalidateQueries({ queryKey: ["team-members", teamId] })
-      
-      toast({
-        title: "Team member removed",
-        description: "The user has been removed from the team.",
-      })
-    } catch (error) {
-      console.error("Error removing team member:", error)
-      toast({
-        variant: "destructive",
-        title: "Error",
-        description: "Failed to remove team member. Please try again.",
-      })
-    }
-  }
+  if (!teamId) return null
 
   return (
     <div className="space-y-4">
@@ -86,13 +41,10 @@ export function TeamMembersList({ teamMembers, profiles }: TeamMembersListProps)
                   <span className="capitalize">{member.role}</span>
                 </div>
                 <div className="flex justify-end">
-                  <Button
-                    variant="destructive"
-                    size="sm"
-                    onClick={() => handleRemoveMember(member.user_id)}
-                  >
-                    Remove
-                  </Button>
+                  <TeamMemberActions 
+                    teamId={teamId} 
+                    userId={member.user_id}
+                  />
                 </div>
               </div>
             )
