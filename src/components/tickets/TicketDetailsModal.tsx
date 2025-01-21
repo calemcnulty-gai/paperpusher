@@ -2,7 +2,7 @@ import { useState } from "react"
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from "@/components/ui/dialog"
 import { useToast } from "@/components/ui/use-toast"
 import { supabase } from "@/integrations/supabase/client"
-import { useQuery } from "@tanstack/react-query"
+import { useQuery, useQueryClient } from "@tanstack/react-query"
 import { TicketMessageList } from "./TicketMessageList"
 import { TicketReplyForm } from "./TicketReplyForm"
 import { TicketMetadata } from "./TicketMetadata"
@@ -21,6 +21,7 @@ export function TicketDetailsModal({ ticket, isOpen, onClose, canReply }: Ticket
   const [isSubmitting, setIsSubmitting] = useState(false)
   const [status, setStatus] = useState<TicketStatus | null>(null)
   const [priority, setPriority] = useState<TicketPriority | null>(null)
+  const queryClient = useQueryClient()
 
   // Fetch available projects
   const { data: projects } = useQuery({
@@ -92,6 +93,7 @@ export function TicketDetailsModal({ ticket, isOpen, onClose, canReply }: Ticket
       })
       
       setReply("")
+      queryClient.invalidateQueries({ queryKey: ["ticket-messages", ticket.id] })
     } catch (error) {
       console.error("Error sending reply:", error)
       toast({
@@ -119,6 +121,7 @@ export function TicketDetailsModal({ ticket, isOpen, onClose, canReply }: Ticket
         title: "Success",
         description: "Ticket status updated successfully",
       })
+      queryClient.invalidateQueries({ queryKey: ["tickets"] })
     } catch (error) {
       console.error("Error updating ticket status:", error)
       toast({
@@ -144,6 +147,7 @@ export function TicketDetailsModal({ ticket, isOpen, onClose, canReply }: Ticket
         title: "Success",
         description: "Ticket priority updated successfully",
       })
+      queryClient.invalidateQueries({ queryKey: ["tickets"] })
     } catch (error) {
       console.error("Error updating ticket priority:", error)
       toast({
@@ -168,6 +172,7 @@ export function TicketDetailsModal({ ticket, isOpen, onClose, canReply }: Ticket
         title: "Success",
         description: "Ticket project updated successfully",
       })
+      queryClient.invalidateQueries({ queryKey: ["tickets"] })
     } catch (error) {
       console.error("Error updating ticket project:", error)
       toast({
