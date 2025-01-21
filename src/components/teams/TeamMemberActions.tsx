@@ -18,21 +18,22 @@ export function TeamMemberActions({ teamId, userId }: TeamMemberActionsProps) {
 
   const handleRemoveMember = async () => {
     try {
-      console.log("Removing team member:", { teamId, userId })
+      console.log("Soft deleting team member:", { teamId, userId })
       
-      // First, delete from Supabase
+      // Update Supabase with soft delete
       const { error } = await supabase
         .from('team_members')
-        .delete()
+        .update({ deleted_at: new Date().toISOString() })
         .eq('team_id', teamId)
         .eq('user_id', userId)
+        .is('deleted_at', null)
 
       if (error) {
         console.error("Supabase error removing team member:", error)
         throw error
       }
 
-      // Then update Redux store
+      // Update Redux store
       await dispatch(removeTeamMember({ teamId, userId })).unwrap()
       
       // Invalidate the team members query to trigger a refresh

@@ -20,40 +20,71 @@ export function useAddTeamMember(teamId: string, onClose: () => void) {
     try {
       console.log("Adding team member:", { teamId, userId: selectedUserId, role })
       
-      // First, add to Supabase
-      const { data, error } = await supabase
+      // Check if member exists but is soft deleted
+      const { data: existingMember, error: checkError } = await supabase
         .from('team_members')
-        .insert({
-          team_id: teamId,
-          user_id: selectedUserId,
-          role,
-        })
-        .select()
+        .select('*')
+        .eq('team_id', teamId)
+        .eq('user_id', selectedUserId)
         .single()
 
-      if (error) {
-        console.error("Supabase error adding team member:", error)
-        
-        // Handle the specific duplicate member error
-        if (error?.code === "23505") {
-          toast({
-            variant: "destructive",
-            title: "Error",
-            description: "This user is already a member of the team.",
+      if (checkError && checkError.code !== 'PGRST116') {
+        console.error("Error checking existing member:", checkError)
+        throw checkError
+      }
+
+      let data
+      if (existingMember?.deleted_at) {
+        // Reactivate soft-deleted member
+        const { data: reactivated, error: updateError } = await supabase
+          .from('team_members')
+          .update({ 
+            role,
+            deleted_at: null 
           })
-        } else {
-          toast({
-            variant: "destructive",
-            title: "Error",
-            description: "Failed to add team member. Please try again.",
+          .eq('team_id', teamId)
+          .eq('user_id', selectedUserId)
+          .select()
+          .single()
+
+        if (updateError) throw updateError
+        data = reactivated
+      } else {
+        // Add new member
+        const { data: newMember, error: insertError } = await supabase
+          .from('team_members')
+          .insert({
+            team_id: teamId,
+            user_id: selectedUserId,
+            role,
           })
+          .select()
+          .single()
+
+        if (insertError) {
+          console.error("Error adding team member:", insertError)
+          
+          if (insertError.code === "23505") {
+            toast({
+              variant: "destructive",
+              title: "Error",
+              description: "This user is already a member of the team.",
+            })
+          } else {
+            toast({
+              variant: "destructive",
+              title: "Error",
+              description: "Failed to add team member. Please try again.",
+            })
+          }
+          return
         }
-        return
+        data = newMember
       }
 
       console.log("Team member added to Supabase:", data)
 
-      // Then update Redux store
+      // Update Redux store
       await dispatch(addTeamMember({
         teamId,
         userId: selectedUserId,

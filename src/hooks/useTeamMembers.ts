@@ -55,6 +55,7 @@ export const useTeamMembers = (teamId: string | undefined) => {
         .from('team_members')
         .select('*')
         .eq('team_id', teamId)
+        .is('deleted_at', null)
       
       if (error) {
         console.error("Error fetching team members:", error)
