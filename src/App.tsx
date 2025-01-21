@@ -7,6 +7,9 @@ import { Provider } from "react-redux"
 import { store } from "@/store"
 import { AuthProvider } from "@/components/auth/AuthProvider"
 import { RequireAuth } from "@/components/auth/RequireAuth"
+import { useEffect } from "react"
+import { useDispatch } from "react-redux"
+import { setupRealtimeSubscriptions } from "@/store/realtimeSlice"
 import Index from "./pages/Index"
 import Auth from "./pages/Auth"
 import Tickets from "./pages/Tickets"
@@ -17,6 +20,70 @@ import TeamMembers from "./pages/TeamMembers"
 
 const queryClient = new QueryClient()
 
+const AppContent = () => {
+  const dispatch = useDispatch()
+
+  useEffect(() => {
+    dispatch(setupRealtimeSubscriptions())
+  }, [dispatch])
+
+  return (
+    <BrowserRouter>
+      <Routes>
+        <Route path="/auth" element={<Auth />} />
+        <Route
+          path="/"
+          element={
+            <RequireAuth>
+              <Index />
+            </RequireAuth>
+          }
+        />
+        <Route
+          path="/tickets"
+          element={
+            <RequireAuth>
+              <Tickets />
+            </RequireAuth>
+          }
+        />
+        <Route
+          path="/customers"
+          element={
+            <RequireAuth>
+              <Customers />
+            </RequireAuth>
+          }
+        />
+        <Route
+          path="/teams"
+          element={
+            <RequireAuth>
+              <Teams />
+            </RequireAuth>
+          }
+        />
+        <Route
+          path="/teams/:teamId/members"
+          element={
+            <RequireAuth>
+              <TeamMembers />
+            </RequireAuth>
+          }
+        />
+        <Route
+          path="/projects"
+          element={
+            <RequireAuth>
+              <Projects />
+            </RequireAuth>
+          }
+        />
+      </Routes>
+    </BrowserRouter>
+  )
+}
+
 const App = () => (
   <Provider store={store}>
     <QueryClientProvider client={queryClient}>
@@ -24,59 +91,7 @@ const App = () => (
         <AuthProvider>
           <Toaster />
           <Sonner />
-          <BrowserRouter>
-            <Routes>
-              <Route path="/auth" element={<Auth />} />
-              <Route
-                path="/"
-                element={
-                  <RequireAuth>
-                    <Index />
-                  </RequireAuth>
-                }
-              />
-              <Route
-                path="/tickets"
-                element={
-                  <RequireAuth>
-                    <Tickets />
-                  </RequireAuth>
-                }
-              />
-              <Route
-                path="/customers"
-                element={
-                  <RequireAuth>
-                    <Customers />
-                  </RequireAuth>
-                }
-              />
-              <Route
-                path="/teams"
-                element={
-                  <RequireAuth>
-                    <Teams />
-                  </RequireAuth>
-                }
-              />
-              <Route
-                path="/teams/:teamId/members"
-                element={
-                  <RequireAuth>
-                    <TeamMembers />
-                  </RequireAuth>
-                }
-              />
-              <Route
-                path="/projects"
-                element={
-                  <RequireAuth>
-                    <Projects />
-                  </RequireAuth>
-                }
-              />
-            </Routes>
-          </BrowserRouter>
+          <AppContent />
         </AuthProvider>
       </TooltipProvider>
     </QueryClientProvider>
