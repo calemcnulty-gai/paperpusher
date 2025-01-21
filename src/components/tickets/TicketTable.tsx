@@ -11,7 +11,7 @@ import { fetchProfiles } from "@/store/profilesSlice"
 import { AppDispatch } from "@/store"
 import { TicketTableHeader } from "./TicketTableHeader"
 import { TicketRow } from "./TicketRow"
-import { format } from "date-fns"
+import { Profile } from "@/types/profiles"
 
 type Ticket = {
   id: string
@@ -42,7 +42,7 @@ export function TicketTable({ tickets, isLoading, canEdit }: TicketTableProps) {
       ...profile,
       created_at: profile.created_at || new Date().toISOString(),
       updated_at: profile.updated_at || new Date().toISOString()
-    }))
+    })) as Profile[]
   
   useEffect(() => {
     console.log("Dispatching fetchProfiles")
