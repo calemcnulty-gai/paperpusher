@@ -19,6 +19,8 @@ serve(async (req) => {
   }
 
   try {
+    console.log('Starting invitation process...')
+    
     const supabaseClient = createClient(
       Deno.env.get('SUPABASE_URL') ?? '',
       Deno.env.get('SUPABASE_SERVICE_ROLE_KEY') ?? ''
@@ -26,17 +28,21 @@ serve(async (req) => {
 
     // Get request body
     const { email, role, teamId }: InvitationRequest = await req.json()
+    console.log('Received request:', { email, role, teamId })
 
     // Get current user from auth header
     const authHeader = req.headers.get('Authorization')?.split('Bearer ')[1]
     if (!authHeader) {
+      console.error('No authorization header found')
       throw new Error('No authorization header')
     }
 
     const { data: { user: inviter }, error: userError } = await supabaseClient.auth.getUser(authHeader)
     if (userError || !inviter) {
+      console.error('Error getting user:', userError)
       throw new Error('Error getting user')
     }
+    console.log('Inviter found:', inviter.id)
 
     // Create invitation record
     const { data: invitation, error: inviteError } = await supabaseClient
@@ -54,15 +60,25 @@ serve(async (req) => {
       console.error('Error creating invitation:', inviteError)
       throw new Error('Error creating invitation')
     }
+    console.log('Invitation created:', invitation)
 
     // Send invitation email using Resend
     const RESEND_API_KEY = Deno.env.get('RESEND_API_KEY')
     if (!RESEND_API_KEY) {
+      console.error('Missing RESEND_API_KEY')
       throw new Error('Missing RESEND_API_KEY')
     }
 
-    const signUpUrl = `${Deno.env.get('PUBLIC_SITE_URL')}/auth?invitation=${invitation.id}`
+    const PUBLIC_SITE_URL = Deno.env.get('PUBLIC_SITE_URL')
+    if (!PUBLIC_SITE_URL) {
+      console.error('Missing PUBLIC_SITE_URL')
+      throw new Error('Missing PUBLIC_SITE_URL')
+    }
+
+    const signUpUrl = `${PUBLIC_SITE_URL}/auth?invitation=${invitation.id}`
+    console.log('Generated signup URL:', signUpUrl)
     
+    console.log('Sending email via Resend...')
     const emailResponse = await fetch('https://api.resend.com/emails', {
       method: 'POST',
       headers: {
@@ -84,9 +100,13 @@ serve(async (req) => {
     })
 
     if (!emailResponse.ok) {
-      console.error('Error sending email:', await emailResponse.text())
-      throw new Error('Error sending invitation email')
+      const errorText = await emailResponse.text()
+      console.error('Resend API error:', errorText)
+      throw new Error(`Error sending invitation email: ${errorText}`)
     }
+
+    const emailResult = await emailResponse.json()
+    console.log('Email sent successfully:', emailResult)
 
     return new Response(JSON.stringify({ success: true }), {
       headers: { ...corsHeaders, 'Content-Type': 'application/json' },
