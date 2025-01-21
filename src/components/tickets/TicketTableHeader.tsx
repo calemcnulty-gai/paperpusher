@@ -10,6 +10,7 @@ export function TicketTableHeader() {
         <TableHead>Customer</TableHead>
         <TableHead>Assigned To</TableHead>
         <TableHead>Created</TableHead>
+        <TableHead>Actions</TableHead>
       </TableRow>
     </TableHeader>
   )

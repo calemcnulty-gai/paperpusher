@@ -1,5 +1,6 @@
 import { format } from "date-fns"
 import { TableCell, TableRow } from "@/components/ui/table"
+import { Button } from "@/components/ui/button"
 import { TicketStatus, TicketPriority } from "@/types/tickets"
 import { Profile } from "@/types/profiles"
 import { TicketStatusCell } from "./TicketStatusCell"
@@ -37,10 +38,7 @@ export function TicketRow({
   onClick 
 }: TicketRowProps) {
   return (
-    <TableRow 
-      className="cursor-pointer hover:bg-muted/50"
-      onClick={onClick}
-    >
+    <TableRow>
       <TableCell className="font-medium">{ticket.subject}</TableCell>
       <TicketStatusCell
         status={ticket.status}
@@ -64,6 +62,15 @@ export function TicketRow({
       />
       <TableCell>
         {format(new Date(ticket.created_at), "MMM d, yyyy")}
+      </TableCell>
+      <TableCell>
+        <Button 
+          variant="outline" 
+          size="sm"
+          onClick={onClick}
+        >
+          Manage
+        </Button>
       </TableCell>
     </TableRow>
   )
