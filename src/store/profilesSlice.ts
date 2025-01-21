@@ -23,12 +23,17 @@ const initialState: ProfilesState = {
 export const fetchProfiles = createAsyncThunk(
   'profiles/fetchProfiles',
   async () => {
+    console.log("Fetching profiles from Supabase")
     const { data, error } = await supabase
       .from('profiles')
       .select('*')
       .order('full_name');
 
-    if (error) throw error;
+    if (error) {
+      console.error("Error fetching profiles:", error)
+      throw error;
+    }
+    console.log("Fetched profiles:", data)
     return data as Profile[];
   }
 );
@@ -46,10 +51,12 @@ const profilesSlice = createSlice({
       .addCase(fetchProfiles.fulfilled, (state, action) => {
         state.loading = false;
         state.profiles = action.payload;
+        console.log("Profiles updated in Redux store:", state.profiles)
       })
       .addCase(fetchProfiles.rejected, (state, action) => {
         state.loading = false;
         state.error = action.error.message ?? 'Failed to fetch profiles';
+        console.error("Error in profiles slice:", state.error)
       });
   },
 });

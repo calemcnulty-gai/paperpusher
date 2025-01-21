@@ -37,11 +37,18 @@ export function TicketTable({ tickets, isLoading, canEdit }: TicketTableProps) {
   const queryClient = useQueryClient()
   const dispatch = useDispatch<AppDispatch>()
   const profiles = useSelector((state: RootState) => state.profiles.profiles)
-  const agents = profiles.filter(profile => profile.role === 'agent')
-
+  const agents = profiles.filter(profile => profile.role === 'agent' || profile.role === 'admin')
+  
   useEffect(() => {
+    console.log("Dispatching fetchProfiles")
     dispatch(fetchProfiles())
   }, [dispatch])
+
+  // Debug logs
+  useEffect(() => {
+    console.log("Current profiles in Redux store:", profiles)
+    console.log("Filtered agents:", agents)
+  }, [profiles, agents])
 
   const handleStatusChange = async (ticketId: string, newStatus: TicketStatus) => {
     try {
