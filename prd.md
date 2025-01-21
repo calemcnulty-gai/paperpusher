@@ -7,12 +7,19 @@ Target Audience:
 Tech Stack:
 • TypeScript
 • React 18 with Vite
-• TanStack Query (React Query) for data management
+• Redux (@reduxjs/toolkit) for centralized state management
+• TanStack Query (React Query) for server state and data fetching
 • Shadcn/ui (based on Radix UI primitives)
 • Tailwind CSS
 • Supabase (Postgres, Auth)
 • React Hook Form + Zod for form handling and validation
 • AWS Amplify (for hosting, serverless functions, authentication, or related AWS services)
+
+State Management Guidelines:
+• Redux is the primary state management solution for all application state
+• Use Redux Toolkit's createSlice and createAsyncThunk for type-safe state management
+• Prefer Redux over React's useState/useContext for shared state
+• TanStack Query handles server state caching and invalidation
 ---
 2. Goals & Objectives
 Ticket Management: Provide a robust and flexible system for tracking customer interactions.
@@ -91,10 +98,25 @@ Sets up advanced features like webhooks, custom fields, and analytics.
 Below is a high-level architecture outline:
 Front End
 React 18 + Vite for a modern, fast development experience
+Redux (Redux Toolkit) for centralized application state management:
+- Auth state (sessions, user data)
+- UI state (modals, sidebars, preferences)
+- Shared business logic state
+- Cross-component communication
+TanStack Query for server state management:
+- Data fetching and caching
+- Optimistic updates
+- Background polling
 Shadcn/ui components (built on Radix UI) for accessible, customizable UI
-TanStack Query for data fetching, caching, and state management
 React Hook Form + Zod for type-safe form handling
 Tailwind for responsive design and styling
+
+Redux Store Organization:
+- Feature-based slice organization (auth, tickets, users, etc.)
+- Async operations handled via createAsyncThunk
+- Strict TypeScript typing for actions and state
+- Normalized state shape for relational data
+- Memoized selectors for derived data
 
 Backend & Data Layer
 Supabase (Postgres & Auth) as primary data store, leveraging JSONB columns for flexible schemas

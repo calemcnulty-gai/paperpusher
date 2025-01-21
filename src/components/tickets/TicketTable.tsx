@@ -30,6 +30,8 @@ type TicketTableProps = {
   canEdit: boolean
 }
 
+const UNASSIGNED_VALUE = "unassigned"
+
 export function TicketTable({ tickets, isLoading, canEdit }: TicketTableProps) {
   const { toast } = useToast()
   const queryClient = useQueryClient()
@@ -93,9 +95,12 @@ export function TicketTable({ tickets, isLoading, canEdit }: TicketTableProps) {
 
   const handleAssigneeChange = async (ticketId: string, newAssigneeId: string) => {
     try {
+      // If the value is UNASSIGNED_VALUE, set assigned_to to null
+      const assignedTo = newAssigneeId === UNASSIGNED_VALUE ? null : newAssigneeId
+
       const { error } = await supabase
         .from("tickets")
-        .update({ assigned_to: newAssigneeId })
+        .update({ assigned_to: assignedTo })
         .eq("id", ticketId)
 
       if (error) throw error
@@ -177,14 +182,14 @@ export function TicketTable({ tickets, isLoading, canEdit }: TicketTableProps) {
               <TableCell>
                 {canEdit ? (
                   <Select
-                    value={ticket.assignee?.id || ''}
+                    value={ticket.assignee?.id || UNASSIGNED_VALUE}
                     onValueChange={(value) => handleAssigneeChange(ticket.id, value)}
                   >
                     <SelectTrigger className="w-[180px]">
                       <SelectValue placeholder="Select an agent" />
                     </SelectTrigger>
                     <SelectContent>
-                      <SelectItem value="">Unassigned</SelectItem>
+                      <SelectItem value={UNASSIGNED_VALUE}>Unassigned</SelectItem>
                       {agents.map((agent) => (
                         <SelectItem key={agent.id} value={agent.id}>
                           {agent.full_name || agent.email}
