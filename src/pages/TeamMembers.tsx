@@ -46,12 +46,25 @@ export default function TeamMembers() {
   const { teamMembers } = useSelector((state: RootState) => state.teams)
 
   const { data: availableUsers } = useQuery<Profile[]>({
-    queryKey: ['available-users'],
+    queryKey: ['available-users', teamMembers],
     queryFn: async () => {
+      // If there are no team members, we don't need to filter
+      if (teamMembers.length === 0) {
+        const { data: profiles, error } = await supabase
+          .from('profiles')
+          .select('id, full_name, email, role')
+          .order('full_name')
+        
+        if (error) throw error
+        return profiles
+      }
+
+      // If there are team members, filter them out
+      const memberIds = teamMembers.map(m => m.user_id)
       const { data: profiles, error } = await supabase
         .from('profiles')
         .select('id, full_name, email, role')
-        .not('id', 'in', teamMembers.map(m => m.user_id))
+        .not('id', 'in', `(${memberIds.join(',')})`)
         .order('full_name')
 
       if (error) throw error
@@ -216,4 +229,4 @@ export default function TeamMembers() {
       </Dialog>
     </div>
   )
-} 
+}
