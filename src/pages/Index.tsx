@@ -72,12 +72,11 @@ const Index = () => {
         .select(`
           id,
           created_at,
-          ticket_messages!inner (
+          ticket_messages (
             created_at
           )
         `)
         .gte('created_at', thirtyDaysAgo.toISOString())
-        .order('ticket_messages.created_at', { ascending: true, foreignTable: 'ticket_messages' })
       
       if (ticketsWithMessagesError) {
         console.error('Error fetching tickets with messages:', ticketsWithMessagesError)
@@ -89,7 +88,11 @@ const Index = () => {
       
       ticketsWithMessages?.forEach(ticket => {
         if (ticket.ticket_messages && ticket.ticket_messages.length > 0) {
-          const firstResponse = new Date(ticket.ticket_messages[0].created_at)
+          // Sort messages by created_at to ensure we get the first response
+          const sortedMessages = [...ticket.ticket_messages].sort(
+            (a, b) => new Date(a.created_at).getTime() - new Date(b.created_at).getTime()
+          )
+          const firstResponse = new Date(sortedMessages[0].created_at)
           const ticketCreation = new Date(ticket.created_at)
           const responseTime = (firstResponse.getTime() - ticketCreation.getTime()) / (1000 * 60 * 60) // hours
           totalResponseTime += responseTime
