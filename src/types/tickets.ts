@@ -1,6 +1,16 @@
 export type TicketStatus = "open" | "pending" | "resolved" | "closed"
 export type TicketPriority = "low" | "medium" | "high" | "urgent"
 
+export type TicketMessage = {
+  id: string
+  message: string
+  created_at: string
+  sender: {
+    full_name: string
+    role: string
+  }
+}
+
 export type Ticket = {
   id: string
   subject: string
@@ -12,6 +22,7 @@ export type Ticket = {
   project_id: string | null
   project_ticket_key: string | null
   created_at: string
+  messages: TicketMessage[]
 }
 
 export type Project = {

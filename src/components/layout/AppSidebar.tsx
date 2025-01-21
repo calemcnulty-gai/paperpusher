@@ -1,4 +1,4 @@
-import { Home, Inbox, Users, Settings, BarChart3, FolderKanban } from "lucide-react"
+import { Home, Inbox, Users, Settings, BarChart3, FolderKanban, UserSquare2 } from "lucide-react"
 import {
   Sidebar,
   SidebarContent,
@@ -16,6 +16,7 @@ import { supabase } from "@/integrations/supabase/client"
 const menuItems = [
   { title: "Dashboard", icon: Home, url: "/" },
   { title: "Tickets", icon: Inbox, url: "/tickets" },
+  { title: "Teams", icon: UserSquare2, url: "/teams", adminOnly: true },
   { title: "Customers", icon: Users, url: "/customers" },
   { title: "Projects", icon: FolderKanban, url: "/projects" },
   { title: "Reports", icon: BarChart3, url: "/reports" },
@@ -39,9 +40,12 @@ export function AppSidebar() {
     }
   })
 
-  // Filter out Projects menu item for customers
+  // Filter out Projects menu item for customers and Teams for non-admins
   const filteredMenuItems = menuItems.filter(item => {
     if (item.title === "Projects" && userRole === "customer") {
+      return false
+    }
+    if (item.adminOnly && userRole !== "admin") {
       return false
     }
     return true

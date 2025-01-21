@@ -12,6 +12,8 @@ import Auth from "./pages/Auth"
 import Tickets from "./pages/Tickets"
 import Customers from "./pages/Customers"
 import Projects from "./pages/Projects"
+import Teams from "./pages/Teams"
+import TeamMembers from "./pages/TeamMembers"
 
 const queryClient = new QueryClient()
 
@@ -46,6 +48,22 @@ const App = () => (
                 element={
                   <RequireAuth>
                     <Customers />
+                  </RequireAuth>
+                }
+              />
+              <Route
+                path="/teams"
+                element={
+                  <RequireAuth>
+                    <Teams />
+                  </RequireAuth>
+                }
+              />
+              <Route
+                path="/teams/:teamId/members"
+                element={
+                  <RequireAuth>
+                    <TeamMembers />
                   </RequireAuth>
                 }
               />

@@ -12,9 +12,10 @@ interface TicketDetailsModalProps {
   ticket: Ticket
   open: boolean
   onOpenChange: (open: boolean) => void
+  canReply: boolean
 }
 
-export function TicketDetailsModal({ ticket, open, onOpenChange }: TicketDetailsModalProps) {
+export function TicketDetailsModal({ ticket, open, onOpenChange, canReply }: TicketDetailsModalProps) {
   const [reply, setReply] = useState("")
   const {
     isSubmitting,
@@ -59,7 +60,12 @@ export function TicketDetailsModal({ ticket, open, onOpenChange }: TicketDetails
 
         <div className="flex flex-col flex-1 space-y-4 overflow-hidden">
           <TicketMetadata
-            ticket={ticket}
+            status={ticket.status}
+            priority={ticket.priority}
+            projectId={ticket.project_id}
+            customer={ticket.customer}
+            assignee={ticket.assignee}
+            createdAt={ticket.created_at}
             projects={projects || []}
             onStatusChange={updateStatus}
             onPriorityChange={updatePriority}
@@ -67,15 +73,21 @@ export function TicketDetailsModal({ ticket, open, onOpenChange }: TicketDetails
           />
 
           <div className="flex-1 overflow-y-auto">
-            <TicketMessageList ticketId={ticket.id} />
+            <TicketMessageList
+              messages={ticket.messages}
+              isLoading={false}
+            />
           </div>
 
-          <TicketReplyForm
-            value={reply}
-            onChange={setReply}
-            onSubmit={handleSubmitReply}
-            isSubmitting={isSubmitting}
-          />
+          {canReply && (
+            <TicketReplyForm
+              reply={reply}
+              setReply={setReply}
+              onSubmit={handleSubmitReply}
+              isSubmitting={isSubmitting}
+              canReply={true}
+            />
+          )}
         </div>
       </DialogContent>
     </Dialog>

@@ -144,8 +144,8 @@ export function TicketTable({ tickets, isLoading, canEdit }: TicketTableProps) {
 
       <TicketDetailsModal
         ticket={selectedTicket}
-        isOpen={!!selectedTicket}
-        onClose={() => setSelectedTicket(null)}
+        open={!!selectedTicket}
+        onOpenChange={() => setSelectedTicket(null)}
         canReply={canEdit}
       />
     </div>
