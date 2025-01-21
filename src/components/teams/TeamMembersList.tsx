@@ -7,6 +7,7 @@ import { removeTeamMember } from "@/store/teamsSlice"
 import { useParams } from "react-router-dom"
 import { AppDispatch } from "@/store"
 import { useQueryClient } from "@tanstack/react-query"
+import { supabase } from "@/integrations/supabase/client"
 
 interface TeamMembersListProps {
   teamMembers: TeamMember[]
@@ -24,6 +25,20 @@ export function TeamMembersList({ teamMembers, profiles }: TeamMembersListProps)
 
     try {
       console.log("Removing team member:", { teamId, userId })
+      
+      // First, delete from Supabase
+      const { error } = await supabase
+        .from('team_members')
+        .delete()
+        .eq('team_id', teamId)
+        .eq('user_id', userId)
+
+      if (error) {
+        console.error("Supabase error removing team member:", error)
+        throw error
+      }
+
+      // Then update Redux store
       await dispatch(removeTeamMember({ teamId, userId })).unwrap()
       
       // Invalidate the team members query to trigger a refresh
