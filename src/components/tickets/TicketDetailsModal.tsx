@@ -16,7 +16,15 @@ type Ticket = {
   priority: TicketPriority
   customer: { full_name: string; role: string; email: string } | null
   assignee: { id: string; full_name: string } | null
+  project_id: string | null
+  project_ticket_key: string | null
   created_at: string
+}
+
+type Project = {
+  id: string
+  name: string
+  code: string
 }
 
 type TicketDetailsModalProps = {
@@ -32,6 +40,21 @@ export function TicketDetailsModal({ ticket, isOpen, onClose, canReply }: Ticket
   const [isSubmitting, setIsSubmitting] = useState(false)
   const [status, setStatus] = useState<TicketStatus | null>(null)
   const [priority, setPriority] = useState<TicketPriority | null>(null)
+  const [selectedProjectId, setSelectedProjectId] = useState<string | null>(null)
+
+  // Fetch available projects
+  const { data: projects } = useQuery({
+    queryKey: ["projects"],
+    queryFn: async () => {
+      const { data, error } = await supabase
+        .from("projects")
+        .select("id, name, code")
+        .order("name")
+
+      if (error) throw error
+      return data as Project[]
+    }
+  })
 
   const { data: messages, isLoading: isLoadingMessages } = useQuery({
     queryKey: ["ticket-messages", ticket?.id],
@@ -151,13 +174,40 @@ export function TicketDetailsModal({ ticket, isOpen, onClose, canReply }: Ticket
     }
   }
 
+  const handleProjectChange = async (projectId: string | null) => {
+    if (!ticket) return
+    setSelectedProjectId(projectId)
+    try {
+      const { error } = await supabase
+        .from("tickets")
+        .update({ project_id: projectId })
+        .eq("id", ticket.id)
+
+      if (error) throw error
+
+      toast({
+        title: "Success",
+        description: "Ticket project updated successfully",
+      })
+    } catch (error) {
+      console.error("Error updating ticket project:", error)
+      toast({
+        variant: "destructive",
+        title: "Error",
+        description: "Failed to update ticket project",
+      })
+    }
+  }
+
   if (!ticket) return null
 
   return (
     <Dialog open={isOpen} onOpenChange={onClose}>
       <DialogContent className="max-w-2xl max-h-[90vh]">
         <DialogHeader>
-          <DialogTitle>{ticket.subject}</DialogTitle>
+          <DialogTitle>
+            {ticket.project_ticket_key ? `[${ticket.project_ticket_key}] ` : ''}{ticket.subject}
+          </DialogTitle>
           <DialogDescription className="space-y-4">
             <div className="grid grid-cols-2 gap-4 mt-4">
               <div>
@@ -191,6 +241,25 @@ export function TicketDetailsModal({ ticket, isOpen, onClose, canReply }: Ticket
                     <SelectItem value="medium">Medium</SelectItem>
                     <SelectItem value="high">High</SelectItem>
                     <SelectItem value="urgent">Urgent</SelectItem>
+                  </SelectContent>
+                </Select>
+              </div>
+              <div>
+                <p className="text-sm font-medium">Project</p>
+                <Select
+                  value={selectedProjectId || ticket.project_id || ""}
+                  onValueChange={(value) => handleProjectChange(value || null)}
+                >
+                  <SelectTrigger className="w-[200px]">
+                    <SelectValue placeholder="Select a project" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="">No Project</SelectItem>
+                    {projects?.map((project) => (
+                      <SelectItem key={project.id} value={project.id}>
+                        {project.name} ({project.code})
+                      </SelectItem>
+                    ))}
                   </SelectContent>
                 </Select>
               </div>
