@@ -6,7 +6,7 @@ import { TicketReplyForm } from "./TicketReplyForm"
 import { TicketMetadata } from "./TicketMetadata"
 import { Ticket } from "@/types/tickets"
 import { useTicketOperations } from "@/hooks/useTicketOperations"
-import { useState } from "react"
+import { useState, useEffect } from "react"
 
 interface TicketDetailsModalProps {
   ticket: Ticket | null
@@ -15,43 +15,75 @@ interface TicketDetailsModalProps {
 }
 
 export function TicketDetailsModal({ ticket, open, onOpenChange }: TicketDetailsModalProps) {
+  console.log("TicketDetailsModal - Render", { ticket, open })
+  
   const [reply, setReply] = useState("")
   
-  // Move hooks to top level
+  useEffect(() => {
+    console.log("TicketDetailsModal - Props changed", { ticket, open })
+  }, [ticket, open])
+
   const {
     isSubmitting,
     handleReply,
     updateStatus,
     updatePriority,
     updateProject,
-  } = useTicketOperations(ticket?.id || '') // Provide a default value
+  } = useTicketOperations(ticket?.id || '')
+  
+  console.log("TicketDetailsModal - After useTicketOperations", { 
+    ticketId: ticket?.id,
+    isSubmitting 
+  })
 
   // Fetch available projects
   const { data: projects = [] } = useQuery({
     queryKey: ["projects"],
     queryFn: async () => {
+      console.log("TicketDetailsModal - Fetching projects")
       const { data, error } = await supabase
         .from("projects")
         .select("id, name, code")
         .order("name")
       
-      if (error) throw error
+      if (error) {
+        console.error("TicketDetailsModal - Error fetching projects:", error)
+        throw error
+      }
+      console.log("TicketDetailsModal - Projects fetched:", data)
       return data
     },
-    enabled: open && !!ticket // Only fetch when modal is open and ticket exists
+    enabled: open && !!ticket
   })
 
   const handleSubmitReply = async (isInternal: boolean = false) => {
-    if (!reply.trim() || !ticket) return
+    console.log("TicketDetailsModal - Attempting to submit reply", {
+      replyLength: reply.length,
+      isInternal,
+      ticketExists: !!ticket
+    })
+    
+    if (!reply.trim() || !ticket) {
+      console.log("TicketDetailsModal - Reply submission cancelled", {
+        emptyReply: !reply.trim(),
+        noTicket: !ticket
+      })
+      return
+    }
     
     const success = await handleReply(reply, isInternal)
+    console.log("TicketDetailsModal - Reply submission result:", { success })
+    
     if (success) {
       setReply("")
     }
   }
 
   // Return null after hooks are called
-  if (!open || !ticket) return null
+  if (!open || !ticket) {
+    console.log("TicketDetailsModal - Early return", { open, hasTicket: !!ticket })
+    return null
+  }
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
