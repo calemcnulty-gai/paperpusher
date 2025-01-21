@@ -73,6 +73,7 @@ export const deleteTeam = createAsyncThunk(
 export const fetchTeamMembers = createAsyncThunk(
   "teams/fetchTeamMembers",
   async (teamId: string) => {
+    console.log("Fetching team members for team:", teamId)
     const { data, error } = await supabase
       .from("team_members")
       .select(`
@@ -83,7 +84,11 @@ export const fetchTeamMembers = createAsyncThunk(
       `)
       .eq("team_id", teamId)
 
-    if (error) throw error
+    if (error) {
+      console.error("Error fetching team members:", error)
+      throw error
+    }
+    console.log("Fetched team members:", data)
     return { teamId, members: data }
   }
 )
@@ -111,15 +116,41 @@ export const addTeamMember = createAsyncThunk(
   }
 )
 
+export const updateTeamMember = createAsyncThunk(
+  "teams/updateTeamMember",
+  async ({ teamId, userId, role }: { teamId: string; userId: string; role: string }) => {
+    console.log("Updating team member:", { teamId, userId, role })
+    const { data, error } = await supabase
+      .from("team_members")
+      .update({ role })
+      .eq("team_id", teamId)
+      .eq("user_id", userId)
+      .select("*")
+      .single()
+
+    if (error) {
+      console.error("Error updating team member:", error)
+      throw error
+    }
+    console.log("Team member updated successfully:", data)
+    return data
+  }
+)
+
 export const removeTeamMember = createAsyncThunk(
   "teams/removeTeamMember",
   async ({ teamId, userId }: { teamId: string; userId: string }) => {
+    console.log("Removing team member:", { teamId, userId })
     const { error } = await supabase
       .from("team_members")
       .delete()
       .match({ team_id: teamId, user_id: userId })
 
-    if (error) throw error
+    if (error) {
+      console.error("Error removing team member:", error)
+      throw error
+    }
+    console.log("Team member removed successfully")
     return { teamId, userId }
   }
 )
@@ -130,7 +161,6 @@ const teamsSlice = createSlice({
   reducers: {},
   extraReducers: (builder) => {
     builder
-      // Create team
       .addCase(createTeam.pending, (state) => {
         state.loading = true
         state.error = null
@@ -160,28 +190,39 @@ const teamsSlice = createSlice({
       .addCase(deleteTeam.fulfilled, (state, action) => {
         state.teams = state.teams.filter((team) => team.id !== action.payload)
       })
+      
       // Fetch team members
       .addCase(fetchTeamMembers.fulfilled, (state, action) => {
         state.teamMembers[action.payload.teamId] = action.payload.members
       })
+      
       // Add team member
       .addCase(addTeamMember.fulfilled, (state, action) => {
         const teamId = action.payload.team_id
         if (!state.teamMembers[teamId]) {
           state.teamMembers[teamId] = []
         }
-        // Check if member already exists
         const existingIndex = state.teamMembers[teamId].findIndex(
           member => member.user_id === action.payload.user_id
         )
         if (existingIndex >= 0) {
-          // Update existing member
           state.teamMembers[teamId][existingIndex] = action.payload
         } else {
-          // Add new member
           state.teamMembers[teamId].push(action.payload)
         }
       })
+      
+      // Update team member
+      .addCase(updateTeamMember.fulfilled, (state, action) => {
+        const teamId = action.payload.team_id
+        const memberIndex = state.teamMembers[teamId]?.findIndex(
+          member => member.user_id === action.payload.user_id
+        )
+        if (memberIndex !== undefined && memberIndex !== -1) {
+          state.teamMembers[teamId][memberIndex] = action.payload
+        }
+      })
+      
       // Remove team member
       .addCase(removeTeamMember.fulfilled, (state, action) => {
         const { teamId, userId } = action.payload

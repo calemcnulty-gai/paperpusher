@@ -2,8 +2,12 @@ import { useQuery, useQueryClient } from "@tanstack/react-query"
 import { supabase } from "@/integrations/supabase/client"
 import { TeamMember } from "@/store/teamsSlice"
 import { useEffect } from "react"
+import { useDispatch } from "react-redux"
+import { AppDispatch } from "@/store"
+import { fetchTeamMembers } from "@/store/teamsSlice"
 
 export const useTeamMembers = (teamId: string | undefined) => {
+  const dispatch = useDispatch<AppDispatch>()
   const queryClient = useQueryClient()
 
   useEffect(() => {
@@ -23,7 +27,9 @@ export const useTeamMembers = (teamId: string | undefined) => {
         },
         (payload) => {
           console.log('Team members change received:', payload)
+          // Invalidate query to trigger a refresh
           queryClient.invalidateQueries({ queryKey: ["team-members", teamId] })
+          // Redux store will be updated through the global realtime subscription
         }
       )
       .subscribe((status) => {
@@ -42,6 +48,9 @@ export const useTeamMembers = (teamId: string | undefined) => {
       if (!teamId) return []
       
       console.log("Fetching team members for team:", teamId)
+      // Dispatch Redux action to keep store in sync
+      await dispatch(fetchTeamMembers(teamId)).unwrap()
+      
       const { data: members, error } = await supabase
         .from('team_members')
         .select('*')
