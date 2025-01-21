@@ -77,7 +77,7 @@ const Index = () => {
           )
         `)
         .gte('created_at', thirtyDaysAgo.toISOString())
-        .order('ticket_messages.created_at', { ascending: true })
+        .order('ticket_messages.created_at', { ascending: true, foreignTable: 'ticket_messages' })
       
       if (ticketsWithMessagesError) {
         console.error('Error fetching tickets with messages:', ticketsWithMessagesError)
