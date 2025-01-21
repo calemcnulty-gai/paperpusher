@@ -7,6 +7,9 @@ import { format } from "date-fns"
 import { supabase } from "@/integrations/supabase/client"
 import { TicketStatus, TicketPriority } from "@/types/tickets"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
+import { useQuery } from "@tanstack/react-query"
+import { ScrollArea } from "@/components/ui/scroll-area"
+import { Loader2 } from "lucide-react"
 
 type Ticket = {
   id: string
@@ -17,6 +20,16 @@ type Ticket = {
   customer: { full_name: string; role: string; email: string } | null
   assignee: { id: string; full_name: string } | null
   created_at: string
+}
+
+type Message = {
+  id: string
+  message: string
+  created_at: string
+  sender: {
+    full_name: string
+    role: string
+  }
 }
 
 type TicketDetailsModalProps = {
@@ -32,6 +45,30 @@ export function TicketDetailsModal({ ticket, isOpen, onClose, canReply }: Ticket
   const [isSubmitting, setIsSubmitting] = useState(false)
   const [status, setStatus] = useState<TicketStatus | null>(null)
   const [priority, setPriority] = useState<TicketPriority | null>(null)
+
+  const { data: messages, isLoading: isLoadingMessages } = useQuery({
+    queryKey: ["ticket-messages", ticket?.id],
+    queryFn: async () => {
+      if (!ticket) return []
+      const { data, error } = await supabase
+        .from("ticket_messages")
+        .select(`
+          id,
+          message,
+          created_at,
+          sender:profiles!ticket_messages_sender_id_fkey(
+            full_name,
+            role
+          )
+        `)
+        .eq("ticket_id", ticket.id)
+        .order("created_at", { ascending: true })
+
+      if (error) throw error
+      return data as Message[]
+    },
+    enabled: !!ticket
+  })
 
   const handleSubmitReply = async () => {
     if (!ticket || !reply.trim()) return
@@ -65,7 +102,6 @@ export function TicketDetailsModal({ ticket, isOpen, onClose, canReply }: Ticket
       })
       
       setReply("")
-      onClose()
     } catch (error) {
       console.error("Error sending reply:", error)
       toast({
@@ -132,7 +168,7 @@ export function TicketDetailsModal({ ticket, isOpen, onClose, canReply }: Ticket
 
   return (
     <Dialog open={isOpen} onOpenChange={onClose}>
-      <DialogContent className="max-w-2xl">
+      <DialogContent className="max-w-2xl max-h-[90vh]">
         <DialogHeader>
           <DialogTitle>{ticket.subject}</DialogTitle>
           <DialogDescription className="space-y-4">
@@ -174,14 +210,6 @@ export function TicketDetailsModal({ ticket, isOpen, onClose, canReply }: Ticket
               <div>
                 <p className="text-sm font-medium">Customer</p>
                 <p className="text-sm">{ticket.customer?.full_name || "Unknown"}</p>
-                {ticket.customer?.email && (
-                  <a 
-                    href={`mailto:${ticket.customer.email}?subject=Re: ${encodeURIComponent(ticket.subject)}`}
-                    className="text-sm text-blue-600 hover:underline"
-                  >
-                    {ticket.customer.email}
-                  </a>
-                )}
               </div>
               <div>
                 <p className="text-sm font-medium">Assigned To</p>
@@ -198,13 +226,40 @@ export function TicketDetailsModal({ ticket, isOpen, onClose, canReply }: Ticket
               <p className="text-sm mt-1 whitespace-pre-wrap">{ticket.description || "No description provided"}</p>
             </div>
 
+            <div className="mt-4">
+              <p className="text-sm font-medium mb-2">Messages</p>
+              <ScrollArea className="h-[200px] border rounded-md p-4">
+                {isLoadingMessages ? (
+                  <div className="flex justify-center items-center h-full">
+                    <Loader2 className="h-4 w-4 animate-spin" />
+                  </div>
+                ) : messages && messages.length > 0 ? (
+                  <div className="space-y-4">
+                    {messages.map((message) => (
+                      <div key={message.id} className="border-b pb-2 last:border-0">
+                        <div className="flex justify-between items-start">
+                          <p className="text-sm font-medium">{message.sender.full_name}</p>
+                          <p className="text-xs text-muted-foreground">
+                            {format(new Date(message.created_at), "MMM d, yyyy HH:mm")}
+                          </p>
+                        </div>
+                        <p className="text-sm mt-1 whitespace-pre-wrap">{message.message}</p>
+                      </div>
+                    ))}
+                  </div>
+                ) : (
+                  <p className="text-sm text-muted-foreground text-center">No messages yet</p>
+                )}
+              </ScrollArea>
+            </div>
+
             {canReply && (
-              <div className="mt-6">
-                <p className="text-sm font-medium mb-2">Reply to ticket</p>
+              <div className="mt-4">
+                <p className="text-sm font-medium mb-2">Add a message</p>
                 <Textarea
                   value={reply}
                   onChange={(e) => setReply(e.target.value)}
-                  placeholder="Type your reply here..."
+                  placeholder="Type your message here..."
                   className="min-h-[100px]"
                 />
                 <Button 
@@ -212,7 +267,14 @@ export function TicketDetailsModal({ ticket, isOpen, onClose, canReply }: Ticket
                   className="mt-2"
                   disabled={!reply.trim() || isSubmitting}
                 >
-                  Send Reply
+                  {isSubmitting ? (
+                    <>
+                      <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                      Sending...
+                    </>
+                  ) : (
+                    "Send Message"
+                  )}
                 </Button>
               </div>
             )}
