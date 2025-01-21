@@ -1,72 +1,106 @@
 import { useState } from "react"
-import { useParams } from "react-router-dom"
-import { Profile } from "@/types/profiles"
-import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog"
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
-import { Button } from "@/components/ui/button"
-import { useToast } from "@/components/ui/use-toast"
 import { useDispatch } from "react-redux"
-import { addTeamMember, TeamMemberRole } from "@/store/teamsSlice"
 import { AppDispatch } from "@/store"
+import { addTeamMember } from "@/store/teamsSlice"
+import { TeamMember, TeamMemberRole } from "@/types/teams"
+import { useToast } from "@/components/ui/use-toast"
+import {
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+  DialogTrigger,
+} from "@/components/ui/dialog"
+import { Button } from "@/components/ui/button"
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select"
+import { UserPlus } from "lucide-react"
+import { useQuery } from "@tanstack/react-query"
+import { supabase } from "@/integrations/supabase/client"
 
 interface AddTeamMemberDialogProps {
-  open: boolean
-  onOpenChange: (open: boolean) => void
-  availableUsers: Profile[]
+  teamId: string;
 }
 
-export function AddTeamMemberDialog({ open, onOpenChange, availableUsers }: AddTeamMemberDialogProps) {
-  const { teamId } = useParams()
-  const { toast } = useToast()
-  const dispatch = useDispatch<AppDispatch>()
+export function AddTeamMemberDialog({ teamId }: AddTeamMemberDialogProps) {
+  const [open, setOpen] = useState(false)
   const [selectedUserId, setSelectedUserId] = useState<string>("")
   const [selectedRole, setSelectedRole] = useState<TeamMemberRole>("member")
-  const [isSubmitting, setIsSubmitting] = useState(false)
+  const dispatch = useDispatch<AppDispatch>()
+  const { toast } = useToast()
+
+  const { data: availableUsers } = useQuery({
+    queryKey: ["available-users"],
+    queryFn: async () => {
+      const { data, error } = await supabase
+        .from("profiles")
+        .select("id, full_name, email")
+        .not("id", "in", (select "user_id" from "team_members" where team_id = ${teamId}))
+
+      if (error) throw error
+      return data
+    },
+  })
 
   const handleAddMember = async () => {
-    if (!selectedUserId || !teamId) return
-
-    setIsSubmitting(true)
-    try {
-      await dispatch(addTeamMember({
-        team_id: teamId,
-        user_id: selectedUserId,
-        role: selectedRole,
-        created_at: new Date().toISOString(),
-      })).unwrap()
-
-      toast({
-        title: "Team member added",
-        description: "The user has been added to the team successfully.",
-      })
-      onOpenChange(false)
-    } catch (error) {
-      console.error("Error adding team member:", error)
+    if (!selectedUserId) {
       toast({
         variant: "destructive",
         title: "Error",
-        description: "Failed to add team member. Please try again.",
+        description: "Please select a user",
       })
-    } finally {
-      setIsSubmitting(false)
+      return
+    }
+
+    try {
+      await dispatch(
+        addTeamMember({
+          teamId,
+          userId: selectedUserId,
+          role: selectedRole,
+        })
+      ).unwrap()
+
+      toast({
+        title: "Success",
+        description: "Team member added successfully",
+      })
+      setOpen(false)
+    } catch (error) {
+      toast({
+        variant: "destructive",
+        title: "Error",
+        description: error instanceof Error ? error.message : "Failed to add team member",
+      })
     }
   }
 
   return (
-    <Dialog open={open} onOpenChange={onOpenChange}>
+    <Dialog open={open} onOpenChange={setOpen}>
+      <DialogTrigger asChild>
+        <Button>
+          <UserPlus className="mr-2 h-4 w-4" />
+          Add Member
+        </Button>
+      </DialogTrigger>
       <DialogContent>
         <DialogHeader>
           <DialogTitle>Add Team Member</DialogTitle>
         </DialogHeader>
-        <div className="space-y-4 py-4">
+        <div className="space-y-4">
           <div className="space-y-2">
-            <label className="text-sm font-medium">Select User</label>
+            <label className="text-sm font-medium">User</label>
             <Select value={selectedUserId} onValueChange={setSelectedUserId}>
               <SelectTrigger>
                 <SelectValue placeholder="Select a user" />
               </SelectTrigger>
               <SelectContent>
-                {availableUsers.map((user) => (
+                {availableUsers?.map((user) => (
                   <SelectItem key={user.id} value={user.id}>
                     {user.full_name || user.email}
                   </SelectItem>
@@ -84,22 +118,14 @@ export function AddTeamMemberDialog({ open, onOpenChange, availableUsers }: AddT
                 <SelectValue />
               </SelectTrigger>
               <SelectContent>
-                <SelectItem value="member">Member</SelectItem>
-                <SelectItem value="leader">Leader</SelectItem>
+                <SelectItem value="leader">Team Leader</SelectItem>
+                <SelectItem value="member">Team Member</SelectItem>
               </SelectContent>
             </Select>
           </div>
-          <div className="flex justify-end space-x-2">
-            <Button variant="outline" onClick={() => onOpenChange(false)}>
-              Cancel
-            </Button>
-            <Button 
-              onClick={handleAddMember} 
-              disabled={!selectedUserId || isSubmitting}
-            >
-              Add Member
-            </Button>
-          </div>
+          <Button onClick={handleAddMember} className="w-full">
+            Add Member
+          </Button>
         </div>
       </DialogContent>
     </Dialog>
