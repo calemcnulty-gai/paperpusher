@@ -1,35 +1,131 @@
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { MainLayout } from "@/components/layout/MainLayout"
 import { BarChart3, Inbox, Clock, CheckCircle } from "lucide-react"
-
-const stats = [
-  {
-    title: "Open Tickets",
-    value: "12",
-    icon: Inbox,
-    description: "Active support requests",
-  },
-  {
-    title: "Avg. Response Time",
-    value: "2.4h",
-    icon: Clock,
-    description: "Last 7 days",
-  },
-  {
-    title: "Resolution Rate",
-    value: "94%",
-    icon: CheckCircle,
-    description: "Last 30 days",
-  },
-  {
-    title: "Total Tickets",
-    value: "156",
-    icon: BarChart3,
-    description: "This month",
-  },
-]
+import { useQuery } from "@tanstack/react-query"
+import { supabase } from "@/integrations/supabase/client"
+import { useState, useEffect } from "react"
 
 const Index = () => {
+  const { data: stats, isLoading } = useQuery({
+    queryKey: ['dashboard-stats'],
+    queryFn: async () => {
+      console.log('Fetching dashboard stats...')
+      
+      // Get open tickets count
+      const { count: openTickets } = await supabase
+        .from('tickets')
+        .select('*', { count: 'exact', head: true })
+        .eq('status', 'open')
+      
+      // Get total tickets this month
+      const startOfMonth = new Date()
+      startOfMonth.setDate(1)
+      startOfMonth.setHours(0, 0, 0, 0)
+      
+      const { count: monthlyTickets } = await supabase
+        .from('tickets')
+        .select('*', { count: 'exact', head: true })
+        .gte('created_at', startOfMonth.toISOString())
+      
+      // Get resolved tickets count for last 30 days
+      const thirtyDaysAgo = new Date()
+      thirtyDaysAgo.setDate(thirtyDaysAgo.getDate() - 30)
+      
+      const { data: resolvedTickets } = await supabase
+        .from('tickets')
+        .select('*')
+        .eq('status', 'resolved')
+        .gte('created_at', thirtyDaysAgo.toISOString())
+      
+      const { data: totalTickets30Days } = await supabase
+        .from('tickets')
+        .select('*')
+        .gte('created_at', thirtyDaysAgo.toISOString())
+      
+      const resolutionRate = totalTickets30Days?.length 
+        ? Math.round((resolvedTickets?.length / totalTickets30Days.length) * 100)
+        : 0
+
+      // Calculate average response time (using first message after ticket creation)
+      const { data: ticketsWithMessages } = await supabase
+        .from('tickets')
+        .select(`
+          id,
+          created_at,
+          ticket_messages!inner (
+            created_at
+          )
+        `)
+        .gte('created_at', thirtyDaysAgo.toISOString())
+        .order('ticket_messages.created_at', { ascending: true })
+      
+      let totalResponseTime = 0
+      let ticketsWithResponses = 0
+      
+      ticketsWithMessages?.forEach(ticket => {
+        if (ticket.ticket_messages && ticket.ticket_messages.length > 0) {
+          const firstResponse = new Date(ticket.ticket_messages[0].created_at)
+          const ticketCreation = new Date(ticket.created_at)
+          const responseTime = (firstResponse.getTime() - ticketCreation.getTime()) / (1000 * 60 * 60) // hours
+          totalResponseTime += responseTime
+          ticketsWithResponses++
+        }
+      })
+      
+      const avgResponseTime = ticketsWithResponses 
+        ? (totalResponseTime / ticketsWithResponses).toFixed(1)
+        : 0
+
+      console.log('Dashboard stats:', {
+        openTickets,
+        monthlyTickets,
+        resolutionRate,
+        avgResponseTime
+      })
+
+      return {
+        openTickets: openTickets || 0,
+        avgResponseTime: `${avgResponseTime}h`,
+        resolutionRate: `${resolutionRate}%`,
+        monthlyTickets: monthlyTickets || 0
+      }
+    }
+  })
+
+  const defaultStats = {
+    openTickets: 0,
+    avgResponseTime: '0h',
+    resolutionRate: '0%',
+    monthlyTickets: 0
+  }
+
+  const displayStats = [
+    {
+      title: "Open Tickets",
+      value: stats?.openTickets || defaultStats.openTickets,
+      icon: Inbox,
+      description: "Active support requests",
+    },
+    {
+      title: "Avg. Response Time",
+      value: stats?.avgResponseTime || defaultStats.avgResponseTime,
+      icon: Clock,
+      description: "Last 7 days",
+    },
+    {
+      title: "Resolution Rate",
+      value: stats?.resolutionRate || defaultStats.resolutionRate,
+      icon: CheckCircle,
+      description: "Last 30 days",
+    },
+    {
+      title: "Total Tickets",
+      value: stats?.monthlyTickets || defaultStats.monthlyTickets,
+      icon: BarChart3,
+      description: "This month",
+    },
+  ]
+
   return (
     <MainLayout>
       <div className="space-y-6">
@@ -41,7 +137,7 @@ const Index = () => {
         </div>
 
         <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
-          {stats.map((stat) => (
+          {displayStats.map((stat) => (
             <Card key={stat.title}>
               <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
                 <CardTitle className="text-sm font-medium">
