@@ -67,14 +67,17 @@ const TeamMembers = () => {
       const memberIds = teamMembers.map(m => m.user_id)
       console.log("Current team member IDs:", memberIds)
 
-      let query = supabase
+      // Base query without filter
+      const query = supabase
         .from('profiles')
         .select('*')
         .order('full_name')
 
       // Only apply the filter if there are existing members
       if (memberIds.length > 0) {
-        query = query.not('id', 'in', `(${memberIds.join(',')})`)
+        const memberIdsStr = memberIds.join(',')
+        console.log("Filtering out members with IDs:", memberIdsStr)
+        await query.not('id', 'in', `(${memberIdsStr})`)
       }
       
       const { data: profiles, error } = await query
