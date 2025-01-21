@@ -1,6 +1,5 @@
+import { useState } from "react"
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table"
-import { Badge } from "@/components/ui/badge"
-import { format } from "date-fns"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
 import { useToast } from "@/components/ui/use-toast"
 import { useQueryClient } from "@tanstack/react-query"
@@ -8,6 +7,7 @@ import { supabase } from "@/integrations/supabase/client"
 import { TicketStatus, TicketPriority } from "@/types/tickets"
 import { TicketStatusBadge } from "./TicketStatusBadge"
 import { TicketPriorityBadge } from "./TicketPriorityBadge"
+import { TicketDetailsModal } from "./TicketDetailsModal"
 import { useDispatch, useSelector } from "react-redux"
 import { RootState } from "@/store"
 import { useEffect } from "react"
@@ -17,6 +17,7 @@ import { AppDispatch } from "@/store"
 type Ticket = {
   id: string
   subject: string
+  description: string | null
   status: TicketStatus
   priority: TicketPriority
   customer: { full_name: string; role: string } | null
@@ -33,6 +34,7 @@ type TicketTableProps = {
 const UNASSIGNED_VALUE = "unassigned"
 
 export function TicketTable({ tickets, isLoading, canEdit }: TicketTableProps) {
+  const [selectedTicket, setSelectedTicket] = useState<Ticket | null>(null)
   const { toast } = useToast()
   const queryClient = useQueryClient()
   const dispatch = useDispatch<AppDispatch>()
@@ -43,12 +45,6 @@ export function TicketTable({ tickets, isLoading, canEdit }: TicketTableProps) {
     console.log("Dispatching fetchProfiles")
     dispatch(fetchProfiles())
   }, [dispatch])
-
-  // Debug logs
-  useEffect(() => {
-    console.log("Current profiles in Redux store:", profiles)
-    console.log("Filtered agents:", agents)
-  }, [profiles, agents])
 
   const handleStatusChange = async (ticketId: string, newStatus: TicketStatus) => {
     try {
@@ -143,13 +139,21 @@ export function TicketTable({ tickets, isLoading, canEdit }: TicketTableProps) {
         </TableHeader>
         <TableBody>
           {tickets?.map((ticket) => (
-            <TableRow key={ticket.id}>
+            <TableRow 
+              key={ticket.id}
+              className="cursor-pointer hover:bg-muted/50"
+              onClick={() => setSelectedTicket(ticket)}
+            >
               <TableCell className="font-medium">{ticket.subject}</TableCell>
               <TableCell>
                 {canEdit ? (
                   <Select
                     value={ticket.status}
-                    onValueChange={(value) => handleStatusChange(ticket.id, value as TicketStatus)}
+                    onValueChange={(value) => {
+                      // Prevent row click when interacting with select
+                      event?.stopPropagation();
+                      handleStatusChange(ticket.id, value as TicketStatus);
+                    }}
                   >
                     <SelectTrigger className="w-[120px]">
                       <SelectValue />
@@ -169,7 +173,11 @@ export function TicketTable({ tickets, isLoading, canEdit }: TicketTableProps) {
                 {canEdit ? (
                   <Select
                     value={ticket.priority}
-                    onValueChange={(value) => handlePriorityChange(ticket.id, value as TicketPriority)}
+                    onValueChange={(value) => {
+                      // Prevent row click when interacting with select
+                      event?.stopPropagation();
+                      handlePriorityChange(ticket.id, value as TicketPriority);
+                    }}
                   >
                     <SelectTrigger className="w-[120px]">
                       <SelectValue />
@@ -190,7 +198,11 @@ export function TicketTable({ tickets, isLoading, canEdit }: TicketTableProps) {
                 {canEdit ? (
                   <Select
                     value={ticket.assignee?.id || UNASSIGNED_VALUE}
-                    onValueChange={(value) => handleAssigneeChange(ticket.id, value)}
+                    onValueChange={(value) => {
+                      // Prevent row click when interacting with select
+                      event?.stopPropagation();
+                      handleAssigneeChange(ticket.id, value);
+                    }}
                   >
                     <SelectTrigger className="w-[180px]">
                       <SelectValue placeholder="Select an agent" />
@@ -215,6 +227,13 @@ export function TicketTable({ tickets, isLoading, canEdit }: TicketTableProps) {
           ))}
         </TableBody>
       </Table>
+
+      <TicketDetailsModal
+        ticket={selectedTicket}
+        isOpen={!!selectedTicket}
+        onClose={() => setSelectedTicket(null)}
+        canReply={canEdit}
+      />
     </div>
   )
 }
