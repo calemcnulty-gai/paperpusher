@@ -58,12 +58,12 @@ export function TicketMetadata({
       </div>
       <div>
         <p className="text-sm font-medium">Project</p>
-        <Select value={projectId || ""} onValueChange={(value) => onProjectChange(value || null)}>
+        <Select value={projectId || "none"} onValueChange={(value) => onProjectChange(value === "none" ? null : value)}>
           <SelectTrigger className="w-[200px]">
             <SelectValue placeholder="Select a project" />
           </SelectTrigger>
           <SelectContent>
-            <SelectItem value="">No Project</SelectItem>
+            <SelectItem value="none">No Project</SelectItem>
             {projects?.map((project) => (
               <SelectItem key={project.id} value={project.id}>
                 {project.name} ({project.code})
