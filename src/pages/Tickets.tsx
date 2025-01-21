@@ -14,7 +14,7 @@ const Tickets = () => {
         .select(`
           *,
           customer:profiles!tickets_customer_id_fkey(full_name, role),
-          assignee:profiles!tickets_assigned_to_fkey(full_name)
+          assignee:profiles!tickets_assigned_to_fkey(id, full_name)
         `)
         .order("created_at", { ascending: false })
 
