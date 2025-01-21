@@ -61,6 +61,7 @@ export const fetchTeamMembers = createAsyncThunk(
         team_id,
         user_id,
         role,
+        created_at,
         profiles:user_id (
           full_name,
           email,
@@ -72,7 +73,8 @@ export const fetchTeamMembers = createAsyncThunk(
     if (error) throw error
     return data.map(member => ({
       ...member,
-      user: member.profiles
+      user: member.profiles,
+      created_at: member.created_at || new Date().toISOString()
     })) as TeamMember[]
   }
 )
@@ -141,7 +143,8 @@ export const addTeamMember = createAsyncThunk(
     if (error) throw error
     return {
       ...data,
-      user: data.profiles
+      user: data.profiles,
+      created_at: data.created_at || new Date().toISOString()
     } as TeamMember
   }
 )

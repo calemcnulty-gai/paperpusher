@@ -76,7 +76,10 @@ export function AddTeamMemberDialog({ open, onOpenChange, availableUsers }: AddT
           </div>
           <div className="space-y-2">
             <label className="text-sm font-medium">Role</label>
-            <Select value={selectedRole} onValueChange={setSelectedRole}>
+            <Select 
+              value={selectedRole} 
+              onValueChange={(value: string) => setSelectedRole(value as TeamMemberRole)}
+            >
               <SelectTrigger>
                 <SelectValue />
               </SelectTrigger>
