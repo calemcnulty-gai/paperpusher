@@ -2,30 +2,11 @@ import { useState } from "react"
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from "@/components/ui/dialog"
 import { useToast } from "@/components/ui/use-toast"
 import { supabase } from "@/integrations/supabase/client"
-import { TicketStatus, TicketPriority } from "@/types/tickets"
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
 import { useQuery } from "@tanstack/react-query"
 import { TicketMessageList } from "./TicketMessageList"
 import { TicketReplyForm } from "./TicketReplyForm"
-
-type Ticket = {
-  id: string
-  subject: string
-  description: string | null
-  status: TicketStatus
-  priority: TicketPriority
-  customer: { full_name: string; role: string; email: string } | null
-  assignee: { id: string; full_name: string } | null
-  project_id: string | null
-  project_ticket_key: string | null
-  created_at: string
-}
-
-type Project = {
-  id: string
-  name: string
-  code: string
-}
+import { TicketMetadata } from "./TicketMetadata"
+import { Ticket, TicketStatus, TicketPriority } from "@/types/tickets"
 
 type TicketDetailsModalProps = {
   ticket: Ticket | null
@@ -40,7 +21,6 @@ export function TicketDetailsModal({ ticket, isOpen, onClose, canReply }: Ticket
   const [isSubmitting, setIsSubmitting] = useState(false)
   const [status, setStatus] = useState<TicketStatus | null>(null)
   const [priority, setPriority] = useState<TicketPriority | null>(null)
-  const [selectedProjectId, setSelectedProjectId] = useState<string | null>(null)
 
   // Fetch available projects
   const { data: projects } = useQuery({
@@ -52,7 +32,7 @@ export function TicketDetailsModal({ ticket, isOpen, onClose, canReply }: Ticket
         .order("name")
 
       if (error) throw error
-      return data as Project[]
+      return data
     }
   })
 
@@ -176,7 +156,6 @@ export function TicketDetailsModal({ ticket, isOpen, onClose, canReply }: Ticket
 
   const handleProjectChange = async (projectId: string | null) => {
     if (!ticket) return
-    setSelectedProjectId(projectId)
     try {
       const { error } = await supabase
         .from("tickets")
@@ -209,73 +188,18 @@ export function TicketDetailsModal({ ticket, isOpen, onClose, canReply }: Ticket
             {ticket.project_ticket_key ? `[${ticket.project_ticket_key}] ` : ''}{ticket.subject}
           </DialogTitle>
           <DialogDescription className="space-y-4">
-            <div className="grid grid-cols-2 gap-4 mt-4">
-              <div>
-                <p className="text-sm font-medium">Status</p>
-                <Select
-                  value={status || ticket.status}
-                  onValueChange={(value) => handleStatusChange(value as TicketStatus)}
-                >
-                  <SelectTrigger className="w-[120px]">
-                    <SelectValue />
-                  </SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="open">Open</SelectItem>
-                    <SelectItem value="pending">Pending</SelectItem>
-                    <SelectItem value="resolved">Resolved</SelectItem>
-                    <SelectItem value="closed">Closed</SelectItem>
-                  </SelectContent>
-                </Select>
-              </div>
-              <div>
-                <p className="text-sm font-medium">Priority</p>
-                <Select
-                  value={priority || ticket.priority}
-                  onValueChange={(value) => handlePriorityChange(value as TicketPriority)}
-                >
-                  <SelectTrigger className="w-[120px]">
-                    <SelectValue />
-                  </SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="low">Low</SelectItem>
-                    <SelectItem value="medium">Medium</SelectItem>
-                    <SelectItem value="high">High</SelectItem>
-                    <SelectItem value="urgent">Urgent</SelectItem>
-                  </SelectContent>
-                </Select>
-              </div>
-              <div>
-                <p className="text-sm font-medium">Project</p>
-                <Select
-                  value={selectedProjectId || ticket.project_id || ""}
-                  onValueChange={(value) => handleProjectChange(value || null)}
-                >
-                  <SelectTrigger className="w-[200px]">
-                    <SelectValue placeholder="Select a project" />
-                  </SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="">No Project</SelectItem>
-                    {projects?.map((project) => (
-                      <SelectItem key={project.id} value={project.id}>
-                        {project.name} ({project.code})
-                      </SelectItem>
-                    ))}
-                  </SelectContent>
-                </Select>
-              </div>
-              <div>
-                <p className="text-sm font-medium">Customer</p>
-                <p className="text-sm">{ticket.customer?.full_name || "Unknown"}</p>
-              </div>
-              <div>
-                <p className="text-sm font-medium">Assigned To</p>
-                <p className="text-sm">{ticket.assignee?.full_name || "Unassigned"}</p>
-              </div>
-              <div>
-                <p className="text-sm font-medium">Created</p>
-                <p className="text-sm">{new Date(ticket.created_at).toLocaleDateString()}</p>
-              </div>
-            </div>
+            <TicketMetadata
+              status={status || ticket.status}
+              priority={priority || ticket.priority}
+              projectId={ticket.project_id}
+              customer={ticket.customer}
+              assignee={ticket.assignee}
+              createdAt={ticket.created_at}
+              projects={projects}
+              onStatusChange={handleStatusChange}
+              onPriorityChange={handlePriorityChange}
+              onProjectChange={handleProjectChange}
+            />
             
             <div className="mt-4">
               <p className="text-sm font-medium">Description</p>

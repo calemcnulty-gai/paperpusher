@@ -1,9 +1,9 @@
-import { useState, useEffect } from "react"
+import { useState } from "react"
 import { Table, TableBody } from "@/components/ui/table"
 import { useToast } from "@/components/ui/use-toast"
 import { useQueryClient } from "@tanstack/react-query"
 import { supabase } from "@/integrations/supabase/client"
-import { TicketStatus, TicketPriority } from "@/types/tickets"
+import { TicketStatus, TicketPriority, Ticket } from "@/types/tickets"
 import { TicketDetailsModal } from "./TicketDetailsModal"
 import { useDispatch, useSelector } from "react-redux"
 import { RootState } from "@/store"
@@ -11,20 +11,8 @@ import { fetchProfiles } from "@/store/profilesSlice"
 import { AppDispatch } from "@/store"
 import { TicketTableHeader } from "./TicketTableHeader"
 import { TicketRow } from "./TicketRow"
+import { TicketFilters } from "./TicketFilters"
 import { Profile } from "@/types/profiles"
-
-type Ticket = {
-  id: string
-  subject: string
-  description: string | null
-  status: TicketStatus
-  priority: TicketPriority
-  customer: { full_name: string; role: string; email: string } | null
-  assignee: { id: string; full_name: string } | null
-  project_id: string | null
-  project_ticket_key: string | null
-  created_at: string
-}
 
 type TicketTableProps = {
   tickets: Ticket[] | null
@@ -34,18 +22,14 @@ type TicketTableProps = {
 
 export function TicketTable({ tickets, isLoading, canEdit }: TicketTableProps) {
   const [selectedTicket, setSelectedTicket] = useState<Ticket | null>(null)
+  const [statusFilter, setStatusFilter] = useState<TicketStatus | "all">("all")
+  const [priorityFilter, setPriorityFilter] = useState<TicketPriority | "all">("all")
   const { toast } = useToast()
   const queryClient = useQueryClient()
   const dispatch = useDispatch<AppDispatch>()
   const profiles = useSelector((state: RootState) => state.profiles.profiles)
-  const agents = profiles
-    .filter(profile => profile.role === 'agent' || profile.role === 'admin') as Profile[]
+  const agents = profiles.filter(profile => profile.role === 'agent' || profile.role === 'admin') as Profile[]
   
-  useEffect(() => {
-    console.log("Dispatching fetchProfiles")
-    dispatch(fetchProfiles())
-  }, [dispatch])
-
   const handleStatusChange = async (ticketId: string, newStatus: TicketStatus) => {
     try {
       const { error } = await supabase
@@ -123,25 +107,40 @@ export function TicketTable({ tickets, isLoading, canEdit }: TicketTableProps) {
     }
   }
 
+  const filteredTickets = tickets?.filter(ticket => {
+    if (statusFilter !== "all" && ticket.status !== statusFilter) return false
+    if (priorityFilter !== "all" && ticket.priority !== priorityFilter) return false
+    return true
+  })
+
   return (
-    <div className="border rounded-lg">
-      <Table>
-        <TicketTableHeader />
-        <TableBody>
-          {tickets?.map((ticket) => (
-            <TicketRow
-              key={ticket.id}
-              ticket={ticket}
-              agents={agents}
-              canEdit={canEdit}
-              onStatusChange={handleStatusChange}
-              onPriorityChange={handlePriorityChange}
-              onAssigneeChange={handleAssigneeChange}
-              onClick={() => setSelectedTicket(ticket)}
-            />
-          ))}
-        </TableBody>
-      </Table>
+    <div>
+      <TicketFilters
+        status={statusFilter}
+        priority={priorityFilter}
+        onStatusChange={setStatusFilter}
+        onPriorityChange={setPriorityFilter}
+      />
+      
+      <div className="border rounded-lg">
+        <Table>
+          <TicketTableHeader />
+          <TableBody>
+            {filteredTickets?.map((ticket) => (
+              <TicketRow
+                key={ticket.id}
+                ticket={ticket}
+                agents={agents}
+                canEdit={canEdit}
+                onStatusChange={handleStatusChange}
+                onPriorityChange={handlePriorityChange}
+                onAssigneeChange={handleAssigneeChange}
+                onClick={() => setSelectedTicket(ticket)}
+              />
+            ))}
+          </TableBody>
+        </Table>
+      </div>
 
       <TicketDetailsModal
         ticket={selectedTicket}
