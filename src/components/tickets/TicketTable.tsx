@@ -1,4 +1,4 @@
-import { useState } from "react"
+import { useState, useEffect } from "react"
 import { Table, TableBody } from "@/components/ui/table"
 import { useToast } from "@/components/ui/use-toast"
 import { useQueryClient } from "@tanstack/react-query"
@@ -7,11 +7,11 @@ import { TicketStatus, TicketPriority } from "@/types/tickets"
 import { TicketDetailsModal } from "./TicketDetailsModal"
 import { useDispatch, useSelector } from "react-redux"
 import { RootState } from "@/store"
-import { useEffect } from "react"
 import { fetchProfiles } from "@/store/profilesSlice"
 import { AppDispatch } from "@/store"
 import { TicketTableHeader } from "./TicketTableHeader"
 import { TicketRow } from "./TicketRow"
+import { format } from "date-fns"
 
 type Ticket = {
   id: string
@@ -36,7 +36,13 @@ export function TicketTable({ tickets, isLoading, canEdit }: TicketTableProps) {
   const queryClient = useQueryClient()
   const dispatch = useDispatch<AppDispatch>()
   const profiles = useSelector((state: RootState) => state.profiles.profiles)
-  const agents = profiles.filter(profile => profile.role === 'agent' || profile.role === 'admin')
+  const agents = profiles
+    .filter(profile => profile.role === 'agent' || profile.role === 'admin')
+    .map(profile => ({
+      ...profile,
+      created_at: profile.created_at || new Date().toISOString(),
+      updated_at: profile.updated_at || new Date().toISOString()
+    }))
   
   useEffect(() => {
     console.log("Dispatching fetchProfiles")
