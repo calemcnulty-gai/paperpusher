@@ -1,19 +1,17 @@
 import { useState } from "react"
-import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table"
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
+import { Table, TableBody } from "@/components/ui/table"
 import { useToast } from "@/components/ui/use-toast"
 import { useQueryClient } from "@tanstack/react-query"
-import { format } from "date-fns"
 import { supabase } from "@/integrations/supabase/client"
 import { TicketStatus, TicketPriority } from "@/types/tickets"
-import { TicketStatusBadge } from "./TicketStatusBadge"
-import { TicketPriorityBadge } from "./TicketPriorityBadge"
 import { TicketDetailsModal } from "./TicketDetailsModal"
 import { useDispatch, useSelector } from "react-redux"
 import { RootState } from "@/store"
 import { useEffect } from "react"
 import { fetchProfiles } from "@/store/profilesSlice"
 import { AppDispatch } from "@/store"
+import { TicketTableHeader } from "./TicketTableHeader"
+import { TicketRow } from "./TicketRow"
 
 type Ticket = {
   id: string
@@ -31,8 +29,6 @@ type TicketTableProps = {
   isLoading: boolean
   canEdit: boolean
 }
-
-const UNASSIGNED_VALUE = "unassigned"
 
 export function TicketTable({ tickets, isLoading, canEdit }: TicketTableProps) {
   const [selectedTicket, setSelectedTicket] = useState<Ticket | null>(null)
@@ -99,8 +95,7 @@ export function TicketTable({ tickets, isLoading, canEdit }: TicketTableProps) {
 
   const handleAssigneeChange = async (ticketId: string, newAssigneeId: string) => {
     try {
-      // If the value is UNASSIGNED_VALUE, set assigned_to to null
-      const assignedTo = newAssigneeId === UNASSIGNED_VALUE ? null : newAssigneeId
+      const assignedTo = newAssigneeId === "unassigned" ? null : newAssigneeId
 
       const { error } = await supabase
         .from("tickets")
@@ -128,103 +123,19 @@ export function TicketTable({ tickets, isLoading, canEdit }: TicketTableProps) {
   return (
     <div className="border rounded-lg">
       <Table>
-        <TableHeader>
-          <TableRow>
-            <TableHead>Subject</TableHead>
-            <TableHead>Status</TableHead>
-            <TableHead>Priority</TableHead>
-            <TableHead>Customer</TableHead>
-            <TableHead>Assigned To</TableHead>
-            <TableHead>Created</TableHead>
-          </TableRow>
-        </TableHeader>
+        <TicketTableHeader />
         <TableBody>
           {tickets?.map((ticket) => (
-            <TableRow 
+            <TicketRow
               key={ticket.id}
-              className="cursor-pointer hover:bg-muted/50"
+              ticket={ticket}
+              agents={agents}
+              canEdit={canEdit}
+              onStatusChange={handleStatusChange}
+              onPriorityChange={handlePriorityChange}
+              onAssigneeChange={handleAssigneeChange}
               onClick={() => setSelectedTicket(ticket)}
-            >
-              <TableCell className="font-medium">{ticket.subject}</TableCell>
-              <TableCell>
-                {canEdit ? (
-                  <Select
-                    value={ticket.status}
-                    onValueChange={(value) => {
-                      // Prevent row click when interacting with select
-                      event?.stopPropagation();
-                      handleStatusChange(ticket.id, value as TicketStatus);
-                    }}
-                  >
-                    <SelectTrigger className="w-[120px]">
-                      <SelectValue />
-                    </SelectTrigger>
-                    <SelectContent>
-                      <SelectItem value="open">Open</SelectItem>
-                      <SelectItem value="pending">Pending</SelectItem>
-                      <SelectItem value="resolved">Resolved</SelectItem>
-                      <SelectItem value="closed">Closed</SelectItem>
-                    </SelectContent>
-                  </Select>
-                ) : (
-                  <TicketStatusBadge status={ticket.status} />
-                )}
-              </TableCell>
-              <TableCell>
-                {canEdit ? (
-                  <Select
-                    value={ticket.priority}
-                    onValueChange={(value) => {
-                      // Prevent row click when interacting with select
-                      event?.stopPropagation();
-                      handlePriorityChange(ticket.id, value as TicketPriority);
-                    }}
-                  >
-                    <SelectTrigger className="w-[120px]">
-                      <SelectValue />
-                    </SelectTrigger>
-                    <SelectContent>
-                      <SelectItem value="low">Low</SelectItem>
-                      <SelectItem value="medium">Medium</SelectItem>
-                      <SelectItem value="high">High</SelectItem>
-                      <SelectItem value="urgent">Urgent</SelectItem>
-                    </SelectContent>
-                  </Select>
-                ) : (
-                  <TicketPriorityBadge priority={ticket.priority} />
-                )}
-              </TableCell>
-              <TableCell>{ticket.customer?.full_name}</TableCell>
-              <TableCell>
-                {canEdit ? (
-                  <Select
-                    value={ticket.assignee?.id || UNASSIGNED_VALUE}
-                    onValueChange={(value) => {
-                      // Prevent row click when interacting with select
-                      event?.stopPropagation();
-                      handleAssigneeChange(ticket.id, value);
-                    }}
-                  >
-                    <SelectTrigger className="w-[180px]">
-                      <SelectValue placeholder="Select an agent" />
-                    </SelectTrigger>
-                    <SelectContent>
-                      <SelectItem value={UNASSIGNED_VALUE}>Unassigned</SelectItem>
-                      {agents.map((agent) => (
-                        <SelectItem key={agent.id} value={agent.id}>
-                          {agent.full_name || agent.email}
-                        </SelectItem>
-                      ))}
-                    </SelectContent>
-                  </Select>
-                ) : (
-                  ticket.assignee?.full_name || "Unassigned"
-                )}
-              </TableCell>
-              <TableCell>
-                {format(new Date(ticket.created_at), "MMM d, yyyy")}
-              </TableCell>
-            </TableRow>
+            />
           ))}
         </TableBody>
       </Table>
