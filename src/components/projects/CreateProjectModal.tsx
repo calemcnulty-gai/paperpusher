@@ -25,6 +25,7 @@ import { Input } from "@/components/ui/input"
 import { Button } from "@/components/ui/button"
 import { Textarea } from "@/components/ui/textarea"
 
+// Define the schema to match Supabase's required fields
 const projectSchema = z.object({
   code: z.string()
     .min(2, "Code must be at least 2 characters")
@@ -57,7 +58,11 @@ export function CreateProjectModal() {
       console.log("Creating project with values:", values)
       const { data, error } = await supabase
         .from("projects")
-        .insert(values) // Pass values directly, not as an array
+        .insert({
+          code: values.code,
+          name: values.name,
+          description: values.description || null,
+        })
         .select()
         .single()
 
