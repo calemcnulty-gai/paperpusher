@@ -1,16 +1,12 @@
 import { useState } from "react"
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from "@/components/ui/dialog"
-import { Button } from "@/components/ui/button"
-import { Textarea } from "@/components/ui/textarea"
 import { useToast } from "@/components/ui/use-toast"
-import { format } from "date-fns"
 import { supabase } from "@/integrations/supabase/client"
 import { TicketStatus, TicketPriority } from "@/types/tickets"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
 import { useQuery } from "@tanstack/react-query"
-import { ScrollArea } from "@/components/ui/scroll-area"
-import { Loader2, ChevronDown } from "lucide-react"
-import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from "@/components/ui/accordion"
+import { TicketMessageList } from "./TicketMessageList"
+import { TicketReplyForm } from "./TicketReplyForm"
 
 type Ticket = {
   id: string
@@ -21,16 +17,6 @@ type Ticket = {
   customer: { full_name: string; role: string; email: string } | null
   assignee: { id: string; full_name: string } | null
   created_at: string
-}
-
-type Message = {
-  id: string
-  message: string
-  created_at: string
-  sender: {
-    full_name: string
-    role: string
-  }
 }
 
 type TicketDetailsModalProps = {
@@ -66,7 +52,7 @@ export function TicketDetailsModal({ ticket, isOpen, onClose, canReply }: Ticket
         .order("created_at", { ascending: true })
 
       if (error) throw error
-      return data as Message[]
+      return data
     },
     enabled: !!ticket
   })
@@ -167,80 +153,6 @@ export function TicketDetailsModal({ ticket, isOpen, onClose, canReply }: Ticket
 
   if (!ticket) return null
 
-  const renderMessages = () => {
-    if (isLoadingMessages) {
-      return (
-        <div className="flex justify-center items-center h-[200px]">
-          <Loader2 className="h-4 w-4 animate-spin" />
-        </div>
-      )
-    }
-
-    if (!messages || messages.length === 0) {
-      return (
-        <p className="text-sm text-muted-foreground text-center">No messages yet</p>
-      )
-    }
-
-    const firstMessage = messages[0]
-    const lastMessage = messages[messages.length - 1]
-    const middleMessages = messages.slice(1, -1)
-
-    return (
-      <div className="space-y-4">
-        {/* First Message */}
-        <div className="border-b pb-2">
-          <div className="flex justify-between items-start">
-            <p className="text-sm font-medium">{firstMessage.sender.full_name}</p>
-            <p className="text-xs text-muted-foreground">
-              {format(new Date(firstMessage.created_at), "MMM d, yyyy HH:mm")}
-            </p>
-          </div>
-          <p className="text-sm mt-1 whitespace-pre-wrap">{firstMessage.message}</p>
-        </div>
-
-        {/* Middle Messages in Accordion */}
-        {middleMessages.length > 0 && (
-          <Accordion type="single" collapsible className="border rounded-md">
-            <AccordionItem value="middle-messages">
-              <AccordionTrigger className="px-4">
-                {middleMessages.length} earlier message{middleMessages.length !== 1 ? 's' : ''}
-              </AccordionTrigger>
-              <AccordionContent>
-                <div className="space-y-4 px-4">
-                  {middleMessages.map((message) => (
-                    <div key={message.id} className="border-b pb-2 last:border-0">
-                      <div className="flex justify-between items-start">
-                        <p className="text-sm font-medium">{message.sender.full_name}</p>
-                        <p className="text-xs text-muted-foreground">
-                          {format(new Date(message.created_at), "MMM d, yyyy HH:mm")}
-                        </p>
-                      </div>
-                      <p className="text-sm mt-1 whitespace-pre-wrap">{message.message}</p>
-                    </div>
-                  ))}
-                </div>
-              </AccordionContent>
-            </AccordionItem>
-          </Accordion>
-        )}
-
-        {/* Last Message */}
-        {messages.length > 1 && (
-          <div className="border-t pt-2">
-            <div className="flex justify-between items-start">
-              <p className="text-sm font-medium">{lastMessage.sender.full_name}</p>
-              <p className="text-xs text-muted-foreground">
-                {format(new Date(lastMessage.created_at), "MMM d, yyyy HH:mm")}
-              </p>
-            </div>
-            <p className="text-sm mt-1 whitespace-pre-wrap">{lastMessage.message}</p>
-          </div>
-        )}
-      </div>
-    )
-  }
-
   return (
     <Dialog open={isOpen} onOpenChange={onClose}>
       <DialogContent className="max-w-2xl max-h-[90vh]">
@@ -292,47 +204,32 @@ export function TicketDetailsModal({ ticket, isOpen, onClose, canReply }: Ticket
               </div>
               <div>
                 <p className="text-sm font-medium">Created</p>
-                <p className="text-sm">{format(new Date(ticket.created_at), "MMM d, yyyy")}</p>
+                <p className="text-sm">{new Date(ticket.created_at).toLocaleDateString()}</p>
               </div>
             </div>
             
             <div className="mt-4">
               <p className="text-sm font-medium">Description</p>
-              <p className="text-sm mt-1 whitespace-pre-wrap">{ticket.description || "No description provided"}</p>
+              <p className="text-sm mt-1 whitespace-pre-wrap">
+                {ticket.description || "No description provided"}
+              </p>
             </div>
 
             <div className="mt-4">
               <p className="text-sm font-medium mb-2">Messages</p>
-              <ScrollArea className="h-[300px] border rounded-md p-4">
-                {renderMessages()}
-              </ScrollArea>
+              <TicketMessageList 
+                messages={messages} 
+                isLoading={isLoadingMessages} 
+              />
             </div>
 
-            {canReply && (
-              <div className="mt-4">
-                <p className="text-sm font-medium mb-2">Add a message</p>
-                <Textarea
-                  value={reply}
-                  onChange={(e) => setReply(e.target.value)}
-                  placeholder="Type your message here..."
-                  className="min-h-[100px]"
-                />
-                <Button 
-                  onClick={handleSubmitReply} 
-                  className="mt-2"
-                  disabled={!reply.trim() || isSubmitting}
-                >
-                  {isSubmitting ? (
-                    <>
-                      <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                      Sending...
-                    </>
-                  ) : (
-                    "Send Message"
-                  )}
-                </Button>
-              </div>
-            )}
+            <TicketReplyForm
+              reply={reply}
+              setReply={setReply}
+              onSubmit={handleSubmitReply}
+              isSubmitting={isSubmitting}
+              canReply={canReply}
+            />
           </DialogDescription>
         </DialogHeader>
       </DialogContent>
