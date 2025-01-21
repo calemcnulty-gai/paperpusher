@@ -20,12 +20,17 @@ const TeamMembers = () => {
     queryFn: async () => {
       if (!teamId) return []
       
+      console.log("Fetching team members for team:", teamId)
       const { data: members, error } = await supabase
         .from('team_members')
         .select('*')
         .eq('team_id', teamId)
       
-      if (error) throw error
+      if (error) {
+        console.error("Error fetching team members:", error)
+        throw error
+      }
+      console.log("Fetched team members:", members)
       return members as TeamMember[]
     },
     enabled: !!teamId
@@ -34,12 +39,17 @@ const TeamMembers = () => {
   const { data: profiles = {}, isLoading: loadingProfiles } = useQuery({
     queryKey: ["profiles"],
     queryFn: async () => {
+      console.log("Fetching all profiles")
       const { data: profiles, error } = await supabase
         .from('profiles')
         .select('*')
       
-      if (error) throw error
-      
+      if (error) {
+        console.error("Error fetching profiles:", error)
+        throw error
+      }
+
+      console.log("Fetched profiles:", profiles)
       const profileMap: Record<string, Profile> = {}
       profiles.forEach((profile: Profile) => {
         profileMap[profile.id] = profile
@@ -50,19 +60,31 @@ const TeamMembers = () => {
   })
 
   const { data: availableUsers = [], isLoading: loadingAvailableUsers } = useQuery({
-    queryKey: ["available-users", teamId],
+    queryKey: ["available-users", teamId, teamMembers],
     queryFn: async () => {
       if (!teamId) return []
       
       const memberIds = teamMembers.map(m => m.user_id)
-      
-      const { data: profiles, error } = await supabase
+      console.log("Current team member IDs:", memberIds)
+
+      let query = supabase
         .from('profiles')
         .select('*')
-        .not('id', 'in', memberIds.length > 0 ? memberIds : [null])
         .order('full_name')
+
+      // Only apply the filter if there are existing members
+      if (memberIds.length > 0) {
+        query = query.not('id', 'in', `(${memberIds.join(',')})`)
+      }
       
-      if (error) throw error
+      const { data: profiles, error } = await query
+      
+      if (error) {
+        console.error("Error fetching available users:", error)
+        throw error
+      }
+
+      console.log("Fetched available users:", profiles)
       return profiles as Profile[]
     },
     enabled: !!teamId && !loadingTeamMembers
@@ -73,13 +95,19 @@ const TeamMembers = () => {
     queryFn: async () => {
       if (!teamId) return null
       
+      console.log("Fetching team details for:", teamId)
       const { data, error } = await supabase
         .from('teams')
         .select('*')
         .eq('id', teamId)
         .single()
       
-      if (error) throw error
+      if (error) {
+        console.error("Error fetching team details:", error)
+        throw error
+      }
+
+      console.log("Fetched team details:", data)
       return data
     },
     enabled: !!teamId
