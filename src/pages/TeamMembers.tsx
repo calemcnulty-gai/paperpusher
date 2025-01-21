@@ -25,14 +25,17 @@ export default function TeamMembers() {
     queryFn: async () => {
       if (!teamId) return []
       
+      const { data: existingMemberIds } = await supabase
+        .from('team_members')
+        .select('user_id')
+        .eq('team_id', teamId)
+
+      const memberIds = existingMemberIds?.map(m => m.user_id) || []
+      
       const { data: profiles, error } = await supabase
         .from('profiles')
         .select('id, full_name, email, role')
-        .not('id', 'in', `(
-          SELECT user_id 
-          FROM team_members 
-          WHERE team_id = '${teamId}'
-        )`)
+        .not('id', 'in', memberIds)
         .order('full_name')
       
       if (error) throw error
