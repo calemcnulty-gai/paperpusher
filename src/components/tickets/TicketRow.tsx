@@ -13,7 +13,7 @@ type Ticket = {
   description: string | null
   status: TicketStatus
   priority: TicketPriority
-  customer: { full_name: string; role: string } | null
+  customer: { full_name: string; role: string; email: string } | null
   assignee: { id: string; full_name: string } | null
   created_at: string
 }
