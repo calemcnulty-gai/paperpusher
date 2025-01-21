@@ -30,9 +30,9 @@ export function TicketMetadata({
     <div className="grid grid-cols-2 gap-4 mt-4">
       <div>
         <p className="text-sm font-medium">Status</p>
-        <Select value={status} onValueChange={(value) => onStatusChange(value as TicketStatus)}>
+        <Select value={status} onValueChange={onStatusChange}>
           <SelectTrigger className="w-[120px]">
-            <SelectValue />
+            <SelectValue placeholder="Select status" />
           </SelectTrigger>
           <SelectContent>
             <SelectItem value="open">Open</SelectItem>
@@ -44,9 +44,9 @@ export function TicketMetadata({
       </div>
       <div>
         <p className="text-sm font-medium">Priority</p>
-        <Select value={priority} onValueChange={(value) => onPriorityChange(value as TicketPriority)}>
+        <Select value={priority} onValueChange={onPriorityChange}>
           <SelectTrigger className="w-[120px]">
-            <SelectValue />
+            <SelectValue placeholder="Select priority" />
           </SelectTrigger>
           <SelectContent>
             <SelectItem value="low">Low</SelectItem>
@@ -58,12 +58,15 @@ export function TicketMetadata({
       </div>
       <div>
         <p className="text-sm font-medium">Project</p>
-        <Select value={projectId || "none"} onValueChange={(value) => onProjectChange(value === "none" ? null : value)}>
+        <Select 
+          value={projectId || "no-project"} 
+          onValueChange={(value) => onProjectChange(value === "no-project" ? null : value)}
+        >
           <SelectTrigger className="w-[200px]">
             <SelectValue placeholder="Select a project" />
           </SelectTrigger>
           <SelectContent>
-            <SelectItem value="none">No Project</SelectItem>
+            <SelectItem value="no-project">No Project</SelectItem>
             {projects?.map((project) => (
               <SelectItem key={project.id} value={project.id}>
                 {project.name} ({project.code})
