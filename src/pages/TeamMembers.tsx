@@ -8,39 +8,64 @@ import { TeamMembersList } from "@/components/teams/TeamMembersList"
 import { Button } from "@/components/ui/button"
 import { Loader2, UserPlus } from "lucide-react"
 import { useToast } from "@/components/ui/use-toast"
+import { TeamMember } from "@/store/teamsSlice"
 
 const TeamMembers = () => {
   const { teamId } = useParams<{ teamId: string }>()
   const [isAddMemberOpen, setIsAddMemberOpen] = useState(false)
   const { toast } = useToast()
 
-  const { data: availableUsers, isLoading: loadingAvailableUsers } = useQuery({
+  const { data: teamMembers = [], isLoading: loadingTeamMembers } = useQuery({
+    queryKey: ["team-members", teamId],
+    queryFn: async () => {
+      if (!teamId) return []
+      
+      const { data: members, error } = await supabase
+        .from('team_members')
+        .select('*')
+        .eq('team_id', teamId)
+      
+      if (error) throw error
+      return members as TeamMember[]
+    },
+    enabled: !!teamId
+  })
+
+  const { data: profiles = {}, isLoading: loadingProfiles } = useQuery({
+    queryKey: ["profiles"],
+    queryFn: async () => {
+      const { data: profiles, error } = await supabase
+        .from('profiles')
+        .select('*')
+      
+      if (error) throw error
+      
+      const profileMap: Record<string, Profile> = {}
+      profiles.forEach((profile: Profile) => {
+        profileMap[profile.id] = profile
+      })
+      
+      return profileMap
+    }
+  })
+
+  const { data: availableUsers = [], isLoading: loadingAvailableUsers } = useQuery({
     queryKey: ["available-users", teamId],
     queryFn: async () => {
       if (!teamId) return []
       
-      // First, get existing team member IDs
-      const { data: existingMembers, error: membersError } = await supabase
-        .from('team_members')
-        .select('user_id')
-        .eq('team_id', teamId)
-
-      if (membersError) throw membersError
-
-      const memberIds = existingMembers?.map(m => m.user_id) || []
+      const memberIds = teamMembers.map(m => m.user_id)
       
-      // Then get available profiles excluding existing members
       const { data: profiles, error } = await supabase
         .from('profiles')
-        .select('id, full_name, email, role')
+        .select('*')
         .not('id', 'in', memberIds.length > 0 ? memberIds : [null])
         .order('full_name')
       
       if (error) throw error
-      
       return profiles as Profile[]
     },
-    enabled: !!teamId
+    enabled: !!teamId && !loadingTeamMembers
   })
 
   const { data: team } = useQuery({
@@ -64,6 +89,8 @@ const TeamMembers = () => {
     return <div>Team ID is required</div>
   }
 
+  const isLoading = loadingTeamMembers || loadingProfiles || loadingAvailableUsers
+
   return (
     <div className="container mx-auto py-6">
       <div className="flex justify-between items-center mb-6">
@@ -74,19 +101,21 @@ const TeamMembers = () => {
         </Button>
       </div>
 
-      {loadingAvailableUsers ? (
+      {isLoading ? (
         <div className="flex justify-center">
           <Loader2 className="h-8 w-8 animate-spin" />
         </div>
       ) : (
         <>
-          <TeamMembersList teamId={teamId} />
+          <TeamMembersList 
+            teamMembers={teamMembers} 
+            profiles={profiles}
+          />
           
           <AddTeamMemberDialog 
-            teamId={teamId}
-            availableUsers={availableUsers || []}
-            open={isAddMemberOpen}
-            onOpenChange={setIsAddMemberOpen}
+            isOpen={isAddMemberOpen}
+            onClose={() => setIsAddMemberOpen(false)}
+            availableUsers={availableUsers}
           />
         </>
       )}
