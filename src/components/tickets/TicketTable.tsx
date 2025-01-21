@@ -21,6 +21,8 @@ type Ticket = {
   priority: TicketPriority
   customer: { full_name: string; role: string; email: string } | null
   assignee: { id: string; full_name: string } | null
+  project_id: string | null
+  project_ticket_key: string | null
   created_at: string
 }
 
