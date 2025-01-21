@@ -1,4 +1,4 @@
-import { Home, Inbox, Users, Settings, BarChart3 } from "lucide-react"
+import { Home, Inbox, Users, Settings, BarChart3, FolderKanban } from "lucide-react"
 import {
   Sidebar,
   SidebarContent,
@@ -10,16 +10,43 @@ import {
   SidebarMenuItem,
   SidebarHeader,
 } from "@/components/ui/sidebar"
+import { useQuery } from "@tanstack/react-query"
+import { supabase } from "@/integrations/supabase/client"
 
 const menuItems = [
   { title: "Dashboard", icon: Home, url: "/" },
   { title: "Tickets", icon: Inbox, url: "/tickets" },
   { title: "Customers", icon: Users, url: "/customers" },
+  { title: "Projects", icon: FolderKanban, url: "/projects" },
   { title: "Reports", icon: BarChart3, url: "/reports" },
   { title: "Settings", icon: Settings, url: "/settings" },
 ]
 
 export function AppSidebar() {
+  const { data: userRole } = useQuery({
+    queryKey: ["user-role"],
+    queryFn: async () => {
+      const { data: { user } } = await supabase.auth.getUser()
+      if (!user) return null
+      
+      const { data: profile } = await supabase
+        .from("profiles")
+        .select("role")
+        .eq("id", user.id)
+        .single()
+      
+      return profile?.role
+    }
+  })
+
+  // Filter out Projects menu item for customers
+  const filteredMenuItems = menuItems.filter(item => {
+    if (item.title === "Projects" && userRole === "customer") {
+      return false
+    }
+    return true
+  })
+
   return (
     <Sidebar>
       <SidebarHeader className="p-4">
@@ -30,7 +57,7 @@ export function AppSidebar() {
           <SidebarGroupLabel>Main Menu</SidebarGroupLabel>
           <SidebarGroupContent>
             <SidebarMenu>
-              {menuItems.map((item) => (
+              {filteredMenuItems.map((item) => (
                 <SidebarMenuItem key={item.title}>
                   <SidebarMenuButton asChild>
                     <a href={item.url} className="flex items-center gap-2">

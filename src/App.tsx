@@ -11,6 +11,7 @@ import Index from "./pages/Index"
 import Auth from "./pages/Auth"
 import Tickets from "./pages/Tickets"
 import Customers from "./pages/Customers"
+import Projects from "./pages/Projects"
 
 const queryClient = new QueryClient()
 
@@ -45,6 +46,14 @@ const App = () => (
                 element={
                   <RequireAuth>
                     <Customers />
+                  </RequireAuth>
+                }
+              />
+              <Route
+                path="/projects"
+                element={
+                  <RequireAuth>
+                    <Projects />
                   </RequireAuth>
                 }
               />
