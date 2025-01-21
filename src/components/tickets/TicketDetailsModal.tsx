@@ -9,13 +9,17 @@ import { useTicketOperations } from "@/hooks/useTicketOperations"
 import { useState } from "react"
 
 interface TicketDetailsModalProps {
-  ticket: Ticket
+  ticket: Ticket | null
   open: boolean
   onOpenChange: (open: boolean) => void
 }
 
 export function TicketDetailsModal({ ticket, open, onOpenChange }: TicketDetailsModalProps) {
   const [reply, setReply] = useState("")
+  
+  // Return early if no ticket is selected
+  if (!ticket) return null
+
   const {
     isSubmitting,
     handleReply,

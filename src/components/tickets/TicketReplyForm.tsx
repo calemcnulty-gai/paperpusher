@@ -3,45 +3,49 @@ import { Textarea } from "@/components/ui/textarea"
 import { Loader2 } from "lucide-react"
 
 type TicketReplyFormProps = {
-  reply: string
-  setReply: (reply: string) => void
-  onSubmit: () => void
+  value: string
+  onChange: (value: string) => void
+  onSubmit: (isInternal?: boolean) => Promise<void>
   isSubmitting: boolean
-  canReply: boolean
 }
 
 export const TicketReplyForm = ({ 
-  reply, 
-  setReply, 
+  value, 
+  onChange, 
   onSubmit, 
-  isSubmitting,
-  canReply 
+  isSubmitting
 }: TicketReplyFormProps) => {
-  if (!canReply) return null
-
   return (
     <div className="mt-4">
       <p className="text-sm font-medium mb-2">Add a message</p>
       <Textarea
-        value={reply}
-        onChange={(e) => setReply(e.target.value)}
+        value={value}
+        onChange={(e) => onChange(e.target.value)}
         placeholder="Type your message here..."
         className="min-h-[100px]"
       />
-      <Button 
-        onClick={onSubmit} 
-        className="mt-2"
-        disabled={!reply.trim() || isSubmitting}
-      >
-        {isSubmitting ? (
-          <>
-            <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-            Sending...
-          </>
-        ) : (
-          "Send Message"
-        )}
-      </Button>
+      <div className="flex gap-2 mt-2">
+        <Button 
+          onClick={() => onSubmit()} 
+          disabled={!value.trim() || isSubmitting}
+        >
+          {isSubmitting ? (
+            <>
+              <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+              Sending...
+            </>
+          ) : (
+            "Send Message"
+          )}
+        </Button>
+        <Button 
+          variant="outline"
+          onClick={() => onSubmit(true)} 
+          disabled={!value.trim() || isSubmitting}
+        >
+          Send as Internal Note
+        </Button>
+      </div>
     </div>
   )
 }
