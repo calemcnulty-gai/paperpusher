@@ -17,16 +17,14 @@ interface TicketDetailsModalProps {
 export function TicketDetailsModal({ ticket, open, onOpenChange }: TicketDetailsModalProps) {
   const [reply, setReply] = useState("")
   
-  // Return early if no ticket is selected
-  if (!open || !ticket) return null
-
+  // Move hooks to top level
   const {
     isSubmitting,
     handleReply,
     updateStatus,
     updatePriority,
     updateProject,
-  } = useTicketOperations(ticket.id)
+  } = useTicketOperations(ticket?.id || '') // Provide a default value
 
   // Fetch available projects
   const { data: projects = [] } = useQuery({
@@ -40,17 +38,20 @@ export function TicketDetailsModal({ ticket, open, onOpenChange }: TicketDetails
       if (error) throw error
       return data
     },
-    enabled: open // Only fetch when modal is open
+    enabled: open && !!ticket // Only fetch when modal is open and ticket exists
   })
 
   const handleSubmitReply = async (isInternal: boolean = false) => {
-    if (!reply.trim()) return
+    if (!reply.trim() || !ticket) return
     
     const success = await handleReply(reply, isInternal)
     if (success) {
       setReply("")
     }
   }
+
+  // Return null after hooks are called
+  if (!open || !ticket) return null
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
