@@ -54,13 +54,17 @@ export function CreateProjectModal() {
 
   const createProject = useMutation({
     mutationFn: async (values: ProjectFormValues) => {
+      console.log("Creating project with values:", values)
       const { data, error } = await supabase
         .from("projects")
-        .insert([values])
+        .insert(values) // Pass values directly, not as an array
         .select()
         .single()
 
-      if (error) throw error
+      if (error) {
+        console.error("Supabase error:", error)
+        throw error
+      }
       return data
     },
     onSuccess: () => {
