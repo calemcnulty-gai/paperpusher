@@ -9,7 +9,8 @@ import { TicketStatus, TicketPriority } from "@/types/tickets"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
 import { useQuery } from "@tanstack/react-query"
 import { ScrollArea } from "@/components/ui/scroll-area"
-import { Loader2 } from "lucide-react"
+import { Loader2, ChevronDown } from "lucide-react"
+import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from "@/components/ui/accordion"
 
 type Ticket = {
   id: string
@@ -166,6 +167,80 @@ export function TicketDetailsModal({ ticket, isOpen, onClose, canReply }: Ticket
 
   if (!ticket) return null
 
+  const renderMessages = () => {
+    if (isLoadingMessages) {
+      return (
+        <div className="flex justify-center items-center h-[200px]">
+          <Loader2 className="h-4 w-4 animate-spin" />
+        </div>
+      )
+    }
+
+    if (!messages || messages.length === 0) {
+      return (
+        <p className="text-sm text-muted-foreground text-center">No messages yet</p>
+      )
+    }
+
+    const firstMessage = messages[0]
+    const lastMessage = messages[messages.length - 1]
+    const middleMessages = messages.slice(1, -1)
+
+    return (
+      <div className="space-y-4">
+        {/* First Message */}
+        <div className="border-b pb-2">
+          <div className="flex justify-between items-start">
+            <p className="text-sm font-medium">{firstMessage.sender.full_name}</p>
+            <p className="text-xs text-muted-foreground">
+              {format(new Date(firstMessage.created_at), "MMM d, yyyy HH:mm")}
+            </p>
+          </div>
+          <p className="text-sm mt-1 whitespace-pre-wrap">{firstMessage.message}</p>
+        </div>
+
+        {/* Middle Messages in Accordion */}
+        {middleMessages.length > 0 && (
+          <Accordion type="single" collapsible className="border rounded-md">
+            <AccordionItem value="middle-messages">
+              <AccordionTrigger className="px-4">
+                {middleMessages.length} earlier message{middleMessages.length !== 1 ? 's' : ''}
+              </AccordionTrigger>
+              <AccordionContent>
+                <div className="space-y-4 px-4">
+                  {middleMessages.map((message) => (
+                    <div key={message.id} className="border-b pb-2 last:border-0">
+                      <div className="flex justify-between items-start">
+                        <p className="text-sm font-medium">{message.sender.full_name}</p>
+                        <p className="text-xs text-muted-foreground">
+                          {format(new Date(message.created_at), "MMM d, yyyy HH:mm")}
+                        </p>
+                      </div>
+                      <p className="text-sm mt-1 whitespace-pre-wrap">{message.message}</p>
+                    </div>
+                  ))}
+                </div>
+              </AccordionContent>
+            </AccordionItem>
+          </Accordion>
+        )}
+
+        {/* Last Message */}
+        {messages.length > 1 && (
+          <div className="border-t pt-2">
+            <div className="flex justify-between items-start">
+              <p className="text-sm font-medium">{lastMessage.sender.full_name}</p>
+              <p className="text-xs text-muted-foreground">
+                {format(new Date(lastMessage.created_at), "MMM d, yyyy HH:mm")}
+              </p>
+            </div>
+            <p className="text-sm mt-1 whitespace-pre-wrap">{lastMessage.message}</p>
+          </div>
+        )}
+      </div>
+    )
+  }
+
   return (
     <Dialog open={isOpen} onOpenChange={onClose}>
       <DialogContent className="max-w-2xl max-h-[90vh]">
@@ -228,28 +303,8 @@ export function TicketDetailsModal({ ticket, isOpen, onClose, canReply }: Ticket
 
             <div className="mt-4">
               <p className="text-sm font-medium mb-2">Messages</p>
-              <ScrollArea className="h-[200px] border rounded-md p-4">
-                {isLoadingMessages ? (
-                  <div className="flex justify-center items-center h-full">
-                    <Loader2 className="h-4 w-4 animate-spin" />
-                  </div>
-                ) : messages && messages.length > 0 ? (
-                  <div className="space-y-4">
-                    {messages.map((message) => (
-                      <div key={message.id} className="border-b pb-2 last:border-0">
-                        <div className="flex justify-between items-start">
-                          <p className="text-sm font-medium">{message.sender.full_name}</p>
-                          <p className="text-xs text-muted-foreground">
-                            {format(new Date(message.created_at), "MMM d, yyyy HH:mm")}
-                          </p>
-                        </div>
-                        <p className="text-sm mt-1 whitespace-pre-wrap">{message.message}</p>
-                      </div>
-                    ))}
-                  </div>
-                ) : (
-                  <p className="text-sm text-muted-foreground text-center">No messages yet</p>
-                )}
+              <ScrollArea className="h-[300px] border rounded-md p-4">
+                {renderMessages()}
               </ScrollArea>
             </div>
 
