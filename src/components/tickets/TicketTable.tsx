@@ -8,6 +8,11 @@ import { supabase } from "@/integrations/supabase/client"
 import { TicketStatus, TicketPriority } from "@/types/tickets"
 import { TicketStatusBadge } from "./TicketStatusBadge"
 import { TicketPriorityBadge } from "./TicketPriorityBadge"
+import { useDispatch, useSelector } from "react-redux"
+import { RootState } from "@/store"
+import { useEffect } from "react"
+import { fetchProfiles } from "@/store/profilesSlice"
+import { AppDispatch } from "@/store"
 
 type Ticket = {
   id: string
@@ -28,6 +33,13 @@ type TicketTableProps = {
 export function TicketTable({ tickets, isLoading, canEdit }: TicketTableProps) {
   const { toast } = useToast()
   const queryClient = useQueryClient()
+  const dispatch = useDispatch<AppDispatch>()
+  const profiles = useSelector((state: RootState) => state.profiles.profiles)
+  const agents = profiles.filter(profile => profile.role === 'agent')
+
+  useEffect(() => {
+    dispatch(fetchProfiles())
+  }, [dispatch])
 
   const handleStatusChange = async (ticketId: string, newStatus: TicketStatus) => {
     try {
@@ -75,6 +87,31 @@ export function TicketTable({ tickets, isLoading, canEdit }: TicketTableProps) {
         variant: "destructive",
         title: "Error",
         description: "Failed to update ticket priority",
+      })
+    }
+  }
+
+  const handleAssigneeChange = async (ticketId: string, newAssigneeId: string) => {
+    try {
+      const { error } = await supabase
+        .from("tickets")
+        .update({ assigned_to: newAssigneeId })
+        .eq("id", ticketId)
+
+      if (error) throw error
+
+      toast({
+        title: "Success",
+        description: "Ticket assignee updated successfully",
+      })
+      
+      queryClient.invalidateQueries({ queryKey: ["tickets"] })
+    } catch (error) {
+      console.error("Error updating ticket assignee:", error)
+      toast({
+        variant: "destructive",
+        title: "Error",
+        description: "Failed to update ticket assignee",
       })
     }
   }
@@ -137,7 +174,28 @@ export function TicketTable({ tickets, isLoading, canEdit }: TicketTableProps) {
                 )}
               </TableCell>
               <TableCell>{ticket.customer?.full_name}</TableCell>
-              <TableCell>{ticket.assignee?.full_name || "Unassigned"}</TableCell>
+              <TableCell>
+                {canEdit ? (
+                  <Select
+                    value={ticket.assignee?.id || ''}
+                    onValueChange={(value) => handleAssigneeChange(ticket.id, value)}
+                  >
+                    <SelectTrigger className="w-[180px]">
+                      <SelectValue placeholder="Select an agent" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="">Unassigned</SelectItem>
+                      {agents.map((agent) => (
+                        <SelectItem key={agent.id} value={agent.id}>
+                          {agent.full_name || agent.email}
+                        </SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                ) : (
+                  ticket.assignee?.full_name || "Unassigned"
+                )}
+              </TableCell>
               <TableCell>
                 {format(new Date(ticket.created_at), "MMM d, yyyy")}
               </TableCell>
