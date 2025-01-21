@@ -35,12 +35,16 @@ export function AddTeamMemberDialog({ teamId }: AddTeamMemberDialogProps) {
   const { toast } = useToast()
 
   const { data: availableUsers } = useQuery({
-    queryKey: ["available-users"],
+    queryKey: ["available-users", teamId],
     queryFn: async () => {
       const { data, error } = await supabase
         .from("profiles")
         .select("id, full_name, email")
-        .not("id", "in", (select "user_id" from "team_members" where team_id = ${teamId}))
+        .not("id", "in", `(
+          select user_id 
+          from team_members 
+          where team_id = '${teamId}'
+        )`)
 
       if (error) throw error
       return data
