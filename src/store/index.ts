@@ -1,17 +1,14 @@
 import { configureStore } from "@reduxjs/toolkit"
 import authReducer from "./authSlice"
-import teamsReducer from "./teamsSlice"
-import profilesReducer from "./profilesSlice"
+import teamsReducer from "./teams/teamsSlice"
 import realtimeReducer from "./realtimeSlice"
+import profilesReducer from "./profilesSlice"
 
 export const store = configureStore({
   reducer: {
     auth: authReducer,
     teams: teamsReducer,
+    realtime: realtimeReducer,
     profiles: profilesReducer,
-    realtime: realtimeReducer
-  }
+  },
 })
-
-export type RootState = ReturnType<typeof store.getState>
-export type AppDispatch = typeof store.dispatch
