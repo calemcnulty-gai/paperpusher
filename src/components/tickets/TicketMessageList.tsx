@@ -1,3 +1,5 @@
+import { useQuery } from "@tanstack/react-query"
+import { supabase } from "@/integrations/supabase/client"
 import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from "@/components/ui/accordion"
 import { ScrollArea } from "@/components/ui/scroll-area"
 import { Loader2 } from "lucide-react"
@@ -14,11 +16,32 @@ type Message = {
 }
 
 type TicketMessageListProps = {
-  messages: Message[] | undefined
-  isLoading: boolean
+  ticketId: string
 }
 
-export const TicketMessageList = ({ messages, isLoading }: TicketMessageListProps) => {
+export const TicketMessageList = ({ ticketId }: TicketMessageListProps) => {
+  const { data: messages, isLoading } = useQuery({
+    queryKey: ["ticket-messages", ticketId],
+    queryFn: async () => {
+      const { data, error } = await supabase
+        .from("ticket_messages")
+        .select(`
+          id,
+          message,
+          created_at,
+          sender:profiles!ticket_messages_sender_id_fkey(
+            full_name,
+            role
+          )
+        `)
+        .eq("ticket_id", ticketId)
+        .order("created_at", { ascending: true })
+
+      if (error) throw error
+      return data as Message[]
+    },
+  })
+
   if (isLoading) {
     return (
       <div className="flex justify-center items-center h-[200px]">

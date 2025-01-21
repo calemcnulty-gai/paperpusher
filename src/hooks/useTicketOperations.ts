@@ -3,17 +3,22 @@ import { useQueryClient } from "@tanstack/react-query"
 import { useToast } from "@/components/ui/use-toast"
 import { supabase } from "@/integrations/supabase/client"
 import { TicketPriority, TicketStatus } from "@/types/tickets"
+import { useAuth } from "@/hooks/useAuth"
 
 export function useTicketOperations(ticketId: string) {
   const [isSubmitting, setIsSubmitting] = useState(false)
   const queryClient = useQueryClient()
   const { toast } = useToast()
+  const { user } = useAuth()
 
   const handleReply = async (message: string, isInternal: boolean = false) => {
+    if (!user) return false
+    
     try {
       setIsSubmitting(true)
       const { error } = await supabase.from("ticket_messages").insert({
         ticket_id: ticketId,
+        sender_id: user.id,
         message,
         is_internal: isInternal,
       })

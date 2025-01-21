@@ -1,26 +1,16 @@
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
-import { TicketStatus, TicketPriority, Project } from "@/types/tickets"
+import { TicketStatus, TicketPriority, Project, Ticket } from "@/types/tickets"
 
 type TicketMetadataProps = {
-  status: TicketStatus
-  priority: TicketPriority
-  projectId: string | null
-  customer?: { full_name: string } | null
-  assignee?: { full_name: string } | null
-  createdAt: string
-  projects?: Project[]
-  onStatusChange: (status: TicketStatus) => void
-  onPriorityChange: (priority: TicketPriority) => void
-  onProjectChange: (projectId: string | null) => void
+  ticket: Ticket
+  projects: Project[]
+  onStatusChange: (status: TicketStatus) => Promise<boolean>
+  onPriorityChange: (priority: TicketPriority) => Promise<boolean>
+  onProjectChange: (projectId: string | null) => Promise<boolean>
 }
 
 export function TicketMetadata({
-  status,
-  priority,
-  projectId,
-  customer,
-  assignee,
-  createdAt,
+  ticket,
   projects,
   onStatusChange,
   onPriorityChange,
@@ -30,7 +20,7 @@ export function TicketMetadata({
     <div className="grid grid-cols-2 gap-4 mt-4">
       <div>
         <p className="text-sm font-medium">Status</p>
-        <Select value={status} onValueChange={onStatusChange}>
+        <Select value={ticket.status} onValueChange={onStatusChange}>
           <SelectTrigger className="w-[120px]">
             <SelectValue placeholder="Select status" />
           </SelectTrigger>
@@ -44,7 +34,7 @@ export function TicketMetadata({
       </div>
       <div>
         <p className="text-sm font-medium">Priority</p>
-        <Select value={priority} onValueChange={onPriorityChange}>
+        <Select value={ticket.priority} onValueChange={onPriorityChange}>
           <SelectTrigger className="w-[120px]">
             <SelectValue placeholder="Select priority" />
           </SelectTrigger>
@@ -59,7 +49,7 @@ export function TicketMetadata({
       <div>
         <p className="text-sm font-medium">Project</p>
         <Select 
-          value={projectId || "no-project"} 
+          value={ticket.project_id || "no-project"} 
           onValueChange={(value) => onProjectChange(value === "no-project" ? null : value)}
         >
           <SelectTrigger className="w-[200px]">
@@ -77,15 +67,15 @@ export function TicketMetadata({
       </div>
       <div>
         <p className="text-sm font-medium">Customer</p>
-        <p className="text-sm">{customer?.full_name || "Unknown"}</p>
+        <p className="text-sm">{ticket.customer?.full_name || "Unknown"}</p>
       </div>
       <div>
         <p className="text-sm font-medium">Assigned To</p>
-        <p className="text-sm">{assignee?.full_name || "Unassigned"}</p>
+        <p className="text-sm">{ticket.assignee?.full_name || "Unassigned"}</p>
       </div>
       <div>
         <p className="text-sm font-medium">Created</p>
-        <p className="text-sm">{new Date(createdAt).toLocaleDateString()}</p>
+        <p className="text-sm">{new Date(ticket.created_at).toLocaleDateString()}</p>
       </div>
     </div>
   )
