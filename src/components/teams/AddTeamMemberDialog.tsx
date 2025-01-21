@@ -54,13 +54,23 @@ export function AddTeamMemberDialog({ isOpen, onClose, availableUsers, teamId }:
       onClose()
       setSelectedUserId("")
       setRole("member")
-    } catch (error) {
+    } catch (error: any) {
       console.error("Failed to add team member:", error)
-      toast({
-        variant: "destructive",
-        title: "Error",
-        description: "Failed to add team member. Please try again.",
-      })
+      
+      // Handle the specific duplicate member error
+      if (error?.code === "23505") {
+        toast({
+          variant: "destructive",
+          title: "Error",
+          description: "This user is already a member of the team.",
+        })
+      } else {
+        toast({
+          variant: "destructive",
+          title: "Error",
+          description: "Failed to add team member. Please try again.",
+        })
+      }
     }
   }
 
