@@ -1,17 +1,16 @@
 import { useState } from "react"
 import { useDispatch } from "react-redux"
+import { useParams } from "react-router-dom"
 import { AppDispatch } from "@/store"
 import { addTeamMember } from "@/store/teamsSlice"
-import { TeamMember, TeamMemberRole } from "@/types/teams"
-import { useToast } from "@/components/ui/use-toast"
+import { Profile } from "@/types/profiles"
+import { Button } from "@/components/ui/button"
 import {
   Dialog,
   DialogContent,
   DialogHeader,
   DialogTitle,
-  DialogTrigger,
 } from "@/components/ui/dialog"
-import { Button } from "@/components/ui/button"
 import {
   Select,
   SelectContent,
@@ -19,54 +18,31 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select"
-import { UserPlus } from "lucide-react"
-import { useQuery } from "@tanstack/react-query"
-import { supabase } from "@/integrations/supabase/client"
+import { useToast } from "@/components/ui/use-toast"
 
-interface AddTeamMemberDialogProps {
-  teamId: string;
+export interface AddTeamMemberDialogProps {
+  isOpen: boolean
+  onClose: () => void
+  availableUsers: Profile[]
 }
 
-export function AddTeamMemberDialog({ teamId }: AddTeamMemberDialogProps) {
-  const [open, setOpen] = useState(false)
-  const [selectedUserId, setSelectedUserId] = useState<string>("")
-  const [selectedRole, setSelectedRole] = useState<TeamMemberRole>("member")
+export function AddTeamMemberDialog({ isOpen, onClose, availableUsers }: AddTeamMemberDialogProps) {
+  const { teamId } = useParams<{ teamId: string }>()
   const dispatch = useDispatch<AppDispatch>()
+  const [selectedUserId, setSelectedUserId] = useState<string>("")
+  const [role, setRole] = useState<string>("member")
   const { toast } = useToast()
 
-  const { data: availableUsers } = useQuery({
-    queryKey: ["available-users", teamId],
-    queryFn: async () => {
-      const { data, error } = await supabase
-        .from("profiles")
-        .select("id, full_name, email")
-        .not("id", "in", `(
-          select user_id 
-          from team_members 
-          where team_id = '${teamId}'
-        )`)
-
-      if (error) throw error
-      return data
-    },
-  })
-
-  const handleAddMember = async () => {
-    if (!selectedUserId) {
-      toast({
-        variant: "destructive",
-        title: "Error",
-        description: "Please select a user",
-      })
-      return
-    }
+  const handleSubmit = async (e: React.FormEvent) => {
+    e.preventDefault()
+    if (!teamId || !selectedUserId) return
 
     try {
       await dispatch(
         addTeamMember({
           teamId,
           userId: selectedUserId,
-          role: selectedRole,
+          role,
         })
       ).unwrap()
 
@@ -74,37 +50,40 @@ export function AddTeamMemberDialog({ teamId }: AddTeamMemberDialogProps) {
         title: "Success",
         description: "Team member added successfully",
       })
-      setOpen(false)
+      onClose()
+      setSelectedUserId("")
+      setRole("member")
     } catch (error) {
+      console.error("Failed to add team member:", error)
       toast({
         variant: "destructive",
         title: "Error",
-        description: error instanceof Error ? error.message : "Failed to add team member",
+        description: "Failed to add team member. Please try again.",
       })
     }
   }
 
   return (
-    <Dialog open={open} onOpenChange={setOpen}>
-      <DialogTrigger asChild>
-        <Button>
-          <UserPlus className="mr-2 h-4 w-4" />
-          Add Member
-        </Button>
-      </DialogTrigger>
+    <Dialog open={isOpen} onOpenChange={onClose}>
       <DialogContent>
         <DialogHeader>
           <DialogTitle>Add Team Member</DialogTitle>
         </DialogHeader>
-        <div className="space-y-4">
+
+        <form onSubmit={handleSubmit} className="space-y-4">
           <div className="space-y-2">
-            <label className="text-sm font-medium">User</label>
-            <Select value={selectedUserId} onValueChange={setSelectedUserId}>
+            <label htmlFor="user" className="text-sm font-medium text-gray-700">
+              User
+            </label>
+            <Select
+              value={selectedUserId}
+              onValueChange={setSelectedUserId}
+            >
               <SelectTrigger>
                 <SelectValue placeholder="Select a user" />
               </SelectTrigger>
               <SelectContent>
-                {availableUsers?.map((user) => (
+                {availableUsers.map((user) => (
                   <SelectItem key={user.id} value={user.id}>
                     {user.full_name || user.email}
                   </SelectItem>
@@ -112,25 +91,41 @@ export function AddTeamMemberDialog({ teamId }: AddTeamMemberDialogProps) {
               </SelectContent>
             </Select>
           </div>
+
           <div className="space-y-2">
-            <label className="text-sm font-medium">Role</label>
-            <Select 
-              value={selectedRole} 
-              onValueChange={(value: string) => setSelectedRole(value as TeamMemberRole)}
+            <label htmlFor="role" className="text-sm font-medium text-gray-700">
+              Role
+            </label>
+            <Select
+              value={role}
+              onValueChange={(value: string) => setRole(value)}
             >
               <SelectTrigger>
-                <SelectValue />
+                <SelectValue placeholder="Select a role" />
               </SelectTrigger>
               <SelectContent>
-                <SelectItem value="leader">Team Leader</SelectItem>
-                <SelectItem value="member">Team Member</SelectItem>
+                <SelectItem value="member">Member</SelectItem>
+                <SelectItem value="leader">Leader</SelectItem>
               </SelectContent>
             </Select>
           </div>
-          <Button onClick={handleAddMember} className="w-full">
-            Add Member
-          </Button>
-        </div>
+
+          <div className="flex justify-end space-x-3">
+            <Button
+              type="button"
+              variant="outline"
+              onClick={onClose}
+            >
+              Cancel
+            </Button>
+            <Button
+              type="submit"
+              disabled={!selectedUserId}
+            >
+              Add Member
+            </Button>
+          </div>
+        </form>
       </DialogContent>
     </Dialog>
   )

@@ -7,37 +7,35 @@ import { Profile } from "@/types/profiles"
 import { Button } from "@/components/ui/button"
 import { AddTeamMemberDialog } from "@/components/teams/AddTeamMemberDialog"
 import { TeamMembersList } from "@/components/teams/TeamMembersList"
+import { useParams } from "react-router-dom"
 
 export default function TeamMembers() {
-  const [dialogOpen, setDialogOpen] = useState(false)
-  const { teamMembers } = useSelector((state: RootState) => state.teams)
+  const { teamId } = useParams<{ teamId: string }>()
+  const [isDialogOpen, setIsDialogOpen] = useState(false)
+  const teamMembers = useSelector((state: RootState) => 
+    teamId ? state.teams.teamMembers[teamId] || [] : []
+  )
 
   // Query for available users (not already in the team)
   const { data: availableUsers } = useQuery<Profile[]>({
-    queryKey: ['available-users', teamMembers],
+    queryKey: ['available-users', teamId],
     queryFn: async () => {
-      // If there are no team members, we don't need to filter
-      if (teamMembers.length === 0) {
-        const { data: profiles, error } = await supabase
-          .from('profiles')
-          .select('id, full_name, email, role')
-          .order('full_name')
-        
-        if (error) throw error
-        return profiles
-      }
-
-      // If there are team members, filter them out
-      const memberIds = teamMembers.map(m => m.user_id)
+      if (!teamId) return []
+      
       const { data: profiles, error } = await supabase
         .from('profiles')
         .select('id, full_name, email, role')
-        .not('id', 'in', `(${memberIds.join(',')})`)
+        .not('id', 'in', `(
+          SELECT user_id 
+          FROM team_members 
+          WHERE team_id = '${teamId}'
+        )`)
         .order('full_name')
-
+      
       if (error) throw error
       return profiles
-    }
+    },
+    enabled: !!teamId
   })
 
   // Query for all profiles (needed for displaying team member details)
@@ -62,11 +60,13 @@ export default function TeamMembers() {
     {}
   )
 
+  if (!teamId) return null
+
   return (
     <div className="container mx-auto py-6 space-y-6">
       <div className="flex justify-between items-center">
         <h1 className="text-2xl font-bold">Team Members</h1>
-        <Button onClick={() => setDialogOpen(true)}>Add Member</Button>
+        <Button onClick={() => setIsDialogOpen(true)}>Add Member</Button>
       </div>
 
       <TeamMembersList 
@@ -75,8 +75,8 @@ export default function TeamMembers() {
       />
 
       <AddTeamMemberDialog
-        open={dialogOpen}
-        onOpenChange={setDialogOpen}
+        isOpen={isDialogOpen}
+        onClose={() => setIsDialogOpen(false)}
         availableUsers={availableUsers || []}
       />
     </div>
