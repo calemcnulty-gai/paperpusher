@@ -3,7 +3,7 @@ import { MainLayout } from "@/components/layout/MainLayout"
 import { BarChart3, Inbox, Clock, CheckCircle } from "lucide-react"
 import { useQuery } from "@tanstack/react-query"
 import { supabase } from "@/integrations/supabase/client"
-import { useState, useEffect } from "react"
+import { useEffect } from "react"
 
 const Index = () => {
   const { data: stats, isLoading } = useQuery({
@@ -12,42 +12,62 @@ const Index = () => {
       console.log('Fetching dashboard stats...')
       
       // Get open tickets count
-      const { count: openTickets } = await supabase
+      const { count: openTickets, error: openTicketsError } = await supabase
         .from('tickets')
         .select('*', { count: 'exact', head: true })
         .eq('status', 'open')
       
+      if (openTicketsError) {
+        console.error('Error fetching open tickets:', openTicketsError)
+        throw openTicketsError
+      }
+
       // Get total tickets this month
       const startOfMonth = new Date()
       startOfMonth.setDate(1)
       startOfMonth.setHours(0, 0, 0, 0)
       
-      const { count: monthlyTickets } = await supabase
+      const { count: monthlyTickets, error: monthlyTicketsError } = await supabase
         .from('tickets')
         .select('*', { count: 'exact', head: true })
         .gte('created_at', startOfMonth.toISOString())
       
+      if (monthlyTicketsError) {
+        console.error('Error fetching monthly tickets:', monthlyTicketsError)
+        throw monthlyTicketsError
+      }
+
       // Get resolved tickets count for last 30 days
       const thirtyDaysAgo = new Date()
       thirtyDaysAgo.setDate(thirtyDaysAgo.getDate() - 30)
       
-      const { data: resolvedTickets } = await supabase
+      const { data: resolvedTickets, error: resolvedTicketsError } = await supabase
         .from('tickets')
         .select('*')
         .eq('status', 'resolved')
         .gte('created_at', thirtyDaysAgo.toISOString())
       
-      const { data: totalTickets30Days } = await supabase
+      if (resolvedTicketsError) {
+        console.error('Error fetching resolved tickets:', resolvedTicketsError)
+        throw resolvedTicketsError
+      }
+
+      const { data: totalTickets30Days, error: totalTickets30DaysError } = await supabase
         .from('tickets')
         .select('*')
         .gte('created_at', thirtyDaysAgo.toISOString())
       
+      if (totalTickets30DaysError) {
+        console.error('Error fetching total tickets:', totalTickets30DaysError)
+        throw totalTickets30DaysError
+      }
+
       const resolutionRate = totalTickets30Days?.length 
         ? Math.round((resolvedTickets?.length / totalTickets30Days.length) * 100)
         : 0
 
       // Calculate average response time (using first message after ticket creation)
-      const { data: ticketsWithMessages } = await supabase
+      const { data: ticketsWithMessages, error: ticketsWithMessagesError } = await supabase
         .from('tickets')
         .select(`
           id,
@@ -59,6 +79,11 @@ const Index = () => {
         .gte('created_at', thirtyDaysAgo.toISOString())
         .order('ticket_messages.created_at', { ascending: true })
       
+      if (ticketsWithMessagesError) {
+        console.error('Error fetching tickets with messages:', ticketsWithMessagesError)
+        throw ticketsWithMessagesError
+      }
+
       let totalResponseTime = 0
       let ticketsWithResponses = 0
       
