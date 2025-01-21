@@ -2,10 +2,10 @@ import { TeamMember } from "@/store/teamsSlice"
 import { Profile } from "@/types/profiles"
 import { Button } from "@/components/ui/button"
 import { useToast } from "@/components/ui/use-toast"
-import { supabase } from "@/integrations/supabase/client"
 import { useDispatch } from "react-redux"
 import { removeTeamMember } from "@/store/teamsSlice"
 import { useParams } from "react-router-dom"
+import { AppDispatch } from "@/store"
 
 interface TeamMembersListProps {
   teamMembers: TeamMember[]
@@ -15,21 +15,13 @@ interface TeamMembersListProps {
 export function TeamMembersList({ teamMembers, profiles }: TeamMembersListProps) {
   const { teamId } = useParams()
   const { toast } = useToast()
-  const dispatch = useDispatch()
+  const dispatch = useDispatch<AppDispatch>()
 
   const handleRemoveMember = async (userId: string) => {
     if (!teamId) return
 
     try {
-      const { error } = await supabase
-        .from("team_members")
-        .delete()
-        .eq("team_id", teamId)
-        .eq("user_id", userId)
-
-      if (error) throw error
-
-      dispatch(removeTeamMember({ teamId, userId }))
+      await dispatch(removeTeamMember({ teamId, userId })).unwrap()
       toast({
         title: "Team member removed",
         description: "The user has been removed from the team.",

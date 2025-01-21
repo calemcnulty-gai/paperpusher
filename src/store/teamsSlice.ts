@@ -1,23 +1,26 @@
 import { createSlice, createAsyncThunk } from "@reduxjs/toolkit"
 import { supabase } from "@/integrations/supabase/client"
 
+export type TeamMemberRole = "leader" | "member"
+
+export interface TeamMember {
+  team_id: string
+  user_id: string
+  role: TeamMemberRole
+  created_at: string
+  user?: {
+    full_name: string
+    email: string
+    role: string
+  }
+}
+
 interface Team {
   id: string
   name: string
   description: string | null
   created_at: string
   updated_at: string
-}
-
-interface TeamMember {
-  team_id: string
-  user_id: string
-  role: 'leader' | 'member'
-  user?: {
-    full_name: string
-    email: string
-    role: string
-  }
 }
 
 interface TeamsState {
@@ -118,7 +121,7 @@ export const deleteTeam = createAsyncThunk(
 
 export const addTeamMember = createAsyncThunk(
   'teams/addTeamMember',
-  async (member: Omit<TeamMember, 'user'>) => {
+  async (member: Omit<TeamMember, "user">) => {
     const { data, error } = await supabase
       .from('team_members')
       .insert([member])
@@ -126,6 +129,7 @@ export const addTeamMember = createAsyncThunk(
         team_id,
         user_id,
         role,
+        created_at,
         profiles:user_id (
           full_name,
           email,
@@ -223,4 +227,4 @@ const teamsSlice = createSlice({
 })
 
 export const { setSelectedTeam, clearSelectedTeam } = teamsSlice.actions
-export default teamsSlice.reducer 
+export default teamsSlice.reducer

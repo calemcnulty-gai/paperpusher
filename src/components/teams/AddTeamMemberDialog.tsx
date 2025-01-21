@@ -5,9 +5,9 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/u
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
 import { Button } from "@/components/ui/button"
 import { useToast } from "@/components/ui/use-toast"
-import { supabase } from "@/integrations/supabase/client"
 import { useDispatch } from "react-redux"
-import { addTeamMember } from "@/store/teamsSlice"
+import { addTeamMember, TeamMemberRole } from "@/store/teamsSlice"
+import { AppDispatch } from "@/store"
 
 interface AddTeamMemberDialogProps {
   open: boolean
@@ -18,9 +18,9 @@ interface AddTeamMemberDialogProps {
 export function AddTeamMemberDialog({ open, onOpenChange, availableUsers }: AddTeamMemberDialogProps) {
   const { teamId } = useParams()
   const { toast } = useToast()
-  const dispatch = useDispatch()
+  const dispatch = useDispatch<AppDispatch>()
   const [selectedUserId, setSelectedUserId] = useState<string>("")
-  const [selectedRole, setSelectedRole] = useState<string>("member")
+  const [selectedRole, setSelectedRole] = useState<TeamMemberRole>("member")
   const [isSubmitting, setIsSubmitting] = useState(false)
 
   const handleAddMember = async () => {
@@ -28,22 +28,12 @@ export function AddTeamMemberDialog({ open, onOpenChange, availableUsers }: AddT
 
     setIsSubmitting(true)
     try {
-      const { error } = await supabase
-        .from("team_members")
-        .insert({
-          team_id: teamId,
-          user_id: selectedUserId,
-          role: selectedRole,
-        })
-
-      if (error) throw error
-
-      dispatch(addTeamMember({
+      await dispatch(addTeamMember({
         team_id: teamId,
         user_id: selectedUserId,
         role: selectedRole,
         created_at: new Date().toISOString(),
-      }))
+      })).unwrap()
 
       toast({
         title: "Team member added",
@@ -92,7 +82,7 @@ export function AddTeamMemberDialog({ open, onOpenChange, availableUsers }: AddT
               </SelectTrigger>
               <SelectContent>
                 <SelectItem value="member">Member</SelectItem>
-                <SelectItem value="admin">Admin</SelectItem>
+                <SelectItem value="leader">Leader</SelectItem>
               </SelectContent>
             </Select>
           </div>
