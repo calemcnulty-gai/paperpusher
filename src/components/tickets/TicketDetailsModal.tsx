@@ -18,7 +18,7 @@ export function TicketDetailsModal({ ticket, open, onOpenChange }: TicketDetails
   const [reply, setReply] = useState("")
   
   // Return early if no ticket is selected
-  if (!ticket) return null
+  if (!open || !ticket) return null
 
   const {
     isSubmitting,
@@ -29,7 +29,7 @@ export function TicketDetailsModal({ ticket, open, onOpenChange }: TicketDetails
   } = useTicketOperations(ticket.id)
 
   // Fetch available projects
-  const { data: projects } = useQuery({
+  const { data: projects = [] } = useQuery({
     queryKey: ["projects"],
     queryFn: async () => {
       const { data, error } = await supabase
@@ -40,6 +40,7 @@ export function TicketDetailsModal({ ticket, open, onOpenChange }: TicketDetails
       if (error) throw error
       return data
     },
+    enabled: open // Only fetch when modal is open
   })
 
   const handleSubmitReply = async (isInternal: boolean = false) => {
@@ -64,7 +65,7 @@ export function TicketDetailsModal({ ticket, open, onOpenChange }: TicketDetails
         <div className="flex flex-col flex-1 space-y-4 overflow-hidden">
           <TicketMetadata
             ticket={ticket}
-            projects={projects || []}
+            projects={projects}
             onStatusChange={updateStatus}
             onPriorityChange={updatePriority}
             onProjectChange={updateProject}
