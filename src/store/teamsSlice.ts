@@ -91,6 +91,7 @@ export const fetchTeamMembers = createAsyncThunk(
 export const addTeamMember = createAsyncThunk(
   "teams/addTeamMember",
   async ({ teamId, userId, role }: { teamId: string; userId: string; role: string }) => {
+    console.log("Adding team member in slice:", { teamId, userId, role })
     const { data, error } = await supabase
       .from("team_members")
       .insert({
@@ -98,10 +99,14 @@ export const addTeamMember = createAsyncThunk(
         user_id: userId,
         role,
       })
-      .select()
+      .select("*")
       .single()
 
-    if (error) throw error
+    if (error) {
+      console.error("Error adding team member:", error)
+      throw error
+    }
+    console.log("Team member added successfully:", data)
     return data
   }
 )
@@ -165,7 +170,17 @@ const teamsSlice = createSlice({
         if (!state.teamMembers[teamId]) {
           state.teamMembers[teamId] = []
         }
-        state.teamMembers[teamId].push(action.payload)
+        // Check if member already exists
+        const existingIndex = state.teamMembers[teamId].findIndex(
+          member => member.user_id === action.payload.user_id
+        )
+        if (existingIndex >= 0) {
+          // Update existing member
+          state.teamMembers[teamId][existingIndex] = action.payload
+        } else {
+          // Add new member
+          state.teamMembers[teamId].push(action.payload)
+        }
       })
       // Remove team member
       .addCase(removeTeamMember.fulfilled, (state, action) => {

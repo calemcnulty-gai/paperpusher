@@ -37,13 +37,15 @@ export function AddTeamMemberDialog({ isOpen, onClose, availableUsers, teamId }:
     if (!teamId || !selectedUserId) return
 
     try {
-      await dispatch(
+      console.log("Adding team member:", { teamId, userId: selectedUserId, role })
+      const result = await dispatch(
         addTeamMember({
           teamId,
           userId: selectedUserId,
           role,
         })
       ).unwrap()
+      console.log("Team member added successfully:", result)
 
       toast({
         title: "Success",
