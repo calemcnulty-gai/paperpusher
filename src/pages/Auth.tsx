@@ -17,13 +17,14 @@ type InvitationDetails = {
   teamName?: string
 }
 
+// Update the type to match the actual database response
 type InvitationResponse = {
   email: string
   role: string
   status: string
   expires_at: string
-  teams: { name: string } | null
-  profiles: { full_name: string } | null
+  teams: { name: string } | null // Changed from array to single object or null
+  profiles: { full_name: string } | null // Changed from array to single object or null
 }
 
 export default function Auth() {
