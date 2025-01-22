@@ -1,4 +1,4 @@
-import { Home, Inbox, Users, Settings, BarChart3, FolderKanban, UserSquare2, UserPlus } from "lucide-react"
+import { Home, Inbox, Users, Settings, BarChart3, FolderKanban, UserSquare2, UserPlus, FileJson } from "lucide-react"
 import {
   Sidebar,
   SidebarContent,
@@ -21,6 +21,7 @@ const menuItems = [
   { title: "Customers", icon: Users, url: "/customers" },
   { title: "Projects", icon: FolderKanban, url: "/projects" },
   { title: "Reports", icon: BarChart3, url: "/reports" },
+  { title: "API Docs", icon: FileJson, url: "/api-docs", adminOnly: true },
   { title: "Settings", icon: Settings, url: "/settings" },
 ]
 
