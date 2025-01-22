@@ -139,14 +139,8 @@ export default function Auth() {
           <CardDescription>
             {invitationDetails
               ? `${invitationDetails.invitedBy} invited you to join ${
-                  invitationDetails.teamName
-                    ? `the ${invitationDetails.teamName} team`
-                    : "AutoCRM"
-                } as ${
-                  invitationDetails.role === "admin"
-                    ? "an administrator"
-                    : `a ${invitationDetails.role}`
-                }`
+                  invitationDetails.teamName ? `the ${invitationDetails.teamName} team` : "AutoCRM"
+                } as ${invitationDetails.role === "admin" ? "an administrator" : `a ${invitationDetails.role}`}`
               : "Sign in to your account or create a new one."}
           </CardDescription>
         </CardHeader>
@@ -156,6 +150,16 @@ export default function Auth() {
               <AlertDescription>{error}</AlertDescription>
             </Alert>
           )}
+          {invitationDetails ? (
+            <div className="mb-4">
+              <input
+                type="email"
+                value={invitationDetails.email}
+                readOnly
+                className="w-full px-3 py-2 border rounded-md bg-muted text-muted-foreground cursor-not-allowed"
+              />
+            </div>
+          ) : null}
           <SupabaseAuth
             supabaseClient={supabase}
             appearance={{
