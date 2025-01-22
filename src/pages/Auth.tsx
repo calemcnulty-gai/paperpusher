@@ -17,14 +17,13 @@ type InvitationDetails = {
   teamName?: string
 }
 
-// Update the type to match the actual database response
 type InvitationResponse = {
   email: string
   role: string
   status: string
   expires_at: string
-  teams: { name: string } | null // Changed from array to single object or null
-  profiles: { full_name: string } | null // Changed from array to single object or null
+  teams: { name: string } | null
+  profiles: { full_name: string } | null
 }
 
 export default function Auth() {
@@ -49,6 +48,7 @@ export default function Auth() {
         return
       }
       try {
+        console.log("Loading invitation with ID:", invitationId)
         await dispatch(signOut()).unwrap()
 
         const { data: invitation, error: invitationError } = await supabase
@@ -58,11 +58,14 @@ export default function Auth() {
             role,
             status,
             expires_at,
-            teams:team_id (name),
-            profiles!invitations_invited_by_fkey (full_name)
+            teams (name),
+            profiles (full_name)
           `)
           .eq("id", invitationId)
           .maybeSingle()
+
+        console.log("Invitation query result:", invitation)
+        console.log("Invitation query error:", invitationError)
 
         if (invitationError) throw invitationError
         if (!invitation) {
