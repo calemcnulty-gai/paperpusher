@@ -10,27 +10,39 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   const { toast } = useToast()
 
   useEffect(() => {
+    console.log("AuthProvider - Initializing...")
+    
     // Initial session load
-    dispatch(loadSession()).catch((error) => {
-      console.error("Failed to load session:", error)
-      toast({
-        variant: "destructive",
-        title: "Authentication Error",
-        description: "Failed to load user session. Please try logging in again.",
+    dispatch(loadSession())
+      .then(() => {
+        console.log("AuthProvider - Initial session loaded successfully")
       })
-    })
+      .catch((error) => {
+        console.error("AuthProvider - Failed to load session:", error)
+        toast({
+          variant: "destructive",
+          title: "Authentication Error",
+          description: "Failed to load user session. Please try logging in again.",
+        })
+      })
 
     // Subscribe to auth changes
+    console.log("AuthProvider - Setting up auth state change listener")
     const { data: { subscription } } = supabase.auth.onAuthStateChange((event, session) => {
-      console.log("Auth state changed:", event, session)
+      console.log("AuthProvider - Auth state changed:", { event, sessionId: session?.user?.id })
+      console.log("AuthProvider - Full session state:", session)
+      
       if (event === 'SIGNED_OUT') {
+        console.log("AuthProvider - User signed out, clearing session")
         dispatch(setSession(null))
       } else if (session) {
+        console.log("AuthProvider - New session detected, updating store")
         dispatch(setSession(session))
       }
     })
 
     return () => {
+      console.log("AuthProvider - Cleaning up auth state listener")
       subscription.unsubscribe()
     }
   }, [dispatch, toast])

@@ -14,7 +14,7 @@ interface TeamMemberPayload {
 
 export const setupRealtimeSubscriptions = () => {
   return async (dispatch: AppDispatch) => {
-    console.log("Setting up realtime subscriptions...")
+    console.log("RealtimeSlice - Setting up realtime subscriptions...")
 
     const channel = supabase
       .channel('db-changes')
@@ -22,24 +22,27 @@ export const setupRealtimeSubscriptions = () => {
         'postgres_changes',
         { event: '*', schema: 'public', table: 'team_members' },
         (payload) => {
-          console.log('Team members change received:', payload)
+          console.log('RealtimeSlice - Team members change received:', {
+            eventType: payload.eventType,
+            oldRecord: payload.old,
+            newRecord: payload.new
+          })
           
           if (payload.eventType === 'INSERT') {
             const newMember = payload.new as TeamMemberPayload
-            console.log('Adding new team member:', newMember)
+            console.log('RealtimeSlice - Adding new team member:', newMember)
             dispatch(addTeamMember({
               teamId: newMember.team_id,
               userId: newMember.user_id,
               role: newMember.role
             }))
-            // Invalidate queries to refresh the UI
             queryClient.invalidateQueries({ 
               queryKey: ['team-members', newMember.team_id] 
             })
           } 
           else if (payload.eventType === 'UPDATE') {
             const updatedMember = payload.new as TeamMemberPayload
-            console.log('Updating team member:', updatedMember)
+            console.log('RealtimeSlice - Updating team member:', updatedMember)
             dispatch(updateTeamMember({
               teamId: updatedMember.team_id,
               userId: updatedMember.user_id,
@@ -51,7 +54,7 @@ export const setupRealtimeSubscriptions = () => {
           }
           else if (payload.eventType === 'DELETE') {
             const oldMember = payload.old as TeamMemberPayload
-            console.log('Deleting team member:', oldMember)
+            console.log('RealtimeSlice - Deleting team member:', oldMember)
             dispatch(removeTeamMember({
               teamId: oldMember.team_id,
               userId: oldMember.user_id
@@ -66,37 +69,60 @@ export const setupRealtimeSubscriptions = () => {
         'postgres_changes',
         { event: '*', schema: 'public', table: 'teams' },
         (payload) => {
-          console.log('Teams change received, invalidating teams query')
+          console.log('RealtimeSlice - Teams change received:', {
+            eventType: payload.eventType,
+            oldRecord: payload.old,
+            newRecord: payload.new
+          })
           queryClient.invalidateQueries({ queryKey: ['teams'] })
         }
       )
       .on(
         'postgres_changes',
         { event: '*', schema: 'public', table: 'tickets' },
-        () => {
-          console.log('Tickets change received, invalidating tickets query')
+        (payload) => {
+          console.log('RealtimeSlice - Tickets change received:', {
+            eventType: payload.eventType,
+            oldRecord: payload.old,
+            newRecord: payload.new
+          })
           queryClient.invalidateQueries({ queryKey: ['tickets'] })
         }
       )
       .on(
         'postgres_changes',
         { event: '*', schema: 'public', table: 'ticket_messages' },
-        () => {
-          console.log('Ticket messages change received, invalidating messages query')
+        (payload) => {
+          console.log('RealtimeSlice - Ticket messages change received:', {
+            eventType: payload.eventType,
+            oldRecord: payload.old,
+            newRecord: payload.new
+          })
           queryClient.invalidateQueries({ queryKey: ['ticket-messages'] })
         }
       )
       .on(
         'postgres_changes',
         { event: '*', schema: 'public', table: 'projects' },
-        () => {
-          console.log('Projects change received, invalidating projects query')
+        (payload) => {
+          console.log('RealtimeSlice - Projects change received:', {
+            eventType: payload.eventType,
+            oldRecord: payload.old,
+            newRecord: payload.new
+          })
           queryClient.invalidateQueries({ queryKey: ['projects'] })
         }
       )
 
     channel.subscribe((status) => {
-      console.log("Realtime subscription status:", status)
+      console.log("RealtimeSlice - Realtime subscription status:", status)
+      if (status === 'SUBSCRIBED') {
+        console.log("RealtimeSlice - Successfully subscribed to all channels")
+      } else if (status === 'CLOSED') {
+        console.log("RealtimeSlice - Channel closed")
+      } else if (status === 'CHANNEL_ERROR') {
+        console.error("RealtimeSlice - Channel error occurred")
+      }
     })
   }
 }
