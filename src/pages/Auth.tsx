@@ -9,6 +9,7 @@ import { Alert, AlertDescription } from "@/components/ui/alert"
 import { Loader2 } from "lucide-react"
 import { useAppSelector, useAppDispatch } from "@/store"
 import { setSession, signOut } from "@/store/authSlice"
+import { InvitationMessage } from "@/components/auth/InvitationMessage"
 
 type InvitationDetails = {
   email: string
@@ -51,19 +52,6 @@ export default function Auth() {
         console.log("Loading invitation with ID:", invitationId)
         await dispatch(signOut()).unwrap()
 
-        // First, let's try a simple query to debug
-        const { data: basicInvitation, error: basicError } = await supabase
-          .from("invitations")
-          .select("*")
-          .eq("id", invitationId)
-          .single()
-
-        console.log("Basic invitation query result:", basicInvitation)
-        console.log("Basic invitation query error:", basicError)
-
-        if (basicError) throw basicError
-
-        // If basic query works, then try the full query
         const { data: invitation, error: invitationError } = await supabase
           .from("invitations")
           .select(`
@@ -136,13 +124,15 @@ export default function Auth() {
           <CardTitle className="text-2xl font-bold">
             {invitationDetails ? "Accept Invitation" : "Welcome back"}
           </CardTitle>
-          <CardDescription>
-            {invitationDetails
-              ? `${invitationDetails.invitedBy} invited you to join ${
-                  invitationDetails.teamName ? `the ${invitationDetails.teamName} team` : "AutoCRM"
-                } as ${invitationDetails.role === "admin" ? "an administrator" : `a ${invitationDetails.role}`}`
-              : "Sign in to your account or create a new one."}
-          </CardDescription>
+          {invitationDetails ? (
+            <InvitationMessage
+              invitedBy={invitationDetails.invitedBy}
+              teamName={invitationDetails.teamName}
+              role={invitationDetails.role}
+            />
+          ) : (
+            <CardDescription>Sign in to your account or create a new one.</CardDescription>
+          )}
         </CardHeader>
         <CardContent>
           {error && (
@@ -170,7 +160,7 @@ export default function Auth() {
             providers={invitationDetails ? [] : ["google", "github"]}
             redirectTo={window.location.origin}
             view={invitationDetails ? "sign_up" : "sign_in"}
-            defaultEmail={invitationDetails?.email}
+            email={invitationDetails?.email}
             magicLink={false}
           />
         </CardContent>
