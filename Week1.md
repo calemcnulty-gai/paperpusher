@@ -26,7 +26,7 @@
 ### Ticket Handling
 - [x] Customer History Display
 - [x] Rich Text Editing
-- [ ] Quick Response Templates
+- [x] Quick Response Templates
 - [x] Internal Collaboration Tools
 
 ### Performance Tools
