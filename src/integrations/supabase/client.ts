@@ -10,8 +10,6 @@ export const supabase = createClient(supabaseUrl, supabaseAnonKey, {
     detectSessionInUrl: true,
     flowType: 'pkce',
     storage: window.localStorage,
-    storageKey: 'supabase.auth.token',
-    // Explicitly set the site URL to match Supabase configuration
-    siteUrl: 'https://gauntlet.calemcnulty.com'
+    storageKey: 'supabase.auth.token'
   }
 })

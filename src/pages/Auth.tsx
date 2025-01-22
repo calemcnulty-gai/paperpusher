@@ -15,6 +15,15 @@ type InvitationDetails = {
   teamName?: string
 }
 
+type InvitationResponse = {
+  email: string
+  role: string
+  status: string
+  expires_at: string
+  teams: { name: string } | null
+  profiles: { full_name: string } | null
+}
+
 const Auth = () => {
   const navigate = useNavigate()
   const location = useLocation()
@@ -52,24 +61,26 @@ const Auth = () => {
             return
           }
 
-          if (invitation.status !== 'pending') {
+          const typedInvitation = invitation as InvitationResponse
+
+          if (typedInvitation.status !== 'pending') {
             setError("This invitation has already been used")
             setLoading(false)
             return
           }
 
-          if (new Date(invitation.expires_at) < new Date()) {
+          if (new Date(typedInvitation.expires_at) < new Date()) {
             setError("This invitation has expired")
             setLoading(false)
             return
           }
 
-          console.log("Valid invitation found:", invitation)
+          console.log("Valid invitation found:", typedInvitation)
           setInvitationDetails({ 
-            email: invitation.email, 
-            role: invitation.role,
-            invitedBy: invitation.profiles?.full_name || 'Someone',
-            teamName: invitation.teams?.name
+            email: typedInvitation.email, 
+            role: typedInvitation.role,
+            invitedBy: typedInvitation.profiles?.full_name || 'Someone',
+            teamName: typedInvitation.teams?.name
           })
         } catch (error) {
           console.error("Error checking invitation:", error)
