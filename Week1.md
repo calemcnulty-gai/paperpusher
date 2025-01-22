@@ -14,7 +14,7 @@
 - [x] Basic CRUD Operations
 - [x] Webhooks Integration
 - [x] Granular Permissions
-- [ ] External API Documentation
+- [x] External API Documentation
 
 ## Employee Interface
 ### Queue Management
