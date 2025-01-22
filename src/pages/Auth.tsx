@@ -15,7 +15,12 @@ const Auth = () => {
   const { toast } = useToast()
   const from = location.state?.from?.pathname || "/"
   const invitationId = searchParams.get('invitation')
-  const [invitationDetails, setInvitationDetails] = useState<{ email: string; role: string } | null>(null)
+  const [invitationDetails, setInvitationDetails] = useState<{ 
+    email: string
+    role: string
+    invitedBy: string
+    teamName?: string 
+  } | null>(null)
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
 
@@ -26,7 +31,14 @@ const Auth = () => {
           console.log("Checking invitation:", invitationId)
           const { data: invitation, error: invitationError } = await supabase
             .from("invitations")
-            .select("email, role, status, expires_at")
+            .select(`
+              email, 
+              role, 
+              status, 
+              expires_at,
+              teams(name),
+              profiles!invitations_invited_by_fkey(full_name)
+            `)
             .eq("id", invitationId)
             .single()
 
@@ -51,7 +63,12 @@ const Auth = () => {
           }
 
           console.log("Valid invitation found:", invitation)
-          setInvitationDetails({ email: invitation.email, role: invitation.role })
+          setInvitationDetails({ 
+            email: invitation.email, 
+            role: invitation.role,
+            invitedBy: invitation.profiles?.full_name || 'Someone',
+            teamName: invitation.teams?.name
+          })
         } catch (error) {
           console.error("Error checking invitation:", error)
           setError("Failed to verify invitation")
@@ -109,10 +126,20 @@ const Auth = () => {
     <div className="min-h-screen flex items-center justify-center bg-background p-4">
       <Card className="w-full max-w-md">
         <CardHeader className="space-y-1">
-          <CardTitle className="text-2xl font-bold">Welcome back</CardTitle>
+          <CardTitle className="text-2xl font-bold">
+            {invitationDetails ? "Accept invitation" : "Welcome back"}
+          </CardTitle>
           <CardDescription>
             {invitationDetails 
-              ? `Sign up with your invited email: ${invitationDetails.email}`
+              ? `${invitationDetails.invitedBy} has invited you to join ${
+                  invitationDetails.teamName 
+                    ? `the ${invitationDetails.teamName} team` 
+                    : "AutoCRM"
+                } as ${
+                  invitationDetails.role === "admin" 
+                    ? "an administrator" 
+                    : `a ${invitationDetails.role}`
+                }`
               : "Sign in to your account or create a new one"}
           </CardDescription>
         </CardHeader>
@@ -136,10 +163,9 @@ const Auth = () => {
                 },
               },
             }}
-            providers={["google", "github"]}
+            providers={invitationDetails ? [] : ["google", "github"]}
             redirectTo={window.location.origin}
             view={invitationDetails ? "sign_up" : "sign_in"}
-            // Remove defaultEmail prop as it's not supported
             magicLink={false}
           />
         </CardContent>
