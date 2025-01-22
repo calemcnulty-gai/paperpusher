@@ -36,8 +36,17 @@ const Auth = () => {
   const [error, setError] = useState<string | null>(null)
 
   useEffect(() => {
-    const checkInvitation = async () => {
+    const handleInvitation = async () => {
       if (invitationId) {
+        // If there's an invitation, sign out any existing user first
+        const { error: signOutError } = await supabase.auth.signOut()
+        if (signOutError) {
+          console.error("Error signing out:", signOutError)
+          setError("Failed to prepare for invitation signup")
+          setLoading(false)
+          return
+        }
+        
         try {
           console.log("Checking invitation:", invitationId)
           const { data: invitation, error: invitationError } = await supabase
@@ -91,7 +100,7 @@ const Auth = () => {
       setLoading(false)
     }
 
-    checkInvitation()
+    handleInvitation()
   }, [invitationId])
 
   useEffect(() => {
