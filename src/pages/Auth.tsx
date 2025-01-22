@@ -22,8 +22,8 @@ type InvitationResponse = {
   role: string
   status: string
   expires_at: string
-  teams: { name: string } | null
-  profiles: { full_name: string } | null
+  teams: { name: string }[] | null
+  profiles: { full_name: string }[] | null
 }
 
 export default function Auth() {
@@ -89,8 +89,8 @@ export default function Auth() {
         setInvitationDetails({
           email: typedInv.email,
           role: typedInv.role,
-          invitedBy: typedInv.profiles?.full_name || "Someone",
-          teamName: typedInv.teams?.name,
+          invitedBy: typedInv.profiles?.[0]?.full_name || "Someone",
+          teamName: typedInv.teams?.[0]?.name,
         })
       } catch (err: any) {
         console.error("Error verifying invitation:", err)
