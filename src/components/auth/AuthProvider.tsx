@@ -14,8 +14,19 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     
     // Initial session load
     dispatch(loadSession())
-      .then(() => {
-        console.log("AuthProvider - Initial session loaded successfully")
+      .then((action) => {
+        console.log("AuthProvider - Initial session loaded successfully", action)
+        // Log the actual session data
+        const session = action.payload
+        if (session) {
+          console.log("AuthProvider - Session details:", {
+            userId: session.user?.id,
+            email: session.user?.email,
+            lastSignInAt: session.user?.last_sign_in_at
+          })
+        } else {
+          console.log("AuthProvider - No session found")
+        }
       })
       .catch((error) => {
         console.error("AuthProvider - Failed to load session:", error)
@@ -28,15 +39,34 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
 
     // Subscribe to auth changes
     console.log("AuthProvider - Setting up auth state change listener")
-    const { data: { subscription } } = supabase.auth.onAuthStateChange((event, session) => {
-      console.log("AuthProvider - Auth state changed:", { event, sessionId: session?.user?.id })
+    const { data: { subscription } } = supabase.auth.onAuthStateChange(async (event, session) => {
+      console.log("AuthProvider - Auth state changed:", { 
+        event, 
+        userId: session?.user?.id,
+        email: session?.user?.email
+      })
       console.log("AuthProvider - Full session state:", session)
       
       if (event === 'SIGNED_OUT') {
         console.log("AuthProvider - User signed out, clearing session")
         dispatch(setSession(null))
       } else if (session) {
-        console.log("AuthProvider - New session detected, updating store")
+        console.log("AuthProvider - New session detected, checking profile data...")
+        
+        // Check if profile exists
+        const { data: profile, error: profileError } = await supabase
+          .from('profiles')
+          .select('*')
+          .eq('id', session.user.id)
+          .single()
+        
+        if (profileError) {
+          console.error("AuthProvider - Error fetching profile:", profileError)
+        } else {
+          console.log("AuthProvider - Profile found:", profile)
+        }
+        
+        console.log("AuthProvider - Updating store with session")
         dispatch(setSession(session))
       }
     })
