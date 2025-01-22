@@ -1,14 +1,11 @@
 import { useState } from "react"
-import { useForm } from "react-hook-form"
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog"
 import { Button } from "@/components/ui/button"
-import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from "@/components/ui/form"
-import { Input } from "@/components/ui/input"
 import { Plus } from "lucide-react"
 import { useToast } from "@/components/ui/use-toast"
 import { supabase } from "@/integrations/supabase/client"
 import { useQueryClient } from "@tanstack/react-query"
-import MDEditor from '@uiw/react-md-editor'
+import { TemplateForm } from "./TemplateForm"
 
 type TemplateFormData = {
   title: string
@@ -19,13 +16,6 @@ export function CreateTemplateModal() {
   const [open, setOpen] = useState(false)
   const { toast } = useToast()
   const queryClient = useQueryClient()
-  
-  const form = useForm<TemplateFormData>({
-    defaultValues: {
-      title: "",
-      content: "",
-    }
-  })
 
   const onSubmit = async (data: TemplateFormData) => {
     try {
@@ -44,7 +34,6 @@ export function CreateTemplateModal() {
       
       queryClient.invalidateQueries({ queryKey: ["response-templates"] })
       setOpen(false)
-      form.reset()
     } catch (error) {
       console.error("Error creating template:", error)
       toast({
@@ -70,46 +59,7 @@ export function CreateTemplateModal() {
             Create a new response template that can be used by agents. You can use Markdown for formatting.
           </DialogDescription>
         </DialogHeader>
-        <Form {...form}>
-          <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4">
-            <FormField
-              control={form.control}
-              name="title"
-              rules={{ required: "Title is required" }}
-              render={({ field }) => (
-                <FormItem>
-                  <FormLabel>Title</FormLabel>
-                  <FormControl>
-                    <Input placeholder="Enter template title" {...field} />
-                  </FormControl>
-                  <FormMessage />
-                </FormItem>
-              )}
-            />
-            <FormField
-              control={form.control}
-              name="content"
-              rules={{ required: "Content is required" }}
-              render={({ field }) => (
-                <FormItem>
-                  <FormLabel>Content</FormLabel>
-                  <FormControl>
-                    <MDEditor
-                      value={field.value}
-                      onChange={(value) => field.onChange(value || "")}
-                      preview="edit"
-                      height={300}
-                    />
-                  </FormControl>
-                  <FormMessage />
-                </FormItem>
-              )}
-            />
-            <Button type="submit" className="w-full">
-              Create Template
-            </Button>
-          </form>
-        </Form>
+        <TemplateForm onSubmit={onSubmit} />
       </DialogContent>
     </Dialog>
   )
