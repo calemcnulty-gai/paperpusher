@@ -11,6 +11,9 @@ type Template = {
   id: string
   title: string
   content: string
+  created_at: string
+  category: string | null
+  category_id: string | null
   usage_count: number
 }
 
