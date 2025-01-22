@@ -22,8 +22,8 @@ type InvitationResponse = {
   role: string
   status: string
   expires_at: string
-  teams: { name: string }[] | null
-  profiles: { full_name: string }[] | null
+  teams: Array<{ name: string }> | null
+  profiles: Array<{ full_name: string }> | null
 }
 
 export default function Auth() {
