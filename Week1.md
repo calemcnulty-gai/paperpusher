@@ -72,3 +72,41 @@
 - [ ] API rate limiting
 - [ ] Webhook system
 - [ ] Enhanced reporting features
+
+**Baseline App (Week 1) Checklist**
+
+1. Core Architecture  
+   - [x] Ticket Data Model (basic “Ticket” and “TicketMessage” types exist)
+   - [ ] Full CRUD (create, update, delete) for Tickets
+   - [ ] API-First Design (no dedicated CRUD endpoints currently in code)
+
+2. Employee Interface  
+   - [ ] Queue Management (no separate ticket list or filter UI yet)
+   - [ ] Ticket Detail & Editing (partial—Index.tsx reads ticket data, but we don’t see editing flow)
+   - [ ] Bulk Operations
+
+3. Administrative Control  
+   - [ ] Team Management
+   - [ ] Routing Intelligence
+   - [ ] Data Management / Archival
+
+4. Customer Features  
+   - [ ] Customer Portal for viewing/updating tickets
+   - [ ] Self-Service Tools (knowledge base, chatbots)
+   - [ ] Live Chat or Email Integration
+
+5. Feedback & Engagement  
+   - [ ] Post-resolution feedback or rating system
+
+6. Supabase Integration  
+   - [x] Supabase calls for reading ticket data (confirmed in Index.tsx)
+   - [ ] No evidence of ticket creation or updates yet
+
+7. Tailwind & Shadcn/UI Usage  
+   - [x] Tailwind is configured (className usage visible, typical project setup)  
+   - [ ] HeadlessUI / shadcn/ui usage not clearly visible yet
+
+8. AI & Vector Search (Future Work)  
+   - [ ] No explicit RAG or vector search features implemented
+
+Overall, ticket reading is partially done (via Supabase). The basic data model and some Supabase integration are present, but most other baseline features—CRUD operations, queue management, ticket detail editing, collaboration, etc.—remain to be fully implemented.
