@@ -22,7 +22,7 @@ import ApiDocs from "./pages/ApiDocs"
 
 const queryClient = new QueryClient()
 
-const AppContent = () => {
+const AuthenticatedRoutes = () => {
   const dispatch = useDispatch<AppDispatch>()
 
   useEffect(() => {
@@ -30,9 +30,8 @@ const AppContent = () => {
   }, [dispatch])
 
   return (
-    <BrowserRouter>
+    <AuthProvider>
       <Routes>
-        <Route path="/auth" element={<Auth />} />
         <Route
           path="/"
           element={
@@ -98,7 +97,7 @@ const AppContent = () => {
           }
         />
       </Routes>
-    </BrowserRouter>
+    </AuthProvider>
   )
 }
 
@@ -106,11 +105,14 @@ const App = () => (
   <Provider store={store}>
     <QueryClientProvider client={queryClient}>
       <TooltipProvider>
-        <AuthProvider>
+        <BrowserRouter>
+          <Routes>
+            <Route path="/auth" element={<Auth />} />
+            <Route path="/*" element={<AuthenticatedRoutes />} />
+          </Routes>
           <Toaster />
           <Sonner />
-          <AppContent />
-        </AuthProvider>
+        </BrowserRouter>
       </TooltipProvider>
     </QueryClientProvider>
   </Provider>
