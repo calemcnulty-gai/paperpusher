@@ -202,30 +202,46 @@ export type Database = {
       }
       response_templates: {
         Row: {
+          category: string | null
+          category_id: string | null
           content: string
           created_at: string
           created_by: string
           id: string
           title: string
           updated_at: string
+          usage_count: number | null
         }
         Insert: {
+          category?: string | null
+          category_id?: string | null
           content: string
           created_at?: string
           created_by: string
           id?: string
           title: string
           updated_at?: string
+          usage_count?: number | null
         }
         Update: {
+          category?: string | null
+          category_id?: string | null
           content?: string
           created_at?: string
           created_by?: string
           id?: string
           title?: string
           updated_at?: string
+          usage_count?: number | null
         }
         Relationships: [
+          {
+            foreignKeyName: "response_templates_category_id_fkey"
+            columns: ["category_id"]
+            isOneToOne: false
+            referencedRelation: "template_categories"
+            referencedColumns: ["id"]
+          },
           {
             foreignKeyName: "response_templates_created_by_fkey"
             columns: ["created_by"]
@@ -275,6 +291,30 @@ export type Database = {
         ]
       }
       teams: {
+        Row: {
+          created_at: string
+          description: string | null
+          id: string
+          name: string
+          updated_at: string
+        }
+        Insert: {
+          created_at?: string
+          description?: string | null
+          id?: string
+          name: string
+          updated_at?: string
+        }
+        Update: {
+          created_at?: string
+          description?: string | null
+          id?: string
+          name?: string
+          updated_at?: string
+        }
+        Relationships: []
+      }
+      template_categories: {
         Row: {
           created_at: string
           description: string | null
