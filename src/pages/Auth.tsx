@@ -35,6 +35,28 @@ const Auth = () => {
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
 
+  // Handle auth callback
+  useEffect(() => {
+    const handleAuthCallback = async () => {
+      const hash = window.location.hash
+      if (hash && hash.includes('access_token')) {
+        const { data: { session }, error } = await supabase.auth.getSession()
+        if (error) {
+          console.error('Error getting session:', error)
+          toast({
+            variant: "destructive",
+            title: "Authentication Error",
+            description: error.message,
+          })
+        } else if (session) {
+          navigate(from, { replace: true })
+        }
+      }
+    }
+
+    handleAuthCallback()
+  }, [navigate, from, toast])
+
   useEffect(() => {
     const handleInvitation = async () => {
       if (invitationId) {
