@@ -7,6 +7,8 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { useToast } from "@/hooks/use-toast"
 import { Alert, AlertDescription } from "@/components/ui/alert"
 import { Loader2 } from "lucide-react"
+import { useAppSelector, useAppDispatch } from "@/store"
+import { setSession, signOut } from "@/store/authSlice"
 
 type InvitationDetails = {
   email: string
@@ -24,139 +26,87 @@ type InvitationResponse = {
   profiles: { full_name: string } | null
 }
 
-const Auth = () => {
+export default function Auth() {
   const navigate = useNavigate()
   const location = useLocation()
   const [searchParams] = useSearchParams()
   const { toast } = useToast()
   const from = location.state?.from?.pathname || "/"
-  const invitationId = searchParams.get('invitation')
+  const invitationId = searchParams.get("invitation")
+
   const [invitationDetails, setInvitationDetails] = useState<InvitationDetails | null>(null)
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
 
-  // Handle auth callback
+  // Redux session state
+  const dispatch = useAppDispatch()
+  const { session } = useAppSelector((state) => state.auth)
+
+  // Load the invitation details if any
   useEffect(() => {
-    const handleAuthCallback = async () => {
-      const hash = window.location.hash
-      if (hash && hash.includes('access_token')) {
-        const { data: { session }, error } = await supabase.auth.getSession()
-        if (error) {
-          console.error('Error getting session:', error)
-          toast({
-            variant: "destructive",
-            title: "Authentication Error",
-            description: error.message,
-          })
-        } else if (session) {
-          navigate(from, { replace: true })
-        }
+    async function loadInvitation() {
+      if (!invitationId) {
+        setLoading(false)
+        return
       }
-    }
+      try {
+        // If we have an invitation, sign out previous user to allow new sign-up flow
+        await dispatch(signOut()).unwrap()
 
-    handleAuthCallback()
-  }, [navigate, from, toast])
+        const { data: invitation, error: invitationError } = await supabase
+          .from("invitations")
+          .select(`
+            email,
+            role,
+            status,
+            expires_at,
+            teams:team_id (name),
+            profiles!invitations_invited_by_fkey (full_name)
+          `)
+          .eq("id", invitationId)
+          .single()
 
-  useEffect(() => {
-    const handleInvitation = async () => {
-      if (invitationId) {
-        // If there's an invitation, sign out any existing user first
-        const { error: signOutError } = await supabase.auth.signOut()
-        if (signOutError) {
-          console.error("Error signing out:", signOutError)
-          setError("Failed to prepare for invitation signup")
+        if (invitationError) throw invitationError
+        if (!invitation) {
+          setError("Invalid invitation link.")
           setLoading(false)
           return
         }
-        
-        try {
-          console.log("Checking invitation:", invitationId)
-          const { data: invitation, error: invitationError } = await supabase
-            .from("invitations")
-            .select(`
-              email, 
-              role, 
-              status, 
-              expires_at,
-              teams:team_id (name),
-              profiles!invitations_invited_by_fkey (full_name)
-            `)
-            .eq("id", invitationId)
-            .single()
 
-          if (invitationError) throw invitationError
-
-          if (!invitation) {
-            setError("Invalid invitation link")
-            setLoading(false)
-            return
-          }
-
-          // Type assertion after validation
-          const typedInvitation = invitation as unknown as InvitationResponse
-
-          if (typedInvitation.status !== 'pending') {
-            setError("This invitation has already been used")
-            setLoading(false)
-            return
-          }
-
-          if (new Date(typedInvitation.expires_at) < new Date()) {
-            setError("This invitation has expired")
-            setLoading(false)
-            return
-          }
-
-          console.log("Valid invitation found:", typedInvitation)
-          setInvitationDetails({ 
-            email: typedInvitation.email, 
-            role: typedInvitation.role,
-            invitedBy: typedInvitation.profiles?.full_name || 'Someone',
-            teamName: typedInvitation.teams?.name
-          })
-        } catch (error) {
-          console.error("Error checking invitation:", error)
-          setError("Failed to verify invitation")
+        const typedInv = invitation as unknown as InvitationResponse
+        if (typedInv.status !== "pending") {
+          setError("This invitation has already been used.")
+          setLoading(false)
+          return
         }
+        if (new Date(typedInv.expires_at) < new Date()) {
+          setError("This invitation has expired.")
+          setLoading(false)
+          return
+        }
+
+        setInvitationDetails({
+          email: typedInv.email,
+          role: typedInv.role,
+          invitedBy: typedInv.profiles?.full_name || "Someone",
+          teamName: typedInv.teams?.name,
+        })
+      } catch (err: any) {
+        console.error("Error verifying invitation:", err)
+        setError("Failed to verify invitation.")
+      } finally {
+        setLoading(false)
       }
-      setLoading(false)
     }
+    loadInvitation()
+  }, [invitationId, dispatch])
 
-    handleInvitation()
-  }, [invitationId])
-
+  // If user is already signed in and there's no invitation, redirect
   useEffect(() => {
-    console.log("Setting up auth state change listener")
-    const { data: { subscription } } = supabase.auth.onAuthStateChange(
-      async (event, session) => {
-        console.log("Auth state changed:", event, session)
-        
-        if (event === "SIGNED_IN") {
-          console.log("User signed in, checking profile...")
-          const { data: profile, error: profileError } = await supabase
-            .from("profiles")
-            .select()
-            .eq("id", session?.user.id)
-            .single()
-
-          if (profileError && profileError.code !== "PGRST116") {
-            console.error("Error checking profile:", profileError)
-            toast({
-              variant: "destructive",
-              title: "Error checking profile",
-              description: profileError.message,
-            })
-            return
-          }
-
-          console.log("Redirecting to:", from)
-          navigate(from, { replace: true })
-        }
-      }
-    )
-
-    return () => subscription.unsubscribe()
-  }, [navigate, toast, from])
+    if (session && !invitationId) {
+      navigate(from, { replace: true })
+    }
+  }, [session, invitationId, from, navigate])
 
   if (loading) {
     return (
@@ -171,20 +121,20 @@ const Auth = () => {
       <Card className="w-full max-w-md">
         <CardHeader className="space-y-1">
           <CardTitle className="text-2xl font-bold">
-            {invitationDetails ? "Accept invitation" : "Welcome back"}
+            {invitationDetails ? "Accept Invitation" : "Welcome back"}
           </CardTitle>
           <CardDescription>
-            {invitationDetails 
-              ? `${invitationDetails.invitedBy} has invited you to join ${
-                  invitationDetails.teamName 
-                    ? `the ${invitationDetails.teamName} team` 
+            {invitationDetails
+              ? `${invitationDetails.invitedBy} invited you to join ${
+                  invitationDetails.teamName
+                    ? `the ${invitationDetails.teamName} team`
                     : "AutoCRM"
                 } as ${
-                  invitationDetails.role === "admin" 
-                    ? "an administrator" 
+                  invitationDetails.role === "admin"
+                    ? "an administrator"
                     : `a ${invitationDetails.role}`
                 }`
-              : "Sign in to your account or create a new one"}
+              : "Sign in to your account or create a new one."}
           </CardDescription>
         </CardHeader>
         <CardContent>
@@ -193,7 +143,6 @@ const Auth = () => {
               <AlertDescription>{error}</AlertDescription>
             </Alert>
           )}
-          
           <SupabaseAuth
             supabaseClient={supabase}
             appearance={{
@@ -209,6 +158,7 @@ const Auth = () => {
             }}
             providers={invitationDetails ? [] : ["google", "github"]}
             redirectTo={window.location.origin}
+            // If invitation is present, show sign up view
             view={invitationDetails ? "sign_up" : "sign_in"}
             magicLink={false}
           />
@@ -217,5 +167,3 @@ const Auth = () => {
     </div>
   )
 }
-
-export default Auth
