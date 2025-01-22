@@ -81,13 +81,13 @@ const Auth = () => {
   }, [invitationId])
 
   useEffect(() => {
+    console.log("Setting up auth state change listener")
     const { data: { subscription } } = supabase.auth.onAuthStateChange(
       async (event, session) => {
         console.log("Auth state changed:", event, session)
         
         if (event === "SIGNED_IN") {
           console.log("User signed in, checking profile...")
-          // Create profile if it doesn't exist
           const { data: profile, error: profileError } = await supabase
             .from("profiles")
             .select()
@@ -104,7 +104,6 @@ const Auth = () => {
             return
           }
 
-          // Navigate to the page they were trying to visit or home
           console.log("Redirecting to:", from)
           navigate(from, { replace: true })
         }
