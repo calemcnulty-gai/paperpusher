@@ -28,15 +28,20 @@ const initialState: AuthState = {
 export const fetchProfile = createAsyncThunk(
   'auth/fetchProfile',
   async (userId: string) => {
+    console.log("Fetching profile for user:", userId)
     const { data, error } = await supabase
       .from('profiles')
       .select('id, full_name, role, email')
       .eq('id', userId)
       .single();
 
-    if (error) throw error;
+    if (error) {
+      console.error("Error fetching profile:", error)
+      throw error;
+    }
 
     if (!data) {
+      console.log("No profile found, creating new profile...")
       const { data: { user: currentUser } } = await supabase.auth.getUser();
       
       if (!currentUser?.email) {
@@ -56,25 +61,31 @@ export const fetchProfile = createAsyncThunk(
         .select()
         .single();
 
-      if (createError) throw createError;
+      if (createError) {
+        console.error("Error creating profile:", createError)
+        throw createError;
+      }
+      console.log("New profile created:", newProfile)
       return newProfile as Profile;
     }
 
+    console.log("Profile found:", data)
     return data as Profile;
   }
 );
 
 export const loadSession = createAsyncThunk(
   'auth/loadSession',
-  async (_, { dispatch }) => {
+  async () => {
+    console.log("Loading initial session...")
     const { data: { session }, error } = await supabase.auth.getSession();
     
-    if (error) throw error;
-    
-    if (session?.user) {
-      dispatch(fetchProfile(session.user.id));
+    if (error) {
+      console.error("Error loading session:", error)
+      throw error;
     }
     
+    console.log("Session loaded:", session)
     return session;
   }
 );
@@ -119,9 +130,11 @@ const authSlice = createSlice({
       })
       .addCase(fetchProfile.fulfilled, (state, action) => {
         state.profile = action.payload;
+        state.loading = false;
       })
       .addCase(fetchProfile.rejected, (state, action) => {
         state.error = action.error.message ?? 'Failed to fetch profile';
+        state.loading = false;
       })
       .addCase(signOut.fulfilled, (state) => {
         state.session = null;

@@ -1,9 +1,10 @@
 import { useEffect } from "react"
 import { useDispatch } from "react-redux"
 import { supabase } from "@/integrations/supabase/client"
-import { loadSession, setSession } from "@/store/authSlice"
+import { loadSession, setSession, fetchProfile } from "@/store/authSlice"
 import { AppDispatch } from "@/store"
 import { useToast } from "@/components/ui/use-toast"
+import type { Session } from "@supabase/supabase-js"
 
 export function AuthProvider({ children }: { children: React.ReactNode }) {
   const dispatch = useDispatch<AppDispatch>()
@@ -14,16 +15,16 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     
     // Initial session load
     dispatch(loadSession())
-      .then((action) => {
-        console.log("AuthProvider - Initial session loaded successfully", action)
-        // Log the actual session data
-        const session = action.payload
-        if (session) {
+      .unwrap()
+      .then((session) => {
+        console.log("AuthProvider - Initial session loaded successfully", session)
+        if (session?.user) {
           console.log("AuthProvider - Session details:", {
-            userId: session.user?.id,
-            email: session.user?.email,
-            lastSignInAt: session.user?.last_sign_in_at
+            userId: session.user.id,
+            email: session.user.email,
+            lastSignInAt: session.user.last_sign_in_at
           })
+          dispatch(fetchProfile(session.user.id))
         } else {
           console.log("AuthProvider - No session found")
         }
@@ -52,22 +53,10 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         dispatch(setSession(null))
       } else if (session) {
         console.log("AuthProvider - New session detected, checking profile data...")
-        
-        // Check if profile exists
-        const { data: profile, error: profileError } = await supabase
-          .from('profiles')
-          .select('*')
-          .eq('id', session.user.id)
-          .single()
-        
-        if (profileError) {
-          console.error("AuthProvider - Error fetching profile:", profileError)
-        } else {
-          console.log("AuthProvider - Profile found:", profile)
-        }
-        
-        console.log("AuthProvider - Updating store with session")
         dispatch(setSession(session))
+        if (session.user) {
+          dispatch(fetchProfile(session.user.id))
+        }
       }
     })
 
