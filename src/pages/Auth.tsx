@@ -38,11 +38,9 @@ export default function Auth() {
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
 
-  // Redux session state
   const dispatch = useAppDispatch()
   const { session } = useAppSelector((state) => state.auth)
 
-  // Load the invitation details if any
   useEffect(() => {
     async function loadInvitation() {
       if (!invitationId) {
@@ -50,7 +48,6 @@ export default function Auth() {
         return
       }
       try {
-        // If we have an invitation, sign out previous user to allow new sign-up flow
         await dispatch(signOut()).unwrap()
 
         const { data: invitation, error: invitationError } = await supabase
@@ -64,16 +61,16 @@ export default function Auth() {
             profiles!invitations_invited_by_fkey (full_name)
           `)
           .eq("id", invitationId)
-          .single()
+          .maybeSingle()
 
         if (invitationError) throw invitationError
         if (!invitation) {
-          setError("Invalid invitation link.")
+          setError("Invalid or expired invitation link.")
           setLoading(false)
           return
         }
 
-        const typedInv = invitation as unknown as InvitationResponse
+        const typedInv = invitation as InvitationResponse
         if (typedInv.status !== "pending") {
           setError("This invitation has already been used.")
           setLoading(false)
@@ -93,7 +90,7 @@ export default function Auth() {
         })
       } catch (err: any) {
         console.error("Error verifying invitation:", err)
-        setError("Failed to verify invitation.")
+        setError("Failed to verify invitation. Please try again or contact support.")
       } finally {
         setLoading(false)
       }
@@ -101,7 +98,6 @@ export default function Auth() {
     loadInvitation()
   }, [invitationId, dispatch])
 
-  // If user is already signed in and there's no invitation, redirect
   useEffect(() => {
     if (session && !invitationId) {
       navigate(from, { replace: true })
@@ -158,7 +154,6 @@ export default function Auth() {
             }}
             providers={invitationDetails ? [] : ["google", "github"]}
             redirectTo={window.location.origin}
-            // If invitation is present, show sign up view
             view={invitationDetails ? "sign_up" : "sign_in"}
             magicLink={false}
           />
