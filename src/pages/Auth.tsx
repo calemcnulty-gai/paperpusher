@@ -47,7 +47,7 @@ const Auth = () => {
               role, 
               status, 
               expires_at,
-              teams (name),
+              teams:team_id (name),
               profiles!invitations_invited_by_fkey (full_name)
             `)
             .eq("id", invitationId)
@@ -61,7 +61,8 @@ const Auth = () => {
             return
           }
 
-          const typedInvitation = invitation as InvitationResponse
+          // Type assertion after validation
+          const typedInvitation = invitation as unknown as InvitationResponse
 
           if (typedInvitation.status !== 'pending') {
             setError("This invitation has already been used")
