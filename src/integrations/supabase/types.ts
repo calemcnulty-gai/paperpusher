@@ -352,6 +352,97 @@ export type Database = {
           },
         ]
       }
+      webhook_deliveries: {
+        Row: {
+          attempt_count: number | null
+          created_at: string
+          error_message: string | null
+          event_type: Database["public"]["Enums"]["webhook_event_type"]
+          id: string
+          last_attempted_at: string | null
+          payload: Json
+          response_body: string | null
+          response_status: number | null
+          webhook_id: string
+        }
+        Insert: {
+          attempt_count?: number | null
+          created_at?: string
+          error_message?: string | null
+          event_type: Database["public"]["Enums"]["webhook_event_type"]
+          id?: string
+          last_attempted_at?: string | null
+          payload: Json
+          response_body?: string | null
+          response_status?: number | null
+          webhook_id: string
+        }
+        Update: {
+          attempt_count?: number | null
+          created_at?: string
+          error_message?: string | null
+          event_type?: Database["public"]["Enums"]["webhook_event_type"]
+          id?: string
+          last_attempted_at?: string | null
+          payload?: Json
+          response_body?: string | null
+          response_status?: number | null
+          webhook_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "webhook_deliveries_webhook_id_fkey"
+            columns: ["webhook_id"]
+            isOneToOne: false
+            referencedRelation: "webhooks"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      webhooks: {
+        Row: {
+          created_at: string
+          created_by: string
+          events: Database["public"]["Enums"]["webhook_event_type"][]
+          id: string
+          is_active: boolean | null
+          name: string
+          secret: string
+          updated_at: string
+          url: string
+        }
+        Insert: {
+          created_at?: string
+          created_by: string
+          events: Database["public"]["Enums"]["webhook_event_type"][]
+          id?: string
+          is_active?: boolean | null
+          name: string
+          secret: string
+          updated_at?: string
+          url: string
+        }
+        Update: {
+          created_at?: string
+          created_by?: string
+          events?: Database["public"]["Enums"]["webhook_event_type"][]
+          id?: string
+          is_active?: boolean | null
+          name?: string
+          secret?: string
+          updated_at?: string
+          url?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "webhooks_created_by_fkey"
+            columns: ["created_by"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
     }
     Views: {
       [_ in never]: never
@@ -569,6 +660,15 @@ export type Database = {
     Enums: {
       ticket_priority: "low" | "medium" | "high" | "urgent"
       ticket_status: "open" | "pending" | "resolved" | "closed"
+      webhook_event_type:
+        | "ticket.created"
+        | "ticket.updated"
+        | "ticket.deleted"
+        | "ticket_message.created"
+        | "team.created"
+        | "team.updated"
+        | "team_member.added"
+        | "team_member.removed"
     }
     CompositeTypes: {
       [_ in never]: never
