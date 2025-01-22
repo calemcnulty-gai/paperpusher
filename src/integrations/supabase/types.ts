@@ -575,6 +575,12 @@ export type Database = {
             }
             Returns: unknown
           }
+      expire_previous_invitations: {
+        Args: {
+          p_email: string
+        }
+        Returns: undefined
+      }
       get_agent_performance: {
         Args: {
           start_date: string

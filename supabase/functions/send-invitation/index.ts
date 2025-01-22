@@ -44,7 +44,19 @@ serve(async (req) => {
     }
     console.log('Inviter found:', inviter.id)
 
-    // Create invitation record
+    // Expire previous pending invitations for this email
+    const { error: expireError } = await supabaseClient.rpc(
+      'expire_previous_invitations',
+      { p_email: email }
+    )
+
+    if (expireError) {
+      console.error('Error expiring previous invitations:', expireError)
+      throw new Error('Error expiring previous invitations')
+    }
+    console.log('Previous invitations expired successfully')
+
+    // Create new invitation record
     const { data: invitation, error: inviteError } = await supabaseClient
       .from('invitations')
       .insert({
