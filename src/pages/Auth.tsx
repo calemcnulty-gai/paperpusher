@@ -51,6 +51,19 @@ export default function Auth() {
         console.log("Loading invitation with ID:", invitationId)
         await dispatch(signOut()).unwrap()
 
+        // First, let's try a simple query to debug
+        const { data: basicInvitation, error: basicError } = await supabase
+          .from("invitations")
+          .select("*")
+          .eq("id", invitationId)
+          .single()
+
+        console.log("Basic invitation query result:", basicInvitation)
+        console.log("Basic invitation query error:", basicError)
+
+        if (basicError) throw basicError
+
+        // If basic query works, then try the full query
         const { data: invitation, error: invitationError } = await supabase
           .from("invitations")
           .select(`
@@ -64,8 +77,8 @@ export default function Auth() {
           .eq("id", invitationId)
           .maybeSingle()
 
-        console.log("Invitation query result:", invitation)
-        console.log("Invitation query error:", invitationError)
+        console.log("Full invitation query result:", invitation)
+        console.log("Full invitation query error:", invitationError)
 
         if (invitationError) throw invitationError
         if (!invitation) {
