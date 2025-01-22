@@ -10,6 +10,8 @@ import { Loader2 } from "lucide-react"
 import { useAppSelector, useAppDispatch } from "@/store"
 import { setSession, signOut } from "@/store/authSlice"
 import { InvitationMessage } from "@/components/auth/InvitationMessage"
+import { Input } from "@/components/ui/input"
+import { Label } from "@/components/ui/label"
 
 type InvitationDetails = {
   email: string
@@ -38,6 +40,7 @@ export default function Auth() {
   const [invitationDetails, setInvitationDetails] = useState<InvitationDetails | null>(null)
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
+  const [password, setPassword] = useState("")
 
   const dispatch = useAppDispatch()
   const { session } = useAppSelector((state) => state.auth)
@@ -109,6 +112,26 @@ export default function Auth() {
     }
   }, [session, invitationId, from, navigate])
 
+  const handleSignUp = async (e: React.FormEvent) => {
+    e.preventDefault()
+    if (!invitationDetails) return
+
+    const { error } = await supabase.auth.signUp({
+      email: invitationDetails.email,
+      password: password,
+    })
+
+    if (error) {
+      setError(error.message)
+      return
+    }
+
+    toast({
+      title: "Check your email",
+      description: "We've sent you a confirmation link to complete your registration.",
+    })
+  }
+
   if (loading) {
     return (
       <div className="min-h-screen flex items-center justify-center bg-background p-4">
@@ -140,29 +163,59 @@ export default function Auth() {
               <AlertDescription>{error}</AlertDescription>
             </Alert>
           )}
-          <SupabaseAuth
-            supabaseClient={supabase}
-            appearance={{
-              theme: ThemeSupa,
-              variables: {
-                default: {
-                  colors: {
-                    brand: "rgb(var(--primary))",
-                    brandAccent: "rgb(var(--primary))",
+          {invitationDetails ? (
+            <form onSubmit={handleSignUp} className="space-y-4">
+              <div className="space-y-2">
+                <Label htmlFor="email">Email</Label>
+                <Input
+                  id="email"
+                  type="email"
+                  value={invitationDetails.email}
+                  disabled
+                  className="bg-muted"
+                />
+              </div>
+              <div className="space-y-2">
+                <Label htmlFor="password">Password</Label>
+                <Input
+                  id="password"
+                  type="password"
+                  value={password}
+                  onChange={(e) => setPassword(e.target.value)}
+                  required
+                  minLength={6}
+                />
+              </div>
+              <button
+                type="submit"
+                className="w-full bg-primary text-primary-foreground hover:bg-primary/90 h-10 px-4 py-2 rounded-md transition-colors"
+              >
+                Create Account
+              </button>
+            </form>
+          ) : (
+            <SupabaseAuth
+              supabaseClient={supabase}
+              appearance={{
+                theme: ThemeSupa,
+                variables: {
+                  default: {
+                    colors: {
+                      brand: "rgb(var(--primary))",
+                      brandAccent: "rgb(var(--primary))",
+                    },
                   },
                 },
-              },
-              className: {
-                container: "space-y-4",
-                button: "w-full",
-              },
-            }}
-            providers={invitationDetails ? [] : ["google", "github"]}
-            redirectTo={window.location.origin}
-            view={invitationDetails ? "sign_up" : "sign_in"}
-            email={invitationDetails?.email}
-            magicLink={false}
-          />
+                className: {
+                  container: "space-y-4",
+                  button: "w-full",
+                },
+              }}
+              providers={["google", "github"]}
+              redirectTo={window.location.origin}
+              magicLink={false}
+            />
+          )}
         </CardContent>
       </Card>
     </div>
