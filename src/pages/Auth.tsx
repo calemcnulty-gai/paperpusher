@@ -139,7 +139,8 @@ const Auth = () => {
             providers={["google", "github"]}
             redirectTo={window.location.origin}
             view={invitationDetails ? "sign_up" : "sign_in"}
-            defaultEmail={invitationDetails?.email}
+            // Remove defaultEmail prop as it's not supported
+            magicLink={false}
           />
         </CardContent>
       </Card>
