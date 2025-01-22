@@ -3,10 +3,12 @@ import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from "
 import { Input } from "@/components/ui/input"
 import { Button } from "@/components/ui/button"
 import MDEditor from '@uiw/react-md-editor'
+import { TemplateCategorySelect } from "./TemplateCategorySelect"
 
 type TemplateFormData = {
   title: string
   content: string
+  category_id?: string
 }
 
 type TemplateFormProps = {
@@ -20,6 +22,7 @@ export function TemplateForm({ onSubmit, isSubmitting, defaultValues }: Template
     defaultValues: {
       title: defaultValues?.title || "",
       content: defaultValues?.content || "",
+      category_id: defaultValues?.category_id || "",
     }
   })
 
@@ -40,6 +43,24 @@ export function TemplateForm({ onSubmit, isSubmitting, defaultValues }: Template
             </FormItem>
           )}
         />
+        
+        <FormField
+          control={form.control}
+          name="category_id"
+          render={({ field }) => (
+            <FormItem>
+              <FormLabel>Category</FormLabel>
+              <FormControl>
+                <TemplateCategorySelect 
+                  value={field.value} 
+                  onValueChange={field.onChange}
+                />
+              </FormControl>
+              <FormMessage />
+            </FormItem>
+          )}
+        />
+
         <FormField
           control={form.control}
           name="content"
@@ -59,6 +80,7 @@ export function TemplateForm({ onSubmit, isSubmitting, defaultValues }: Template
             </FormItem>
           )}
         />
+
         <Button type="submit" className="w-full" disabled={isSubmitting}>
           {isSubmitting ? "Creating..." : "Create Template"}
         </Button>

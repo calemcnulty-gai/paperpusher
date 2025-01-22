@@ -4,9 +4,10 @@ import { supabase } from "@/integrations/supabase/client"
 import { ScrollArea } from "@/components/ui/scroll-area"
 import { Button } from "@/components/ui/button"
 import { MessageSquare, Edit, Trash } from "lucide-react"
-import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog"
+import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog"
 import { TemplateForm } from "./TemplateForm"
 import { useToast } from "@/components/ui/use-toast"
+import { TemplateCategorySelect } from "./TemplateCategorySelect"
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -20,6 +21,7 @@ type Template = {
   content: string
   created_at: string
   category: string | null
+  category_id: string | null
   usage_count: number
 }
 
@@ -32,16 +34,25 @@ export function TemplateList({ onSelect, showActions = true }: TemplateListProps
   const { toast } = useToast()
   const queryClient = useQueryClient()
   const [editingTemplate, setEditingTemplate] = useState<Template | null>(null)
+  const [selectedCategory, setSelectedCategory] = useState<string>("")
 
   const { data: templates, isLoading } = useQuery({
-    queryKey: ["response-templates"],
+    queryKey: ["response-templates", selectedCategory],
     queryFn: async () => {
-      const { data, error } = await supabase
+      console.log("Fetching templates for category:", selectedCategory)
+      let query = supabase
         .from("response_templates")
         .select("*")
         .order("created_at", { ascending: false })
       
+      if (selectedCategory) {
+        query = query.eq("category_id", selectedCategory)
+      }
+      
+      const { data, error } = await query
+      
       if (error) throw error
+      console.log("Fetched templates:", data)
       return data as Template[]
     }
   })
@@ -73,10 +84,14 @@ export function TemplateList({ onSelect, showActions = true }: TemplateListProps
   })
 
   const updateMutation = useMutation({
-    mutationFn: async (data: { id: string, title: string, content: string }) => {
+    mutationFn: async (data: { id: string, title: string, content: string, category_id?: string }) => {
       const { error } = await supabase
         .from("response_templates")
-        .update({ title: data.title, content: data.content })
+        .update({ 
+          title: data.title, 
+          content: data.content,
+          category_id: data.category_id 
+        })
         .eq("id", data.id)
       
       if (error) throw error
@@ -105,7 +120,7 @@ export function TemplateList({ onSelect, showActions = true }: TemplateListProps
     }
   }
 
-  const handleUpdate = async (data: { title: string, content: string }) => {
+  const handleUpdate = async (data: { title: string, content: string, category_id?: string }) => {
     if (!editingTemplate) return
     updateMutation.mutate({ id: editingTemplate.id, ...data })
   }
@@ -119,49 +134,58 @@ export function TemplateList({ onSelect, showActions = true }: TemplateListProps
   }
 
   return (
-    <ScrollArea className="h-[200px]">
-      <div className="space-y-2">
-        {templates.map((template) => (
-          <div key={template.id} className="flex items-center justify-between group">
-            <Button
-              variant="ghost"
-              className="w-full justify-start mr-2"
-              onClick={() => onSelect?.(template.content)}
-            >
-              <MessageSquare className="mr-2 h-4 w-4" />
-              <span className="truncate">{template.title}</span>
-              {template.usage_count > 0 && (
-                <span className="ml-2 text-xs text-muted-foreground">
-                  Used {template.usage_count} times
-                </span>
-              )}
-            </Button>
-            
-            {showActions && (
-              <DropdownMenu>
-                <DropdownMenuTrigger asChild>
-                  <Button variant="ghost" size="sm" className="opacity-0 group-hover:opacity-100">
-                    <Edit className="h-4 w-4" />
-                  </Button>
-                </DropdownMenuTrigger>
-                <DropdownMenuContent>
-                  <DropdownMenuItem onClick={() => setEditingTemplate(template)}>
-                    <Edit className="mr-2 h-4 w-4" />
-                    Edit
-                  </DropdownMenuItem>
-                  <DropdownMenuItem 
-                    onClick={() => handleDelete(template.id)}
-                    className="text-destructive"
-                  >
-                    <Trash className="mr-2 h-4 w-4" />
-                    Delete
-                  </DropdownMenuItem>
-                </DropdownMenuContent>
-              </DropdownMenu>
-            )}
-          </div>
-        ))}
+    <div className="space-y-4">
+      <div className="w-[200px]">
+        <TemplateCategorySelect
+          value={selectedCategory}
+          onValueChange={setSelectedCategory}
+        />
       </div>
+
+      <ScrollArea className="h-[200px]">
+        <div className="space-y-2">
+          {templates.map((template) => (
+            <div key={template.id} className="flex items-center justify-between group">
+              <Button
+                variant="ghost"
+                className="w-full justify-start mr-2"
+                onClick={() => onSelect?.(template.content)}
+              >
+                <MessageSquare className="mr-2 h-4 w-4" />
+                <span className="truncate">{template.title}</span>
+                {template.usage_count > 0 && (
+                  <span className="ml-2 text-xs text-muted-foreground">
+                    Used {template.usage_count} times
+                  </span>
+                )}
+              </Button>
+              
+              {showActions && (
+                <DropdownMenu>
+                  <DropdownMenuTrigger asChild>
+                    <Button variant="ghost" size="sm" className="opacity-0 group-hover:opacity-100">
+                      <Edit className="h-4 w-4" />
+                    </Button>
+                  </DropdownMenuTrigger>
+                  <DropdownMenuContent>
+                    <DropdownMenuItem onClick={() => setEditingTemplate(template)}>
+                      <Edit className="mr-2 h-4 w-4" />
+                      Edit
+                    </DropdownMenuItem>
+                    <DropdownMenuItem 
+                      onClick={() => handleDelete(template.id)}
+                      className="text-destructive"
+                    >
+                      <Trash className="mr-2 h-4 w-4" />
+                      Delete
+                    </DropdownMenuItem>
+                  </DropdownMenuContent>
+                </DropdownMenu>
+              )}
+            </div>
+          ))}
+        </div>
+      </ScrollArea>
 
       <Dialog open={!!editingTemplate} onOpenChange={(open) => !open && setEditingTemplate(null)}>
         <DialogContent className="sm:max-w-[700px]">
@@ -174,12 +198,13 @@ export function TemplateList({ onSelect, showActions = true }: TemplateListProps
               defaultValues={{
                 title: editingTemplate.title,
                 content: editingTemplate.content,
+                category_id: editingTemplate.category_id || "",
               }}
               isSubmitting={updateMutation.isPending}
             />
           )}
         </DialogContent>
       </Dialog>
-    </ScrollArea>
+    </div>
   )
 }
