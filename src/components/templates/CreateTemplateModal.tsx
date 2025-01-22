@@ -4,11 +4,11 @@ import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle, Di
 import { Button } from "@/components/ui/button"
 import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from "@/components/ui/form"
 import { Input } from "@/components/ui/input"
-import { Textarea } from "@/components/ui/textarea"
 import { Plus } from "lucide-react"
 import { useToast } from "@/components/ui/use-toast"
 import { supabase } from "@/integrations/supabase/client"
 import { useQueryClient } from "@tanstack/react-query"
+import MDEditor from '@uiw/react-md-editor'
 
 type TemplateFormData = {
   title: string
@@ -63,11 +63,11 @@ export function CreateTemplateModal() {
           Create Template
         </Button>
       </DialogTrigger>
-      <DialogContent className="sm:max-w-[425px]">
+      <DialogContent className="sm:max-w-[700px]">
         <DialogHeader>
           <DialogTitle>Create Response Template</DialogTitle>
           <DialogDescription>
-            Create a new response template that can be used by agents.
+            Create a new response template that can be used by agents. You can use Markdown for formatting.
           </DialogDescription>
         </DialogHeader>
         <Form {...form}>
@@ -94,10 +94,11 @@ export function CreateTemplateModal() {
                 <FormItem>
                   <FormLabel>Content</FormLabel>
                   <FormControl>
-                    <Textarea
-                      placeholder="Enter template content"
-                      className="min-h-[200px]"
-                      {...field}
+                    <MDEditor
+                      value={field.value}
+                      onChange={(value) => field.onChange(value || "")}
+                      preview="edit"
+                      height={300}
                     />
                   </FormControl>
                   <FormMessage />

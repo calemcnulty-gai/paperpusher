@@ -3,6 +3,7 @@ import { useQuery } from "@tanstack/react-query"
 import { supabase } from "@/integrations/supabase/client"
 import { CreateTemplateModal } from "@/components/templates/CreateTemplateModal"
 import { format } from "date-fns"
+import MDEditor from '@uiw/react-md-editor'
 
 export default function Templates() {
   const { data: templates } = useQuery({
@@ -42,7 +43,9 @@ export default function Templates() {
                   {format(new Date(template.created_at), "MMM d, yyyy")}
                 </div>
               </div>
-              <p className="text-sm whitespace-pre-wrap">{template.content}</p>
+              <div className="prose prose-sm max-w-none dark:prose-invert">
+                <MDEditor.Markdown source={template.content} />
+              </div>
             </div>
           ))}
         </div>

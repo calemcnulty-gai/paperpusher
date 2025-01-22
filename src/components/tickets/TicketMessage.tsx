@@ -1,4 +1,5 @@
 import { format } from "date-fns"
+import MDEditor from '@uiw/react-md-editor'
 
 type TicketMessageProps = {
   sender: {
@@ -19,7 +20,9 @@ export const TicketMessage = ({ sender, message, created_at, className = "" }: T
           {format(new Date(created_at), "MMM d, yyyy HH:mm")}
         </p>
       </div>
-      <p className="text-sm mt-1 whitespace-pre-wrap">{message}</p>
+      <div className="mt-1">
+        <MDEditor.Markdown source={message} />
+      </div>
     </div>
   )
 }

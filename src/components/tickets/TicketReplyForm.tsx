@@ -1,10 +1,10 @@
 import { Button } from "@/components/ui/button"
-import { Textarea } from "@/components/ui/textarea"
 import { Loader2 } from "lucide-react"
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover"
 import { TemplateList } from "@/components/templates/TemplateList"
 import { useSelector } from "react-redux"
 import { RootState } from "@/store"
+import MDEditor from '@uiw/react-md-editor'
 
 type TicketReplyFormProps = {
   value: string
@@ -42,11 +42,11 @@ export const TicketReplyForm = ({
           </Popover>
         )}
       </div>
-      <Textarea
+      <MDEditor
         value={value}
-        onChange={(e) => onChange(e.target.value)}
-        placeholder="Type your message here..."
-        className="min-h-[100px]"
+        onChange={(value) => onChange(value || "")}
+        preview="edit"
+        height={200}
       />
       <div className="flex gap-2 mt-2">
         <Button 
