@@ -86,7 +86,7 @@ serve(async (req) => {
         'Authorization': `Bearer ${RESEND_API_KEY}`,
       },
       body: JSON.stringify({
-        from: 'AutoCRM <onboarding@resend.dev>',
+        from: 'AutoCRM <support@gauntlet.calemcnulty.com>',
         to: [email],
         subject: 'You have been invited to AutoCRM',
         html: `
