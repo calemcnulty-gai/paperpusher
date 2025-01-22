@@ -8,6 +8,7 @@ import { Button } from "@/components/ui/button"
 import { Calendar as CalendarIcon } from "lucide-react"
 import { format } from "date-fns"
 import { cn } from "@/lib/utils"
+import { DateRange } from "react-day-picker"
 
 interface DateRangePickerProps {
   dateRange: {
@@ -53,9 +54,12 @@ export function DateRangePicker({ dateRange, onDateRangeChange }: DateRangePicke
               from: dateRange?.from,
               to: dateRange?.to,
             }}
-            onSelect={(range) => {
-              if (range?.from && range?.to) {
-                onDateRangeChange(range)
+            onSelect={(selectedRange: DateRange | undefined) => {
+              if (selectedRange?.from && selectedRange?.to) {
+                onDateRangeChange({
+                  from: selectedRange.from,
+                  to: selectedRange.to
+                });
               }
             }}
             numberOfMonths={2}
