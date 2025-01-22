@@ -1,6 +1,10 @@
 import { Button } from "@/components/ui/button"
 import { Textarea } from "@/components/ui/textarea"
 import { Loader2 } from "lucide-react"
+import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover"
+import { TemplateList } from "@/components/templates/TemplateList"
+import { useSelector } from "react-redux"
+import { RootState } from "@/store"
 
 type TicketReplyFormProps = {
   value: string
@@ -9,15 +13,35 @@ type TicketReplyFormProps = {
   isSubmitting: boolean
 }
 
-export const TicketReplyForm = ({ 
-  value, 
-  onChange, 
-  onSubmit, 
-  isSubmitting
+export const TicketReplyForm = ({
+  value,
+  onChange,
+  onSubmit,
+  isSubmitting,
 }: TicketReplyFormProps) => {
+  const userRole = useSelector((state: RootState) => state.auth.user?.role)
+  const canUseTemplates = userRole === 'agent' || userRole === 'admin'
+
   return (
     <div className="mt-4">
-      <p className="text-sm font-medium mb-2">Add a message</p>
+      <div className="flex justify-between items-center mb-2">
+        <p className="text-sm font-medium">Add a message</p>
+        {canUseTemplates && (
+          <Popover>
+            <PopoverTrigger asChild>
+              <Button variant="outline" size="sm">
+                Quick Responses
+              </Button>
+            </PopoverTrigger>
+            <PopoverContent className="w-80">
+              <div className="space-y-4">
+                <h4 className="font-medium leading-none">Response Templates</h4>
+                <TemplateList onSelect={onChange} />
+              </div>
+            </PopoverContent>
+          </Popover>
+        )}
+      </div>
       <Textarea
         value={value}
         onChange={(e) => onChange(e.target.value)}
