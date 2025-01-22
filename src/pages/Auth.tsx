@@ -150,16 +150,6 @@ export default function Auth() {
               <AlertDescription>{error}</AlertDescription>
             </Alert>
           )}
-          {invitationDetails ? (
-            <div className="mb-4">
-              <input
-                type="email"
-                value={invitationDetails.email}
-                readOnly
-                className="w-full px-3 py-2 border rounded-md bg-muted text-muted-foreground cursor-not-allowed"
-              />
-            </div>
-          ) : null}
           <SupabaseAuth
             supabaseClient={supabase}
             appearance={{
@@ -172,10 +162,21 @@ export default function Auth() {
                   },
                 },
               },
+              className: {
+                container: "space-y-4",
+                button: "w-full",
+              },
             }}
             providers={invitationDetails ? [] : ["google", "github"]}
             redirectTo={window.location.origin}
             view={invitationDetails ? "sign_up" : "sign_in"}
+            defaultValues={
+              invitationDetails
+                ? {
+                    email: invitationDetails.email,
+                  }
+                : undefined
+            }
             magicLink={false}
           />
         </CardContent>
