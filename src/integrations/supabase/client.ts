@@ -19,6 +19,6 @@ export const supabase = createClient(supabaseUrl, supabaseAnonKey, {
     flowType: 'pkce',
     storage: window.localStorage,
     storageKey: 'supabase.auth.token',
-    redirect_to: getRedirectTo()  // Changed from redirectTo to redirect_to
+    redirectTo: getRedirectTo()  // Changed back to redirectTo (camelCase)
   }
 })
