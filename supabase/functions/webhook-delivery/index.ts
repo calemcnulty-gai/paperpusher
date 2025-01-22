@@ -1,6 +1,6 @@
 import { createClient } from 'https://esm.sh/@supabase/supabase-js@2.38.4'
-import { serve } from "https://deno.fresh.run/std@v9.6.1/http/server.ts"
-import { crypto } from "https://deno.fresh.run/std@v9.6.1/crypto/mod.ts"
+import { serve } from "https://deno.land/std@0.168.0/http/server.ts"
+import { crypto } from "https://deno.land/std@0.168.0/crypto/mod.ts"
 
 // Define types inline for the edge function
 type WebhookEventType = 
