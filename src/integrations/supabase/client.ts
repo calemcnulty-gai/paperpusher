@@ -12,6 +12,6 @@ export const supabase = createClient(supabaseUrl, supabaseAnonKey, {
     storage: window.localStorage,
     storageKey: 'supabase.auth.token',
     // Explicitly set the site URL to match Supabase configuration
-    site_url: 'https://gauntlet.calemcnulty.com'
+    siteUrl: 'https://gauntlet.calemcnulty.com'
   }
 })

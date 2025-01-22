@@ -8,6 +8,13 @@ import { useToast } from "@/hooks/use-toast"
 import { Alert, AlertDescription } from "@/components/ui/alert"
 import { Loader2 } from "lucide-react"
 
+type InvitationDetails = {
+  email: string
+  role: string
+  invitedBy: string
+  teamName?: string
+}
+
 const Auth = () => {
   const navigate = useNavigate()
   const location = useLocation()
@@ -15,12 +22,7 @@ const Auth = () => {
   const { toast } = useToast()
   const from = location.state?.from?.pathname || "/"
   const invitationId = searchParams.get('invitation')
-  const [invitationDetails, setInvitationDetails] = useState<{ 
-    email: string
-    role: string
-    invitedBy: string
-    teamName?: string 
-  } | null>(null)
+  const [invitationDetails, setInvitationDetails] = useState<InvitationDetails | null>(null)
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
 
@@ -36,8 +38,8 @@ const Auth = () => {
               role, 
               status, 
               expires_at,
-              teams(name),
-              profiles!invitations_invited_by_fkey(full_name)
+              teams (name),
+              profiles!invitations_invited_by_fkey (full_name)
             `)
             .eq("id", invitationId)
             .single()

@@ -29,7 +29,7 @@ export const TicketMessageList = ({ ticketId }: TicketMessageListProps) => {
           id,
           message,
           created_at,
-          sender:profiles!ticket_messages_sender_id_fkey(
+          sender:profiles!ticket_messages_sender_id_fkey (
             full_name,
             role
           )
@@ -38,7 +38,15 @@ export const TicketMessageList = ({ ticketId }: TicketMessageListProps) => {
         .order("created_at", { ascending: true })
 
       if (error) throw error
-      return data as Message[]
+      
+      // Transform the data to ensure sender is properly typed
+      return (data as any[]).map(item => ({
+        ...item,
+        sender: {
+          full_name: item.sender.full_name,
+          role: item.sender.role
+        }
+      })) as Message[]
     },
   })
 
