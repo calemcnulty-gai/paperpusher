@@ -170,13 +170,7 @@ export default function Auth() {
             providers={invitationDetails ? [] : ["google", "github"]}
             redirectTo={window.location.origin}
             view={invitationDetails ? "sign_up" : "sign_in"}
-            defaultValues={
-              invitationDetails
-                ? {
-                    email: invitationDetails.email,
-                  }
-                : undefined
-            }
+            defaultEmail={invitationDetails?.email}
             magicLink={false}
           />
         </CardContent>
