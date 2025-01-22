@@ -370,6 +370,42 @@ export type Database = {
             }
             Returns: unknown
           }
+      get_agent_performance: {
+        Args: {
+          start_date: string
+          end_date: string
+        }
+        Returns: {
+          agent_id: string
+          agent_name: string
+          tickets_handled: number
+          avg_response_time: unknown
+          resolution_rate: number
+        }[]
+      }
+      get_daily_ticket_stats: {
+        Args: {
+          start_date: string
+          end_date: string
+        }
+        Returns: {
+          date: string
+          open_tickets: number
+          resolved_tickets: number
+          avg_response_time: unknown
+        }[]
+      }
+      get_priority_distribution: {
+        Args: {
+          start_date: string
+          end_date: string
+        }
+        Returns: {
+          priority: Database["public"]["Enums"]["ticket_priority"]
+          count: number
+          percentage: number
+        }[]
+      }
       halfvec_avg: {
         Args: {
           "": number[]
