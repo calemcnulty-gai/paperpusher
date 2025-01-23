@@ -119,7 +119,7 @@ const Index = () => {
     }
   })
 
-  // New query for priority tickets
+  // Query for open tickets sorted by priority
   const { data: priorityTickets } = useQuery({
     queryKey: ['priority-tickets'],
     queryFn: async () => {
@@ -201,10 +201,10 @@ const Index = () => {
           ))}
         </div>
 
-        {/* Priority Tickets Section */}
+        {/* Open Tickets Section */}
         <div className="space-y-4">
           <div className="flex justify-between items-center">
-            <h2 className="text-2xl font-semibold">Priority Tickets</h2>
+            <h2 className="text-2xl font-semibold">Open Tickets</h2>
             <Button variant="outline" onClick={() => navigate('/tickets')}>
               View All Tickets
             </Button>
@@ -217,7 +217,7 @@ const Index = () => {
                   <div
                     key={ticket.id}
                     className="p-4 hover:bg-muted/50 cursor-pointer"
-                    onClick={() => navigate(`/tickets?id=${ticket.id}`)}
+                    onClick={() => navigate(`/tickets?ticketId=${ticket.id}`)}
                   >
                     <div className="flex items-center justify-between mb-2">
                       <h3 className="font-medium">{ticket.subject}</h3>
@@ -231,7 +231,7 @@ const Index = () => {
                 ))}
                 {priorityTickets?.length === 0 && (
                   <div className="p-4 text-center text-muted-foreground">
-                    No priority tickets at the moment
+                    No open tickets at the moment
                   </div>
                 )}
               </div>

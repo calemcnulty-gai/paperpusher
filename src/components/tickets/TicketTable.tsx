@@ -13,15 +13,23 @@ import { TicketTableHeader } from "./TicketTableHeader"
 import { TicketRow } from "./TicketRow"
 import { TicketFilters } from "./TicketFilters"
 import { Profile } from "@/types/profiles"
+import { useNavigate } from "react-router-dom"
 
 type TicketTableProps = {
   tickets: Ticket[] | null
   isLoading: boolean
   canEdit: boolean
+  selectedTicket?: Ticket | null
+  onTicketSelect?: (ticketId: string | null) => void
 }
 
-export function TicketTable({ tickets, isLoading, canEdit }: TicketTableProps) {
-  const [selectedTicket, setSelectedTicket] = useState<Ticket | null>(null)
+export function TicketTable({ 
+  tickets, 
+  isLoading, 
+  canEdit,
+  selectedTicket,
+  onTicketSelect 
+}: TicketTableProps) {
   const [statusFilter, setStatusFilter] = useState<TicketStatus | "all">("all")
   const [priorityFilter, setPriorityFilter] = useState<TicketPriority | "all">("all")
   const { toast } = useToast()
@@ -29,7 +37,8 @@ export function TicketTable({ tickets, isLoading, canEdit }: TicketTableProps) {
   const dispatch = useDispatch<AppDispatch>()
   const profiles = useSelector((state: RootState) => state.profiles.profiles)
   const agents = profiles.filter(profile => profile.role === 'agent' || profile.role === 'admin') as Profile[]
-  
+  const navigate = useNavigate()
+
   const handleStatusChange = async (ticketId: string, newStatus: TicketStatus) => {
     try {
       const { error } = await supabase
@@ -107,6 +116,14 @@ export function TicketTable({ tickets, isLoading, canEdit }: TicketTableProps) {
     }
   }
 
+  const handleTicketClick = (ticketId: string) => {
+    if (onTicketSelect) {
+      onTicketSelect(ticketId)
+    }
+    // Update URL with ticketId
+    navigate(`/tickets?ticketId=${ticketId}`, { replace: true })
+  }
+
   const filteredTickets = tickets?.filter(ticket => {
     if (statusFilter !== "all" && ticket.status !== statusFilter) return false
     if (priorityFilter !== "all" && ticket.priority !== priorityFilter) return false
@@ -135,7 +152,7 @@ export function TicketTable({ tickets, isLoading, canEdit }: TicketTableProps) {
                 onStatusChange={handleStatusChange}
                 onPriorityChange={handlePriorityChange}
                 onAssigneeChange={handleAssigneeChange}
-                onClick={() => setSelectedTicket(ticket)}
+                onClick={() => handleTicketClick(ticket.id)}
               />
             ))}
           </TableBody>
@@ -145,7 +162,13 @@ export function TicketTable({ tickets, isLoading, canEdit }: TicketTableProps) {
       <TicketDetailsModal
         ticket={selectedTicket}
         open={!!selectedTicket}
-        onOpenChange={() => setSelectedTicket(null)}
+        onOpenChange={(open) => {
+          if (!open && onTicketSelect) {
+            onTicketSelect(null)
+            // Update URL to remove ticketId
+            navigate('/tickets', { replace: true })
+          }
+        }}
         canReply={canEdit}
       />
     </div>
