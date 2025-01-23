@@ -20,7 +20,7 @@ export const TicketMessage = ({ sender, message, created_at, className = "" }: T
           {format(new Date(created_at), "MMM d, yyyy HH:mm")}
         </p>
       </div>
-      <div className="mt-1">
+      <div className="mt-1 bg-[#F1F0FB] rounded-md p-3">
         <MDEditor.Markdown source={message} />
       </div>
     </div>
