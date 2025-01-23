@@ -606,6 +606,30 @@ export type Database = {
           avg_response_time: unknown
         }[]
       }
+      get_dashboard_priority_tickets: {
+        Args: {
+          p_user_id: string
+          p_limit?: number
+        }
+        Returns: {
+          id: string
+          subject: string
+          priority: Database["public"]["Enums"]["ticket_priority"]
+          status: Database["public"]["Enums"]["ticket_status"]
+          created_at: string
+          customer_name: string
+          assignee_name: string
+        }[]
+      }
+      get_ordered_tickets: {
+        Args: {
+          p_user_id: string
+        }
+        Returns: {
+          priority_order: number
+          ticket_data: Json
+        }[]
+      }
       get_priority_distribution: {
         Args: {
           start_date: string

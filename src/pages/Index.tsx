@@ -3,9 +3,16 @@ import { MainLayout } from "@/components/layout/MainLayout"
 import { BarChart3, Inbox, Clock, CheckCircle } from "lucide-react"
 import { useQuery } from "@tanstack/react-query"
 import { supabase } from "@/integrations/supabase/client"
-import { useEffect } from "react"
+import { useAuth } from "@/hooks/useAuth"
+import { Button } from "@/components/ui/button"
+import { TicketPriorityBadge } from "@/components/tickets/TicketPriorityBadge"
+import { format } from "date-fns"
+import { useNavigate } from "react-router-dom"
 
 const Index = () => {
+  const { user } = useAuth()
+  const navigate = useNavigate()
+
   const { data: stats, isLoading } = useQuery({
     queryKey: ['dashboard-stats'],
     queryFn: async () => {
@@ -66,7 +73,7 @@ const Index = () => {
         ? Math.round((resolvedTickets?.length / totalTickets30Days.length) * 100)
         : 0
 
-      // Calculate average response time (using first message after ticket creation)
+      // Calculate average response time
       const { data: ticketsWithMessages, error: ticketsWithMessagesError } = await supabase
         .from('tickets')
         .select(`
@@ -88,7 +95,6 @@ const Index = () => {
       
       ticketsWithMessages?.forEach(ticket => {
         if (ticket.ticket_messages && ticket.ticket_messages.length > 0) {
-          // Sort messages by created_at to ensure we get the first response
           const sortedMessages = [...ticket.ticket_messages].sort(
             (a, b) => new Date(a.created_at).getTime() - new Date(b.created_at).getTime()
           )
@@ -104,19 +110,31 @@ const Index = () => {
         ? (totalResponseTime / ticketsWithResponses).toFixed(1)
         : 0
 
-      console.log('Dashboard stats:', {
-        openTickets,
-        monthlyTickets,
-        resolutionRate,
-        avgResponseTime
-      })
-
       return {
         openTickets: openTickets || 0,
         avgResponseTime: `${avgResponseTime}h`,
         resolutionRate: `${resolutionRate}%`,
         monthlyTickets: monthlyTickets || 0
       }
+    }
+  })
+
+  // New query for priority tickets
+  const { data: priorityTickets } = useQuery({
+    queryKey: ['priority-tickets'],
+    queryFn: async () => {
+      console.log('Fetching priority tickets...')
+      const { data, error } = await supabase.rpc('get_dashboard_priority_tickets', {
+        p_user_id: user?.id,
+        p_limit: 5
+      })
+
+      if (error) {
+        console.error('Error fetching priority tickets:', error)
+        throw error
+      }
+
+      return data
     }
   })
 
@@ -181,6 +199,44 @@ const Index = () => {
               </CardContent>
             </Card>
           ))}
+        </div>
+
+        {/* Priority Tickets Section */}
+        <div className="space-y-4">
+          <div className="flex justify-between items-center">
+            <h2 className="text-2xl font-semibold">Priority Tickets</h2>
+            <Button variant="outline" onClick={() => navigate('/tickets')}>
+              View All Tickets
+            </Button>
+          </div>
+          
+          <Card>
+            <CardContent className="p-0">
+              <div className="divide-y">
+                {priorityTickets?.map((ticket) => (
+                  <div
+                    key={ticket.id}
+                    className="p-4 hover:bg-muted/50 cursor-pointer"
+                    onClick={() => navigate(`/tickets?id=${ticket.id}`)}
+                  >
+                    <div className="flex items-center justify-between mb-2">
+                      <h3 className="font-medium">{ticket.subject}</h3>
+                      <TicketPriorityBadge priority={ticket.priority} />
+                    </div>
+                    <div className="flex justify-between text-sm text-muted-foreground">
+                      <span>{ticket.customer_name}</span>
+                      <span>{format(new Date(ticket.created_at), "MMM d, yyyy")}</span>
+                    </div>
+                  </div>
+                ))}
+                {priorityTickets?.length === 0 && (
+                  <div className="p-4 text-center text-muted-foreground">
+                    No priority tickets at the moment
+                  </div>
+                )}
+              </div>
+            </CardContent>
+          </Card>
         </div>
       </div>
     </MainLayout>
