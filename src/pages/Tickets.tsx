@@ -4,8 +4,22 @@ import { supabase } from "@/integrations/supabase/client"
 import { Loader2 } from "lucide-react"
 import { CreateTicketModal } from "@/components/tickets/CreateTicketModal"
 import { TicketTable } from "@/components/tickets/TicketTable"
+import { useSearchParams } from "react-router-dom"
+import { useState, useEffect } from "react"
+import { Ticket } from "@/types/tickets"
 
 const Tickets = () => {
+  const [searchParams] = useSearchParams()
+  const [selectedTicketId, setSelectedTicketId] = useState<string | null>(null)
+
+  // Get ticketId from URL params on mount
+  useEffect(() => {
+    const ticketId = searchParams.get('ticketId')
+    if (ticketId) {
+      setSelectedTicketId(ticketId)
+    }
+  }, [searchParams])
+
   const { data: tickets, isLoading } = useQuery({
     queryKey: ["tickets"],
     queryFn: async () => {
@@ -33,6 +47,9 @@ const Tickets = () => {
   const isAdmin = tickets?.[0]?.customer?.role === 'admin'
   const canEdit = isAgent || isAdmin
 
+  // Find the selected ticket from the tickets array
+  const selectedTicket = tickets?.find(ticket => ticket.id === selectedTicketId) || null
+
   return (
     <MainLayout>
       <div className="space-y-4">
@@ -50,6 +67,8 @@ const Tickets = () => {
             tickets={tickets} 
             isLoading={isLoading}
             canEdit={canEdit}
+            selectedTicket={selectedTicket}
+            onTicketSelect={setSelectedTicketId}
           />
         )}
       </div>

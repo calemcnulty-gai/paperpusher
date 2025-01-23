@@ -217,7 +217,7 @@ const Index = () => {
                   <div
                     key={ticket.id}
                     className="p-4 hover:bg-muted/50 cursor-pointer"
-                    onClick={() => navigate(`/tickets?id=${ticket.id}`)}
+                    onClick={() => navigate(`/tickets?ticketId=${ticket.id}`)}
                   >
                     <div className="flex items-center justify-between mb-2">
                       <h3 className="font-medium">{ticket.subject}</h3>
