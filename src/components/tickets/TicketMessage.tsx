@@ -1,27 +1,33 @@
 import { format } from "date-fns"
-import MDEditor from '@uiw/react-md-editor'
+import MDEditor from "@uiw/react-md-editor"
 
 type TicketMessageProps = {
+  message: string
   sender: {
     full_name: string
     role: string
   }
-  message: string
   created_at: string
-  className?: string
 }
 
-export const TicketMessage = ({ sender, message, created_at, className = "" }: TicketMessageProps) => {
+export const TicketMessage = ({ message, sender, created_at }: TicketMessageProps) => {
   return (
-    <div className={`${className}`}>
-      <div className="flex justify-between items-start">
-        <p className="text-sm font-medium">{sender.full_name}</p>
-        <p className="text-xs text-muted-foreground">
+    <div>
+      <div className="flex justify-between items-center text-sm text-muted-foreground">
+        <p className="font-medium text-foreground">
+          {sender.full_name}
+          <span className="ml-2 text-xs text-muted-foreground">({sender.role})</span>
+        </p>
+        <p>
           {format(new Date(created_at), "MMM d, yyyy HH:mm")}
         </p>
       </div>
-      <div className="mt-1 bg-[#F1F0FB] rounded-md p-3">
-        <MDEditor.Markdown source={message} />
+      <div className="mt-1 bg-background rounded-md p-3 border">
+        <MDEditor.Markdown 
+          source={message} 
+          className="!bg-background !text-foreground" 
+          style={{ backgroundColor: 'transparent' }}
+        />
       </div>
     </div>
   )
