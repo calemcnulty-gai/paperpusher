@@ -42,12 +42,22 @@ export const TicketReplyForm = ({
           </Popover>
         )}
       </div>
-      <MDEditor
-        value={value}
-        onChange={(value) => onChange(value || "")}
-        preview="edit"
-        height={200}
-      />
+      <div data-color-mode="light">
+        <MDEditor
+          value={value}
+          onChange={(value) => onChange(value || "")}
+          preview="edit"
+          height={200}
+          className="!bg-background border rounded-md"
+          textareaProps={{
+            placeholder: "Type your message here...",
+            style: { 
+              backgroundColor: 'var(--background)',
+              color: 'var(--foreground)'
+            }
+          }}
+        />
+      </div>
       <div className="flex gap-2 mt-2">
         <Button 
           onClick={() => onSubmit()} 
