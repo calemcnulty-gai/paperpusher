@@ -84,7 +84,7 @@
 
 ## Legend
 - [x] Completed
-- [ ] 🕐 In Progress
+- [🕐] In Progress
 - [ ] Not Started
 
 ## Next Steps (Week 2)
