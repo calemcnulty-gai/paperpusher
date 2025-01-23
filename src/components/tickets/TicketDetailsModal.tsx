@@ -7,6 +7,9 @@ import { TicketMetadata } from "./TicketMetadata"
 import { Ticket } from "@/types/tickets"
 import { useTicketOperations } from "@/hooks/useTicketOperations"
 import { useState, useEffect } from "react"
+import { Collapsible, CollapsibleContent, CollapsibleTrigger } from "@/components/ui/collapsible"
+import { ChevronDown } from "lucide-react"
+import { cn } from "@/lib/utils"
 
 interface TicketDetailsModalProps {
   ticket: Ticket | null
@@ -17,6 +20,7 @@ interface TicketDetailsModalProps {
 
 export function TicketDetailsModal({ ticket, open, onOpenChange, canReply }: TicketDetailsModalProps) {
   const [reply, setReply] = useState("")
+  const [isMessagesOpen, setIsMessagesOpen] = useState(false)
   
   useEffect(() => {
     console.log("TicketDetailsModal - Props changed", { ticket, open })
@@ -95,28 +99,54 @@ export function TicketDetailsModal({ ticket, open, onOpenChange, canReply }: Tic
         </DialogHeader>
 
         <div className="flex flex-col flex-1 space-y-4 overflow-hidden">
-          <TicketMetadata
-            ticket={ticket}
-            projects={projects}
-            onStatusChange={updateStatus}
-            onPriorityChange={updatePriority}
-            onProjectChange={updateProject}
-          />
+          <Collapsible
+            open={!isMessagesOpen}
+            onOpenChange={(open) => setIsMessagesOpen(!open)}
+          >
+            <CollapsibleContent className="space-y-4">
+              <TicketMetadata
+                ticket={ticket}
+                projects={projects}
+                onStatusChange={updateStatus}
+                onPriorityChange={updatePriority}
+                onProjectChange={updateProject}
+              />
+            </CollapsibleContent>
+          </Collapsible>
 
-          <div className="flex-1 overflow-y-auto">
-            <TicketMessageList
-              ticketId={ticket.id}
-            />
-          </div>
+          <Collapsible
+            open={isMessagesOpen}
+            onOpenChange={setIsMessagesOpen}
+          >
+            <CollapsibleTrigger className="w-full">
+              <div className="flex items-center justify-between p-2 bg-muted rounded-lg hover:bg-muted/80 transition-colors">
+                <span className="text-sm font-medium">
+                  {isMessagesOpen ? "Hide Messages" : "Show Messages"}
+                </span>
+                <ChevronDown className={cn(
+                  "h-4 w-4 transition-transform duration-200",
+                  isMessagesOpen ? "transform rotate-180" : ""
+                )} />
+              </div>
+            </CollapsibleTrigger>
 
-          {canReply && (
-            <TicketReplyForm
-              value={reply}
-              onChange={setReply}
-              onSubmit={handleSubmitReply}
-              isSubmitting={isSubmitting}
-            />
-          )}
+            <CollapsibleContent className="space-y-4">
+              <div className="flex-1 overflow-y-auto">
+                <TicketMessageList
+                  ticketId={ticket.id}
+                />
+              </div>
+
+              {canReply && (
+                <TicketReplyForm
+                  value={reply}
+                  onChange={setReply}
+                  onSubmit={handleSubmitReply}
+                  isSubmitting={isSubmitting}
+                />
+              )}
+            </CollapsibleContent>
+          </Collapsible>
         </div>
       </DialogContent>
     </Dialog>
