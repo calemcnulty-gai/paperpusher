@@ -1,5 +1,11 @@
+// @ts-ignore: Deno types not available in Node.js project
+/// <reference lib="deno.ns" />
+
+// @ts-ignore: Deno URL import
 import { createClient } from 'https://esm.sh/@supabase/supabase-js@2.38.4'
+// @ts-ignore: Deno URL import
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts"
+// @ts-ignore: Deno URL import
 import { crypto } from "https://deno.land/std@0.168.0/crypto/mod.ts"
 
 // Define types inline for the edge function
@@ -42,7 +48,9 @@ serve(async (req) => {
 
   try {
     const supabaseClient = createClient(
+      // @ts-ignore: Deno.env only available at runtime
       Deno.env.get('SUPABASE_URL') ?? '',
+      // @ts-ignore: Deno.env only available at runtime
       Deno.env.get('SUPABASE_SERVICE_ROLE_KEY') ?? ''
     )
 
