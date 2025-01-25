@@ -1,4 +1,4 @@
-import { useState, useRef, useCallback } from "react"
+import { useState, useRef } from "react"
 import { useForm } from "react-hook-form"
 import { Button } from "@/components/ui/button"
 import {
@@ -22,23 +22,8 @@ import { useToast } from "@/components/ui/use-toast"
 import { supabase } from "@/integrations/supabase/client"
 import { DialogClose } from "@/components/ui/dialog"
 import { useAuth } from "@/hooks/useAuth"
-import {
-  Command,
-  CommandEmpty,
-  CommandGroup,
-  CommandInput,
-  CommandItem,
-  CommandList,
-} from "@/components/ui/command"
-import {
-  Popover,
-  PopoverContent,
-  PopoverTrigger,
-} from "@/components/ui/popover"
-import { Profile } from "@/types/profiles"
-import { useDispatch, useSelector } from "react-redux"
-import { RootState } from "@/store"
-import { fetchProfiles } from "@/store/profilesSlice"
+import { UserMentionsPopover } from "./UserMentionsPopover"
+import { useMentions } from "@/hooks/useMentions"
 
 type FormData = {
   title: string
@@ -49,22 +34,11 @@ type FormData = {
 
 export function CreateTaskForm({ onSuccess }: { onSuccess: () => void }) {
   const [isSubmitting, setIsSubmitting] = useState(false)
-  const [showUserMentions, setShowUserMentions] = useState(false)
-  const [mentionAnchorPoint, setMentionAnchorPoint] = useState({ x: 0, y: 0 })
-  const [mentionSearch, setMentionSearch] = useState("")
   const [currentField, setCurrentField] = useState<"title" | "description" | null>(null)
   const { toast } = useToast()
   const { user } = useAuth()
   const titleRef = useRef<HTMLInputElement>(null)
   const descriptionRef = useRef<HTMLTextAreaElement>(null)
-  const dispatch = useDispatch()
-  
-  // Get profiles from Redux store
-  const { profiles, loading } = useSelector((state: RootState) => state.profiles)
-  
-  const filteredUsers = profiles.filter(profile => 
-    profile.full_name?.toLowerCase().includes(mentionSearch.toLowerCase())
-  )
 
   const form = useForm<FormData>({
     defaultValues: {
@@ -75,44 +49,11 @@ export function CreateTaskForm({ onSuccess }: { onSuccess: () => void }) {
     }
   })
 
-  const handleKeyUp = (e: React.KeyboardEvent<HTMLInputElement | HTMLTextAreaElement>, field: "title" | "description") => {
-    const target = e.target as HTMLInputElement | HTMLTextAreaElement
-    const value = target.value
-    const cursorPosition = target.selectionStart || 0
-    
-    // Find the word being typed
-    const textBeforeCursor = value.slice(0, cursorPosition)
-    const words = textBeforeCursor.split(/\s/)
-    const currentWord = words[words.length - 1]
+  const handleMentionInsert = (text: string) => {
+    if (!currentField) return
 
-    if (currentWord.startsWith("@")) {
-      const searchTerm = currentWord.slice(1)
-      setMentionSearch(searchTerm)
-      setCurrentField(field)
-      
-      // Get position for popover
-      const rect = target.getBoundingClientRect()
-      const caretCoords = getCaretCoordinates(target, cursorPosition)
-      
-      setMentionAnchorPoint({
-        x: rect.left + caretCoords.left,
-        y: rect.top + caretCoords.top + 20
-      })
-      
-      setShowUserMentions(true)
-      // Fetch profiles if not already loaded
-      dispatch(fetchProfiles() as any)
-    } else {
-      setShowUserMentions(false)
-    }
-  }
-
-  const handleMentionSelect = (selectedUser: Profile) => {
-    const field = currentField
-    if (!field) return
-
-    const formValue = form.getValues(field)
-    const target = field === "title" ? titleRef.current : descriptionRef.current
+    const formValue = form.getValues(currentField)
+    const target = currentField === "title" ? titleRef.current : descriptionRef.current
     if (!target) return
 
     const cursorPosition = target.selectionStart || 0
@@ -125,17 +66,23 @@ export function CreateTaskForm({ onSuccess }: { onSuccess: () => void }) {
 
     const newText = 
       textBeforeCursor.slice(0, lastAtIndex) + 
-      `@${selectedUser.full_name} ` + 
+      text + 
       textAfterCursor
 
-    form.setValue(field, newText)
-    setShowUserMentions(false)
+    form.setValue(currentField, newText)
   }
 
-  const handleCommandInputChange = (value: string) => {
-    console.log("Command input changed:", value)
-    setMentionSearch(value)
-  }
+  const {
+    showMentions,
+    setShowMentions,
+    anchorPoint,
+    searchTerm,
+    setSearchTerm,
+    handleKeyUp,
+    handleMentionSelect,
+  } = useMentions({
+    onMentionSelect: handleMentionInsert,
+  })
 
   const onSubmit = async (data: FormData) => {
     if (!user) return
@@ -183,7 +130,10 @@ export function CreateTaskForm({ onSuccess }: { onSuccess: () => void }) {
                 <Input 
                   {...field} 
                   ref={titleRef}
-                  onKeyUp={(e) => handleKeyUp(e, "title")}
+                  onKeyUp={(e) => {
+                    setCurrentField("title")
+                    handleKeyUp(e, e.currentTarget)
+                  }}
                 />
               </FormControl>
               <FormMessage />
@@ -201,7 +151,10 @@ export function CreateTaskForm({ onSuccess }: { onSuccess: () => void }) {
                 <Textarea 
                   {...field} 
                   ref={descriptionRef}
-                  onKeyUp={(e) => handleKeyUp(e, "description")}
+                  onKeyUp={(e) => {
+                    setCurrentField("description")
+                    handleKeyUp(e, e.currentTarget)
+                  }}
                 />
               </FormControl>
               <FormMessage />
@@ -244,48 +197,15 @@ export function CreateTaskForm({ onSuccess }: { onSuccess: () => void }) {
           </Button>
         </div>
 
-        {showUserMentions && (
-          <Popover open={showUserMentions} onOpenChange={setShowUserMentions}>
-            <PopoverContent 
-              className="p-0" 
-              style={{
-                position: 'fixed',
-                left: `${mentionAnchorPoint.x}px`,
-                top: `${mentionAnchorPoint.y}px`,
-                width: '250px'
-              }}
-            >
-              <Command>
-                <CommandInput 
-                  placeholder="Search users..." 
-                  value={mentionSearch}
-                  onValueChange={handleCommandInputChange}
-                />
-                <CommandList>
-                  <CommandEmpty>No users found.</CommandEmpty>
-                  <CommandGroup>
-                    {filteredUsers.map((user) => (
-                      <CommandItem
-                        key={user.id}
-                        onSelect={() => handleMentionSelect(user)}
-                        className="cursor-pointer"
-                      >
-                        {user.full_name}
-                      </CommandItem>
-                    ))}
-                  </CommandGroup>
-                </CommandList>
-              </Command>
-            </PopoverContent>
-          </Popover>
-        )}
+        <UserMentionsPopover
+          open={showMentions}
+          onOpenChange={setShowMentions}
+          anchorPoint={anchorPoint}
+          searchTerm={searchTerm}
+          onSearchChange={setSearchTerm}
+          onUserSelect={handleMentionSelect}
+        />
       </form>
     </Form>
   )
-}
-
-// Helper function to get caret coordinates
-function getCaretCoordinates(element: HTMLElement, position: number) {
-  const { offsetLeft: left, offsetTop: top } = element
-  return { left, top }
 }
