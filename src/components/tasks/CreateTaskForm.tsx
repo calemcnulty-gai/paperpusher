@@ -28,6 +28,7 @@ import {
   CommandGroup,
   CommandInput,
   CommandItem,
+  CommandList,
 } from "@/components/ui/command"
 import {
   Popover,
@@ -138,6 +139,7 @@ export function CreateTaskForm({ onSuccess }: { onSuccess: () => void }) {
   }
 
   const handleCommandInputChange = (value: string) => {
+    console.log("Command input changed:", value)
     setMentionSearch(value)
     if (value.trim()) {
       fetchUsers(value)
@@ -268,18 +270,20 @@ export function CreateTaskForm({ onSuccess }: { onSuccess: () => void }) {
                   value={mentionSearch}
                   onValueChange={handleCommandInputChange}
                 />
-                <CommandEmpty>No users found.</CommandEmpty>
-                <CommandGroup>
-                  {users.map((user) => (
-                    <CommandItem
-                      key={user.id}
-                      onSelect={() => handleMentionSelect(user)}
-                      className="cursor-pointer"
-                    >
-                      {user.full_name}
-                    </CommandItem>
-                  ))}
-                </CommandGroup>
+                <CommandList>
+                  <CommandEmpty>No users found.</CommandEmpty>
+                  <CommandGroup>
+                    {users.map((user) => (
+                      <CommandItem
+                        key={user.id}
+                        onSelect={() => handleMentionSelect(user)}
+                        className="cursor-pointer"
+                      >
+                        {user.full_name}
+                      </CommandItem>
+                    ))}
+                  </CommandGroup>
+                </CommandList>
               </Command>
             </PopoverContent>
           </Popover>
