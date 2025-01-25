@@ -101,6 +101,7 @@ export type Database = {
       tasks: {
         Row: {
           assignee_id: string | null
+          collaborator_id: string | null
           created_at: string
           creator_id: string
           description: string | null
@@ -113,6 +114,7 @@ export type Database = {
         }
         Insert: {
           assignee_id?: string | null
+          collaborator_id?: string | null
           created_at?: string
           creator_id: string
           description?: string | null
@@ -125,6 +127,7 @@ export type Database = {
         }
         Update: {
           assignee_id?: string | null
+          collaborator_id?: string | null
           created_at?: string
           creator_id?: string
           description?: string | null
@@ -139,6 +142,13 @@ export type Database = {
           {
             foreignKeyName: "tasks_assignee_id_fkey"
             columns: ["assignee_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "tasks_collaborator_id_fkey"
+            columns: ["collaborator_id"]
             isOneToOne: false
             referencedRelation: "profiles"
             referencedColumns: ["id"]
