@@ -47,52 +47,57 @@ export default function AuthPage() {
     
     testConnection()
 
-    // Add click event listener to Google button after a short delay
-    const addGoogleButtonListener = () => {
-      const googleButton = document.querySelector('button[data-provider="google"]')
-      if (googleButton) {
-        console.log("Found Google sign-in button, adding click listener")
-        googleButton.addEventListener('click', async (e) => {
-          console.log("Google sign-in button clicked")
-          try {
-            const { data, error } = await supabase.auth.signInWithOAuth({
-              provider: 'google',
-              options: {
-                redirectTo: `${window.location.origin}`
-              }
-            })
-            console.log("SignInWithOAuth response:", { data, error })
-            if (error) {
-              console.error("OAuth error:", error)
-              toast({
-                variant: "destructive",
-                title: "Sign in failed",
-                description: error.message
-              })
-            }
-          } catch (err) {
-            console.error("Error during OAuth flow:", err)
+    // Function to handle Google sign in
+    const handleGoogleSignIn = async (e: MouseEvent) => {
+      console.log("Google sign-in button clicked")
+      try {
+        const { data, error } = await supabase.auth.signInWithOAuth({
+          provider: 'google',
+          options: {
+            redirectTo: `${window.location.origin}`
           }
         })
-      } else {
-        console.log("Google sign-in button not found yet")
-        setTimeout(addGoogleButtonListener, 1000) // Retry after 1 second
+        console.log("SignInWithOAuth response:", { data, error })
+        if (error) {
+          console.error("OAuth error:", error)
+          toast({
+            variant: "destructive",
+            title: "Sign in failed",
+            description: error.message
+          })
+        }
+      } catch (err) {
+        console.error("Error during OAuth flow:", err)
       }
     }
 
-    // Start looking for the Google button
-    setTimeout(addGoogleButtonListener, 1000)
+    // Add click event listener to Google button with mutation observer
+    const observer = new MutationObserver((mutations, obs) => {
+      const googleButton = document.querySelector('button[data-provider="google"]')
+      if (googleButton) {
+        console.log("Found Google sign-in button, adding click listener")
+        googleButton.addEventListener('click', handleGoogleSignIn)
+        obs.disconnect() // Stop observing once we find the button
+        return
+      }
+    })
+
+    // Start observing the document with the configured parameters
+    observer.observe(document, {
+      childList: true,
+      subtree: true
+    })
 
     return () => {
       console.log("Auth component unmounting, cleaning up subscription")
       subscription.unsubscribe()
+      observer.disconnect()
       
       // Clean up click listener
       const googleButton = document.querySelector('button[data-provider="google"]')
       if (googleButton) {
-        googleButton.removeEventListener('click', () => {
-          console.log("Removed Google button click listener")
-        })
+        googleButton.removeEventListener('click', handleGoogleSignIn)
+        console.log("Removed Google button click listener")
       }
     }
   }, [toast])
