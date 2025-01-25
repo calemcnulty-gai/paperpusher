@@ -57,6 +57,7 @@ export function UserMentionsPopover({
         fullName: selectedUser.full_name
       })
       onUserSelect(selectedUser)
+      onOpenChange(false) // Close the popover after selection
     }
   }
 
@@ -70,6 +71,13 @@ export function UserMentionsPopover({
           top: `${anchorPoint.y}px`,
         }}
         align="start"
+        onPointerDownOutside={(e) => {
+          console.log("UserMentionsPopover - Pointer down outside", e)
+        }}
+        onInteractOutside={(e) => {
+          console.log("UserMentionsPopover - Interact outside", e)
+          e.preventDefault() // Prevent the popover from closing on interaction
+        }}
       >
         <Command>
           <CommandInput 
@@ -88,9 +96,16 @@ export function UserMentionsPopover({
                   key={user.id}
                   value={user.full_name || ""}
                   onSelect={handleSelect}
-                  className="cursor-pointer select-none"
+                  className="cursor-pointer"
+                  onPointerDown={(e) => {
+                    console.log("UserMentionsPopover - CommandItem pointer down", {
+                      userId: user.id,
+                      fullName: user.full_name
+                    })
+                    e.preventDefault() // Prevent the input from losing focus
+                  }}
                 >
-                  <div className="flex items-center gap-2 w-full text-sm pointer-events-none">
+                  <div className="flex items-center gap-2 w-full">
                     <span className="font-medium">{user.full_name}</span>
                     <span className="text-muted-foreground">@{user.email.split('@')[0]}</span>
                   </div>
