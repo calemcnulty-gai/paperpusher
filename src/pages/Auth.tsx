@@ -47,9 +47,53 @@ export default function AuthPage() {
     
     testConnection()
 
+    // Add click event listener to Google button after a short delay
+    const addGoogleButtonListener = () => {
+      const googleButton = document.querySelector('button[data-provider="google"]')
+      if (googleButton) {
+        console.log("Found Google sign-in button, adding click listener")
+        googleButton.addEventListener('click', async (e) => {
+          console.log("Google sign-in button clicked")
+          try {
+            const { data, error } = await supabase.auth.signInWithOAuth({
+              provider: 'google',
+              options: {
+                redirectTo: `${window.location.origin}`
+              }
+            })
+            console.log("SignInWithOAuth response:", { data, error })
+            if (error) {
+              console.error("OAuth error:", error)
+              toast({
+                variant: "destructive",
+                title: "Sign in failed",
+                description: error.message
+              })
+            }
+          } catch (err) {
+            console.error("Error during OAuth flow:", err)
+          }
+        })
+      } else {
+        console.log("Google sign-in button not found yet")
+        setTimeout(addGoogleButtonListener, 1000) // Retry after 1 second
+      }
+    }
+
+    // Start looking for the Google button
+    setTimeout(addGoogleButtonListener, 1000)
+
     return () => {
       console.log("Auth component unmounting, cleaning up subscription")
       subscription.unsubscribe()
+      
+      // Clean up click listener
+      const googleButton = document.querySelector('button[data-provider="google"]')
+      if (googleButton) {
+        googleButton.removeEventListener('click', () => {
+          console.log("Removed Google button click listener")
+        })
+      }
     }
   }, [toast])
 
@@ -77,7 +121,7 @@ export default function AuthPage() {
               },
             }}
             providers={["google"]}
-            redirectTo={`${window.location.protocol}//${window.location.host}`}
+            redirectTo={`${window.location.origin}`}
             onlyThirdPartyProviders={true}
           />
         </CardContent>
