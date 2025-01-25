@@ -45,6 +45,21 @@ export function UserMentionsPopover({
   )
   console.log("UserMentionsPopover - Filtered users", filteredUsers)
 
+  const handleSelect = (value: string) => {
+    console.log("UserMentionsPopover - CommandItem onSelect triggered", { value })
+    
+    const selectedUser = filteredUsers.find(user => user.full_name === value)
+    console.log("UserMentionsPopover - Found selected user", selectedUser)
+    
+    if (selectedUser) {
+      console.log("UserMentionsPopover - Calling onUserSelect with user", {
+        userId: selectedUser.id,
+        fullName: selectedUser.full_name
+      })
+      onUserSelect(selectedUser)
+    }
+  }
+
   return (
     <Popover open={open} onOpenChange={onOpenChange}>
       <PopoverContent 
@@ -71,14 +86,9 @@ export function UserMentionsPopover({
               {filteredUsers.map((user) => (
                 <CommandItem
                   key={user.id}
+                  value={user.full_name || ""}
                   className="cursor-pointer hover:bg-accent"
-                  onSelect={() => {
-                    console.log("UserMentionsPopover - User selected via CommandItem", {
-                      userId: user.id,
-                      fullName: user.full_name
-                    })
-                    onUserSelect(user)
-                  }}
+                  onSelect={handleSelect}
                 >
                   <div className="flex items-center gap-2 w-full text-sm">
                     <span className="font-medium">{user.full_name}</span>
