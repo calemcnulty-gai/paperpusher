@@ -11,7 +11,7 @@ import { supabase } from "@/integrations/supabase/client"
 export default function Users() {
   const [inviteDialogOpen, setInviteDialogOpen] = useState(false)
   const [searchParams] = useSearchParams()
-  const role = searchParams.get("role") || "client"
+  const role = (searchParams.get("role") || "client") as "client" | "supplier" | "principal"
 
   const { data: users, isLoading } = useQuery({
     queryKey: ["users", role],
@@ -50,7 +50,6 @@ export default function Users() {
       <InviteUserDialog
         open={inviteDialogOpen}
         onOpenChange={setInviteDialogOpen}
-        defaultRole={role}
       />
     </div>
   )

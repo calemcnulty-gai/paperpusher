@@ -28,11 +28,12 @@ import { Input } from "@/components/ui/input"
 import { Button } from "@/components/ui/button"
 import { useToast } from "@/components/ui/use-toast"
 import { supabase } from "@/integrations/supabase/client"
+import { useSearchParams } from "react-router-dom"
 
 const formSchema = z.object({
   email: z.string().email(),
   role: z.enum(["client", "supplier", "principal"]),
-});
+})
 
 interface InviteUserDialogProps {
   open: boolean
@@ -42,12 +43,14 @@ interface InviteUserDialogProps {
 export function InviteUserDialog({ open, onOpenChange }: InviteUserDialogProps) {
   const [isLoading, setIsLoading] = useState(false)
   const { toast } = useToast()
+  const [searchParams] = useSearchParams()
+  const defaultRole = (searchParams.get("role") || "client") as "client" | "supplier" | "principal"
 
   const form = useForm<z.infer<typeof formSchema>>({
     resolver: zodResolver(formSchema),
     defaultValues: {
       email: "",
-      role: "client",
+      role: defaultRole,
     },
   })
 
