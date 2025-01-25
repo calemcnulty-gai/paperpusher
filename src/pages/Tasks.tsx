@@ -1,101 +1,109 @@
-import { useEffect, useState } from "react";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { supabase } from "@/integrations/supabase/client";
-import { useToast } from "@/components/ui/use-toast";
-import type { Task } from "@/types/tickets";
-import { DragDropContext, Droppable, Draggable } from "@hello-pangea/dnd";
+import { useEffect, useState } from "react"
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
+import { supabase } from "@/integrations/supabase/client"
+import { useToast } from "@/components/ui/use-toast"
+import type { Task } from "@/types/tickets"
+import { DragDropContext, Droppable, Draggable } from "@hello-pangea/dnd"
+import { useAuth } from "@/hooks/useAuth"
 
 const Tasks = () => {
-  const [tasks, setTasks] = useState<Task[]>([]);
-  const [loading, setLoading] = useState(true);
-  const { toast } = useToast();
+  const [tasks, setTasks] = useState<Task[]>([])
+  const [loading, setLoading] = useState(true)
+  const { toast } = useToast()
+  const { user } = useAuth()
 
   useEffect(() => {
     const fetchTasks = async () => {
       try {
+        console.log("Fetching tasks for user:", user?.id)
         const { data, error } = await supabase
           .from("tasks")
           .select("*")
-          .order("priority", { ascending: false });
+          .eq("creator_id", user?.id)
+          .order("priority", { ascending: false })
 
-        if (error) throw error;
-        setTasks(data || []);
+        if (error) {
+          console.error("Error fetching tasks:", error)
+          throw error
+        }
+
+        console.log("Tasks fetched:", data)
+        setTasks(data || [])
       } catch (error) {
-        console.error("Error fetching tasks:", error);
+        console.error("Error in fetchTasks:", error)
         toast({
           title: "Error",
           description: "Failed to load tasks",
           variant: "destructive",
-        });
+        })
       } finally {
-        setLoading(false);
+        setLoading(false)
       }
-    };
+    }
 
-    fetchTasks();
-  }, [toast]);
+    if (user?.id) {
+      fetchTasks()
+    }
+  }, [toast, user?.id])
 
   const onDragEnd = async (result: any) => {
-    if (!result.destination) return;
+    if (!result.destination) return
 
-    const { source, destination, draggableId } = result;
+    const { source, destination, draggableId } = result
     
-    // Don't do anything if dropped in the same place
     if (
       source.droppableId === destination.droppableId &&
       source.index === destination.index
     ) {
-      return;
+      return
     }
 
-    // Update task status in state
-    const newTasks = Array.from(tasks);
-    const task = newTasks.find(t => t.id === draggableId);
-    if (!task) return;
+    const newTasks = Array.from(tasks)
+    const task = newTasks.find(t => t.id === draggableId)
+    if (!task) return
 
-    task.status = destination.droppableId;
+    task.status = destination.droppableId
 
-    setTasks(newTasks);
+    setTasks(newTasks)
 
-    // Update in database
     try {
       const { error } = await supabase
         .from("tasks")
         .update({ status: destination.droppableId })
-        .eq("id", draggableId);
+        .eq("id", draggableId)
 
-      if (error) throw error;
+      if (error) throw error
     } catch (error) {
-      console.error("Error updating task:", error);
+      console.error("Error updating task:", error)
       toast({
         title: "Error",
         description: "Failed to update task status",
         variant: "destructive",
-      });
+      })
     }
-  };
+  }
 
   const getColumnTasks = (status: string) => {
     return tasks
       .filter((task) => task.status === status)
       .sort((a, b) => {
         if (status === "resolved") {
-          return new Date(b.updated_at).getTime() - new Date(a.updated_at).getTime();
+          return new Date(b.updated_at).getTime() - new Date(a.updated_at).getTime()
         }
-        const priorityOrder = { urgent: 4, high: 3, medium: 2, low: 1 };
+        const priorityOrder = { urgent: 4, high: 3, medium: 2, low: 1 }
         return (
           (priorityOrder[b.priority as keyof typeof priorityOrder] || 0) -
           (priorityOrder[a.priority as keyof typeof priorityOrder] || 0)
-        );
-      });
-  };
+        )
+      })
+  }
 
   if (loading) {
     return (
       <div className="flex items-center justify-center h-full">
         <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-gray-900" />
       </div>
-    );
+    )
   }
 
   return (
@@ -232,7 +240,7 @@ const Tasks = () => {
         </div>
       </DragDropContext>
     </div>
-  );
-};
+  )
+}
 
-export default Tasks;
+export default Tasks
