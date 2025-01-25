@@ -1,7 +1,6 @@
 import { useSelector } from "react-redux"
 import { RootState } from "@/store"
 import { Profile } from "@/types/profiles"
-import { Link } from "react-router-dom"
 import {
   Command,
   CommandEmpty,
@@ -38,15 +37,6 @@ export function UserMentionsPopover({
     profile.full_name?.toLowerCase().includes(searchTerm.toLowerCase())
   )
 
-  const handleUserClick = (e: React.MouseEvent, user: Profile) => {
-    if (e.ctrlKey || e.metaKey) {
-      // If Ctrl/Cmd is pressed, let the Link handle navigation
-      return
-    }
-    e.preventDefault()
-    onUserSelect(user)
-  }
-
   return (
     <Popover open={open} onOpenChange={onOpenChange}>
       <PopoverContent 
@@ -73,14 +63,10 @@ export function UserMentionsPopover({
                   className="cursor-pointer hover:bg-accent"
                   onSelect={() => onUserSelect(user)}
                 >
-                  <Link
-                    to={`/users/${user.id}`}
-                    className="flex items-center gap-2 w-full text-sm"
-                    onClick={(e) => handleUserClick(e, user)}
-                  >
+                  <div className="flex items-center gap-2 w-full text-sm">
                     <span className="font-medium">{user.full_name}</span>
                     <span className="text-muted-foreground">@{user.email.split('@')[0]}</span>
-                  </Link>
+                  </div>
                 </CommandItem>
               ))}
             </CommandGroup>
