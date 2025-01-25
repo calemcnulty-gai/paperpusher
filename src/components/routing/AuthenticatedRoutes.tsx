@@ -6,7 +6,8 @@ import { setupRealtimeSubscriptions } from "@/store/realtimeSlice"
 import { AuthProvider } from "@/components/auth/AuthProvider"
 import { RequireAuth } from "@/components/auth/RequireAuth"
 import Index from "@/pages/Index"
-import Products from "@/pages/Products"
+import Users from "@/pages/Users"
+import { MainLayout } from "@/components/layout/MainLayout"
 
 export const AuthenticatedRoutes = () => {
   const dispatch = useDispatch<AppDispatch>()
@@ -22,15 +23,19 @@ export const AuthenticatedRoutes = () => {
           path="/"
           element={
             <RequireAuth>
-              <Index />
+              <MainLayout>
+                <Index />
+              </MainLayout>
             </RequireAuth>
           }
         />
         <Route
-          path="/products"
+          path="/users"
           element={
             <RequireAuth>
-              <Products />
+              <MainLayout>
+                <Users />
+              </MainLayout>
             </RequireAuth>
           }
         />
