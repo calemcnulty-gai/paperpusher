@@ -5,42 +5,53 @@ import { useToast } from "@/components/ui/use-toast"
 import type { Task } from "@/types/tickets"
 import { DragDropContext, Droppable, Draggable } from "@hello-pangea/dnd"
 import { useAuth } from "@/hooks/useAuth"
+import { Button } from "@/components/ui/button"
+import { Plus } from "lucide-react"
+import {
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+  DialogTrigger,
+} from "@/components/ui/dialog"
+import { CreateTaskForm } from "@/components/tasks/CreateTaskForm"
 
 const Tasks = () => {
   const [tasks, setTasks] = useState<Task[]>([])
   const [loading, setLoading] = useState(true)
+  const [dialogOpen, setDialogOpen] = useState(false)
   const { toast } = useToast()
   const { user } = useAuth()
 
-  useEffect(() => {
-    const fetchTasks = async () => {
-      try {
-        console.log("Fetching tasks for user:", user?.id)
-        const { data, error } = await supabase
-          .from("tasks")
-          .select("*")
-          .eq("creator_id", user?.id)
-          .order("priority", { ascending: false })
+  const fetchTasks = async () => {
+    try {
+      console.log("Fetching tasks for user:", user?.id)
+      const { data, error } = await supabase
+        .from("tasks")
+        .select("*")
+        .eq("creator_id", user?.id)
+        .order("priority", { ascending: false })
 
-        if (error) {
-          console.error("Error fetching tasks:", error)
-          throw error
-        }
-
-        console.log("Tasks fetched:", data)
-        setTasks(data || [])
-      } catch (error) {
-        console.error("Error in fetchTasks:", error)
-        toast({
-          title: "Error",
-          description: "Failed to load tasks",
-          variant: "destructive",
-        })
-      } finally {
-        setLoading(false)
+      if (error) {
+        console.error("Error fetching tasks:", error)
+        throw error
       }
-    }
 
+      console.log("Tasks fetched:", data)
+      setTasks(data || [])
+    } catch (error) {
+      console.error("Error in fetchTasks:", error)
+      toast({
+        title: "Error",
+        description: "Failed to load tasks",
+        variant: "destructive",
+      })
+    } finally {
+      setLoading(false)
+    }
+  }
+
+  useEffect(() => {
     if (user?.id) {
       fetchTasks()
     }
@@ -108,7 +119,26 @@ const Tasks = () => {
 
   return (
     <div className="container mx-auto p-6">
-      <h1 className="text-2xl font-bold mb-6">Tasks</h1>
+      <div className="flex justify-between items-center mb-6">
+        <h1 className="text-2xl font-bold">Tasks</h1>
+        <Dialog open={dialogOpen} onOpenChange={setDialogOpen}>
+          <DialogTrigger asChild>
+            <Button>
+              <Plus className="h-4 w-4 mr-2" />
+              Create Task
+            </Button>
+          </DialogTrigger>
+          <DialogContent>
+            <DialogHeader>
+              <DialogTitle>Create New Task</DialogTitle>
+            </DialogHeader>
+            <CreateTaskForm onSuccess={() => {
+              setDialogOpen(false)
+              fetchTasks()
+            }} />
+          </DialogContent>
+        </Dialog>
+      </div>
       <DragDropContext onDragEnd={onDragEnd}>
         <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
           {/* To Do Column */}
