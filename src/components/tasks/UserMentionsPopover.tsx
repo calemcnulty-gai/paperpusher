@@ -70,14 +70,16 @@ export function UserMentionsPopover({
               {filteredUsers.map((user) => (
                 <CommandItem
                   key={user.id}
-                  className="cursor-pointer"
+                  className="cursor-pointer hover:bg-accent"
+                  onSelect={() => onUserSelect(user)}
                 >
                   <Link
                     to={`/users/${user.id}`}
-                    className="flex-1 hover:text-primary"
+                    className="flex items-center gap-2 w-full text-sm"
                     onClick={(e) => handleUserClick(e, user)}
                   >
-                    {user.full_name}
+                    <span className="font-medium">{user.full_name}</span>
+                    <span className="text-muted-foreground">@{user.email.split('@')[0]}</span>
                   </Link>
                 </CommandItem>
               ))}
