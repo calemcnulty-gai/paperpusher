@@ -23,9 +23,6 @@ export default function AuthPage() {
                   },
                 },
               },
-              className: {
-                button: "bg-primary hover:bg-primary/90",
-              },
             }}
             providers={["google"]}
             redirectTo={`${window.location.origin}/auth/callback`}
