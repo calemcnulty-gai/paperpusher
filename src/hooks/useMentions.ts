@@ -17,6 +17,12 @@ export function useMentions({ onMentionSelect }: UseMentionsProps) {
     e: React.KeyboardEvent<HTMLInputElement | HTMLTextAreaElement>,
     target: HTMLInputElement | HTMLTextAreaElement
   ) => {
+    console.log("handleKeyUp - Event triggered", {
+      key: e.key,
+      value: target.value,
+      cursorPosition: target.selectionStart
+    })
+
     const value = target.value
     const cursorPosition = target.selectionStart || 0
     
@@ -25,8 +31,16 @@ export function useMentions({ onMentionSelect }: UseMentionsProps) {
     const words = textBeforeCursor.split(/\s/)
     const currentWord = words[words.length - 1]
 
+    console.log("handleKeyUp - Text analysis", {
+      textBeforeCursor,
+      words,
+      currentWord,
+      startsWithAt: currentWord.startsWith("@")
+    })
+
     if (currentWord.startsWith("@")) {
       const search = currentWord.slice(1)
+      console.log("handleKeyUp - Mention detected", { search })
       setSearchTerm(search)
       
       // Get position for popover
@@ -43,22 +57,38 @@ export function useMentions({ onMentionSelect }: UseMentionsProps) {
       const atPosition = tempSpan.getBoundingClientRect().width
       document.body.removeChild(tempSpan)
       
-      // Set position next to the @ symbol
-      setAnchorPoint({
+      const newAnchorPoint = {
         x: rect.left + atPosition,
         y: rect.top + rect.height
-      })
+      }
       
+      console.log("handleKeyUp - Popover positioning", {
+        rect,
+        textBeforeAt,
+        atPosition,
+        newAnchorPoint
+      })
+
+      setAnchorPoint(newAnchorPoint)
       setShowMentions(true)
-      // Fetch profiles if not already loaded
+      
+      console.log("handleKeyUp - Fetching profiles")
       dispatch(fetchProfiles() as any)
     } else {
+      console.log("handleKeyUp - No @ symbol detected, hiding mentions")
       setShowMentions(false)
     }
   }
 
   const handleMentionSelect = (selectedUser: Profile) => {
+    console.log("handleMentionSelect - User selected", {
+      userId: selectedUser.id,
+      fullName: selectedUser.full_name
+    })
+    
     const text = `@${selectedUser.full_name} `
+    console.log("handleMentionSelect - Generated mention text", { text })
+    
     onMentionSelect(text)
     setShowMentions(false)
   }

@@ -31,11 +31,19 @@ export function UserMentionsPopover({
   onSearchChange,
   onUserSelect,
 }: UserMentionsPopoverProps) {
+  console.log("UserMentionsPopover - Render", {
+    open,
+    anchorPoint,
+    searchTerm
+  })
+
   const { profiles } = useSelector((state: RootState) => state.profiles)
+  console.log("UserMentionsPopover - Available profiles", profiles)
   
   const filteredUsers = profiles.filter(profile => 
     profile.full_name?.toLowerCase().includes(searchTerm.toLowerCase())
   )
+  console.log("UserMentionsPopover - Filtered users", filteredUsers)
 
   return (
     <Popover open={open} onOpenChange={onOpenChange}>
@@ -52,7 +60,10 @@ export function UserMentionsPopover({
           <CommandInput 
             placeholder="Search users..." 
             value={searchTerm}
-            onValueChange={onSearchChange}
+            onValueChange={(value) => {
+              console.log("UserMentionsPopover - Search value changed", { value })
+              onSearchChange(value)
+            }}
           />
           <CommandList>
             <CommandEmpty>No users found.</CommandEmpty>
@@ -61,7 +72,13 @@ export function UserMentionsPopover({
                 <CommandItem
                   key={user.id}
                   className="cursor-pointer hover:bg-accent"
-                  onSelect={() => onUserSelect(user)}
+                  onSelect={() => {
+                    console.log("UserMentionsPopover - User selected via CommandItem", {
+                      userId: user.id,
+                      fullName: user.full_name
+                    })
+                    onUserSelect(user)
+                  }}
                 >
                   <div className="flex items-center gap-2 w-full text-sm">
                     <span className="font-medium">{user.full_name}</span>
