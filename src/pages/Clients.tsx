@@ -1,6 +1,6 @@
 import { useQuery } from "@tanstack/react-query";
 import { MainLayout } from "@/components/layout/MainLayout";
-import { ClientTable } from "@/components/clients/ClientTable";
+import ClientTable from "@/components/clients/ClientTable";
 import { Skeleton } from "@/components/ui/skeleton";
 import { supabase } from "@/integrations/supabase/client";
 

@@ -8,18 +8,19 @@ import {
 } from "@/components/ui/table";
 import { formatDate } from "@/lib/utils";
 
-interface Customer {
+interface Client {
   id: string;
   full_name: string | null;
   email: string;
   created_at: string;
 }
 
-interface CustomerTableProps {
-  customers: Customer[];
+interface ClientTableProps {
+  clients: Client[];
 }
 
-export function CustomerTable({ customers }: CustomerTableProps) {
+// Changed to default export to match the import
+const ClientTable = ({ clients }: ClientTableProps) => {
   return (
     <div className="rounded-md border">
       <Table>
@@ -31,15 +32,17 @@ export function CustomerTable({ customers }: CustomerTableProps) {
           </TableRow>
         </TableHeader>
         <TableBody>
-          {customers.map((customer) => (
-            <TableRow key={customer.id}>
-              <TableCell>{customer.full_name || "N/A"}</TableCell>
-              <TableCell>{customer.email}</TableCell>
-              <TableCell>{formatDate(customer.created_at)}</TableCell>
+          {clients.map((client) => (
+            <TableRow key={client.id}>
+              <TableCell>{client.full_name || "N/A"}</TableCell>
+              <TableCell>{client.email}</TableCell>
+              <TableCell>{formatDate(client.created_at)}</TableCell>
             </TableRow>
           ))}
         </TableBody>
       </Table>
     </div>
   );
-}
+};
+
+export default ClientTable;
