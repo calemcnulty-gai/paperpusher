@@ -12,7 +12,7 @@ const Customers = () => {
       const { data, error } = await supabase
         .from("profiles")
         .select("*")
-        .eq("role", "customer");
+        .eq("role", "client");
 
       if (error) {
         console.error("Error fetching customers:", error);

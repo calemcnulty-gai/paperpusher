@@ -5,7 +5,7 @@ import { supabase } from '@/integrations/supabase/client';
 type Profile = {
   id: string;
   full_name: string | null;
-  role: string | null;
+  role: "client" | "supplier" | "principal";
   email: string;
 };
 
@@ -52,7 +52,7 @@ export const fetchProfile = createAsyncThunk(
         id: userId,
         email: currentUser.email,
         full_name: currentUser.user_metadata?.full_name || null,
-        role: 'customer'
+        role: "client" as const
       };
 
       const { data: newProfile, error: createError } = await supabase

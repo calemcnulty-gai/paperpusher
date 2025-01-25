@@ -27,14 +27,12 @@ import {
 import { Input } from "@/components/ui/input"
 import { Button } from "@/components/ui/button"
 import { useToast } from "@/components/ui/use-toast"
-import { useQuery } from "@tanstack/react-query"
 import { supabase } from "@/integrations/supabase/client"
 
 const formSchema = z.object({
   email: z.string().email(),
-  role: z.enum(["admin", "agent", "customer"]),
-  teamId: z.string().uuid().optional(),
-})
+  role: z.enum(["client", "supplier", "principal"]),
+});
 
 interface InviteUserDialogProps {
   open: boolean
@@ -49,20 +47,7 @@ export function InviteUserDialog({ open, onOpenChange }: InviteUserDialogProps) 
     resolver: zodResolver(formSchema),
     defaultValues: {
       email: "",
-      role: "customer",
-    },
-  })
-
-  const { data: teams } = useQuery({
-    queryKey: ["teams"],
-    queryFn: async () => {
-      const { data, error } = await supabase
-        .from("teams")
-        .select("*")
-        .order("name")
-
-      if (error) throw error
-      return data
+      role: "client",
     },
   })
 
@@ -78,7 +63,6 @@ export function InviteUserDialog({ open, onOpenChange }: InviteUserDialogProps) 
           body: {
             email: values.email,
             role: values.role,
-            teamId: values.teamId,
           },
         }
       )
@@ -146,45 +130,15 @@ export function InviteUserDialog({ open, onOpenChange }: InviteUserDialogProps) 
                       </SelectTrigger>
                     </FormControl>
                     <SelectContent>
-                      <SelectItem value="customer">Customer</SelectItem>
-                      <SelectItem value="agent">Agent</SelectItem>
-                      <SelectItem value="admin">Admin</SelectItem>
+                      <SelectItem value="client">Client</SelectItem>
+                      <SelectItem value="supplier">Supplier</SelectItem>
+                      <SelectItem value="principal">Principal</SelectItem>
                     </SelectContent>
                   </Select>
                   <FormMessage />
                 </FormItem>
               )}
             />
-
-            {form.watch("role") !== "customer" && (
-              <FormField
-                control={form.control}
-                name="teamId"
-                render={({ field }) => (
-                  <FormItem>
-                    <FormLabel>Team</FormLabel>
-                    <Select
-                      onValueChange={field.onChange}
-                      defaultValue={field.value}
-                    >
-                      <FormControl>
-                        <SelectTrigger>
-                          <SelectValue placeholder="Select a team" />
-                        </SelectTrigger>
-                      </FormControl>
-                      <SelectContent>
-                        {teams?.map((team) => (
-                          <SelectItem key={team.id} value={team.id}>
-                            {team.name}
-                          </SelectItem>
-                        ))}
-                      </SelectContent>
-                    </Select>
-                    <FormMessage />
-                  </FormItem>
-                )}
-              />
-            )}
 
             <div className="flex justify-end space-x-2">
               <Button
