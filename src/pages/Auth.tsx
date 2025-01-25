@@ -41,8 +41,7 @@ export default function AuthPage() {
         const { data, error } = await supabase.auth.getSession()
         console.log("Current session test:", { data, error })
 
-        // Log Supabase configuration
-        console.log("Supabase URL:", supabase.supabaseUrl)
+        // Log Supabase configuration using the public URL from the client
         console.log("Auth callback URL:", `${window.location.origin}/auth/callback`)
       } catch (err) {
         console.error("Error testing Supabase connection:", err)
