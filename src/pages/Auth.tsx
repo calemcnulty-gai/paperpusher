@@ -5,7 +5,7 @@ import { supabase } from "@/integrations/supabase/client"
 export default function AuthPage() {
   console.log("AuthPage - Rendering with URL:", window.location.origin)
   
-  const redirectTo = `${window.location.origin}`
+  const redirectTo = `${window.location.origin}/auth/v1/callback`
   console.log("AuthPage - Setting redirect URL to:", redirectTo)
 
   return (
