@@ -42,6 +42,16 @@ export const AuthenticatedRoutes = () => {
           }
         />
         <Route
+          path="/users/:userId"
+          element={
+            <RequireAuth>
+              <MainLayout>
+                <Users />
+              </MainLayout>
+            </RequireAuth>
+          }
+        />
+        <Route
           path="/tasks"
           element={
             <RequireAuth>
