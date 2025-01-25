@@ -35,11 +35,15 @@ export default function AuthPage() {
       }
     })
 
-    // Test Supabase connection
+    // Test Supabase connection and configuration
     const testConnection = async () => {
       try {
         const { data, error } = await supabase.auth.getSession()
         console.log("Current session test:", { data, error })
+
+        // Log Supabase configuration
+        console.log("Supabase URL:", supabase.supabaseUrl)
+        console.log("Auth callback URL:", `${window.location.origin}/auth/callback`)
       } catch (err) {
         console.error("Error testing Supabase connection:", err)
       }
@@ -54,7 +58,11 @@ export default function AuthPage() {
         const { data, error } = await supabase.auth.signInWithOAuth({
           provider: 'google',
           options: {
-            redirectTo: `${window.location.origin}`
+            redirectTo: `${window.location.origin}/auth/callback`,
+            queryParams: {
+              access_type: 'offline',
+              prompt: 'consent',
+            }
           }
         })
         console.log("SignInWithOAuth response:", { data, error })
@@ -126,7 +134,7 @@ export default function AuthPage() {
               },
             }}
             providers={["google"]}
-            redirectTo={`${window.location.origin}`}
+            redirectTo={`${window.location.origin}/auth/callback`}
             onlyThirdPartyProviders={true}
           />
         </CardContent>
