@@ -87,7 +87,6 @@ export function UserMentionsPopover({
                 <CommandItem
                   key={user.id}
                   value={user.full_name || ""}
-                  className="cursor-pointer hover:bg-accent"
                   onSelect={handleSelect}
                 >
                   <div className="flex items-center gap-2 w-full text-sm">
