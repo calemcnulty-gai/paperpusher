@@ -7,6 +7,7 @@ import { AuthProvider } from "@/components/auth/AuthProvider"
 import { RequireAuth } from "@/components/auth/RequireAuth"
 import Index from "@/pages/Index"
 import Users from "@/pages/Users"
+import Tasks from "@/pages/Tasks"
 import { MainLayout } from "@/components/layout/MainLayout"
 
 export const AuthenticatedRoutes = () => {
@@ -35,6 +36,16 @@ export const AuthenticatedRoutes = () => {
             <RequireAuth>
               <MainLayout>
                 <Users />
+              </MainLayout>
+            </RequireAuth>
+          }
+        />
+        <Route
+          path="/tasks"
+          element={
+            <RequireAuth>
+              <MainLayout>
+                <Tasks />
               </MainLayout>
             </RequireAuth>
           }
