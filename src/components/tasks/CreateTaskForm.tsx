@@ -36,6 +36,9 @@ import {
   PopoverTrigger,
 } from "@/components/ui/popover"
 import { Profile } from "@/types/profiles"
+import { useDispatch, useSelector } from "react-redux"
+import { RootState } from "@/store"
+import { fetchProfiles } from "@/store/profilesSlice"
 
 type FormData = {
   title: string
@@ -49,12 +52,19 @@ export function CreateTaskForm({ onSuccess }: { onSuccess: () => void }) {
   const [showUserMentions, setShowUserMentions] = useState(false)
   const [mentionAnchorPoint, setMentionAnchorPoint] = useState({ x: 0, y: 0 })
   const [mentionSearch, setMentionSearch] = useState("")
-  const [users, setUsers] = useState<Profile[]>([])
   const [currentField, setCurrentField] = useState<"title" | "description" | null>(null)
   const { toast } = useToast()
   const { user } = useAuth()
   const titleRef = useRef<HTMLInputElement>(null)
   const descriptionRef = useRef<HTMLTextAreaElement>(null)
+  const dispatch = useDispatch()
+  
+  // Get profiles from Redux store
+  const { profiles, loading } = useSelector((state: RootState) => state.profiles)
+  
+  const filteredUsers = profiles.filter(profile => 
+    profile.full_name?.toLowerCase().includes(mentionSearch.toLowerCase())
+  )
 
   const form = useForm<FormData>({
     defaultValues: {
@@ -64,23 +74,6 @@ export function CreateTaskForm({ onSuccess }: { onSuccess: () => void }) {
       status: "open"
     }
   })
-
-  const fetchUsers = useCallback(async (searchTerm: string) => {
-    try {
-      console.log("Fetching users with search term:", searchTerm)
-      const { data, error } = await supabase
-        .from("profiles")
-        .select("*")
-        .ilike("full_name", `%${searchTerm}%`)
-        .limit(5)
-
-      if (error) throw error
-      console.log("Fetched users:", data)
-      setUsers(data || [])
-    } catch (error) {
-      console.error("Error fetching users:", error)
-    }
-  }, [])
 
   const handleKeyUp = (e: React.KeyboardEvent<HTMLInputElement | HTMLTextAreaElement>, field: "title" | "description") => {
     const target = e.target as HTMLInputElement | HTMLTextAreaElement
@@ -107,7 +100,8 @@ export function CreateTaskForm({ onSuccess }: { onSuccess: () => void }) {
       })
       
       setShowUserMentions(true)
-      fetchUsers(searchTerm)
+      // Fetch profiles if not already loaded
+      dispatch(fetchProfiles() as any)
     } else {
       setShowUserMentions(false)
     }
@@ -141,9 +135,6 @@ export function CreateTaskForm({ onSuccess }: { onSuccess: () => void }) {
   const handleCommandInputChange = (value: string) => {
     console.log("Command input changed:", value)
     setMentionSearch(value)
-    if (value.trim()) {
-      fetchUsers(value)
-    }
   }
 
   const onSubmit = async (data: FormData) => {
@@ -273,7 +264,7 @@ export function CreateTaskForm({ onSuccess }: { onSuccess: () => void }) {
                 <CommandList>
                   <CommandEmpty>No users found.</CommandEmpty>
                   <CommandGroup>
-                    {users.map((user) => (
+                    {filteredUsers.map((user) => (
                       <CommandItem
                         key={user.id}
                         onSelect={() => handleMentionSelect(user)}
