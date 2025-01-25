@@ -29,19 +29,18 @@ export default function AuthPage() {
     )
   }
 
-  const redirectTo = `${window.location.origin}/auth/v1/callback`
+  // Properly construct the redirect URL without potential port issues
+  const redirectTo = new URL("/auth/v1/callback", window.location.origin).toString()
   console.log("AuthPage - Setting redirect URL to:", redirectTo)
 
   return (
-    <div className="min-h-screen flex items-center justify-center bg-gray-50">
-      <div className="max-w-md w-full p-8 bg-white rounded-lg shadow-lg">
-        <h2 className="text-2xl font-bold text-center mb-6">Welcome to AutoCRM</h2>
+    <div className="min-h-screen flex items-center justify-center bg-gray-50 p-4">
+      <div className="w-full max-w-md">
         <Auth
           supabaseClient={supabase}
           appearance={{ theme: ThemeSupa }}
           providers={["google"]}
           redirectTo={redirectTo}
-          onlyThirdPartyProviders={true}
         />
       </div>
     </div>
