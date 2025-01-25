@@ -3,8 +3,10 @@ import { ThemeSupa } from "@supabase/auth-ui-shared"
 import { supabase } from "@/integrations/supabase/client"
 
 export default function AuthPage() {
-  // Get the current URL without the /auth part
-  const baseUrl = window.location.origin
+  console.log("AuthPage - Rendering with URL:", window.location.origin)
+  
+  const redirectTo = `${window.location.origin}`
+  console.log("AuthPage - Setting redirect URL to:", redirectTo)
 
   return (
     <div className="min-h-screen flex items-center justify-center bg-gray-50">
@@ -14,7 +16,7 @@ export default function AuthPage() {
           supabaseClient={supabase}
           appearance={{ theme: ThemeSupa }}
           providers={["google"]}
-          redirectTo={baseUrl}
+          redirectTo={redirectTo}
           onlyThirdPartyProviders={true}
         />
       </div>
