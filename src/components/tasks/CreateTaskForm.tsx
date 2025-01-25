@@ -66,6 +66,7 @@ export function CreateTaskForm({ onSuccess }: { onSuccess: () => void }) {
 
   const fetchUsers = useCallback(async (searchTerm: string) => {
     try {
+      console.log("Fetching users with search term:", searchTerm)
       const { data, error } = await supabase
         .from("profiles")
         .select("*")
@@ -73,6 +74,7 @@ export function CreateTaskForm({ onSuccess }: { onSuccess: () => void }) {
         .limit(5)
 
       if (error) throw error
+      console.log("Fetched users:", data)
       setUsers(data || [])
     } catch (error) {
       console.error("Error fetching users:", error)
@@ -133,6 +135,13 @@ export function CreateTaskForm({ onSuccess }: { onSuccess: () => void }) {
 
     form.setValue(field, newText)
     setShowUserMentions(false)
+  }
+
+  const handleCommandInputChange = (value: string) => {
+    setMentionSearch(value)
+    if (value.trim()) {
+      fetchUsers(value)
+    }
   }
 
   const onSubmit = async (data: FormData) => {
@@ -254,7 +263,11 @@ export function CreateTaskForm({ onSuccess }: { onSuccess: () => void }) {
               }}
             >
               <Command>
-                <CommandInput placeholder="Search users..." value={mentionSearch} />
+                <CommandInput 
+                  placeholder="Search users..." 
+                  value={mentionSearch}
+                  onValueChange={handleCommandInputChange}
+                />
                 <CommandEmpty>No users found.</CommandEmpty>
                 <CommandGroup>
                   {users.map((user) => (
