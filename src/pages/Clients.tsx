@@ -1,24 +1,24 @@
 import { useQuery } from "@tanstack/react-query";
 import { MainLayout } from "@/components/layout/MainLayout";
-import { CustomerTable } from "@/components/customers/CustomerTable";
+import { ClientTable } from "@/components/clients/ClientTable";
 import { Skeleton } from "@/components/ui/skeleton";
 import { supabase } from "@/integrations/supabase/client";
 
-const Customers = () => {
-  const { data: customers, isLoading } = useQuery({
-    queryKey: ["customers"],
+const Clients = () => {
+  const { data: clients, isLoading } = useQuery({
+    queryKey: ["clients"],
     queryFn: async () => {
-      console.log("Fetching customers from Supabase");
+      console.log("Fetching clients from Supabase");
       const { data, error } = await supabase
         .from("profiles")
         .select("*")
         .eq("role", "client");
 
       if (error) {
-        console.error("Error fetching customers:", error);
+        console.error("Error fetching clients:", error);
         throw error;
       }
-      console.log("Fetched customers:", data);
+      console.log("Fetched clients:", data);
       return data;
     },
   });
@@ -26,7 +26,7 @@ const Customers = () => {
   return (
     <MainLayout>
       <div className="space-y-4">
-        <h1 className="text-2xl font-bold">Customers</h1>
+        <h1 className="text-2xl font-bold">Clients</h1>
         {isLoading ? (
           <div className="space-y-2">
             <Skeleton className="h-12 w-full" />
@@ -34,11 +34,11 @@ const Customers = () => {
             <Skeleton className="h-12 w-full" />
           </div>
         ) : (
-          <CustomerTable customers={customers || []} />
+          <ClientTable clients={clients || []} />
         )}
       </div>
     </MainLayout>
   );
 };
 
-export default Customers;
+export default Clients;
