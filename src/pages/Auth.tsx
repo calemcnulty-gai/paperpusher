@@ -112,26 +112,6 @@ export default function Auth() {
     }
   }, [session, invitationId, from, navigate])
 
-  const handleSignUp = async (e: React.FormEvent) => {
-    e.preventDefault()
-    if (!invitationDetails) return
-
-    const { error } = await supabase.auth.signUp({
-      email: invitationDetails.email,
-      password: password,
-    })
-
-    if (error) {
-      setError(error.message)
-      return
-    }
-
-    toast({
-      title: "Check your email",
-      description: "We've sent you a confirmation link to complete your registration.",
-    })
-  }
-
   if (loading) {
     return (
       <div className="min-h-screen flex items-center justify-center bg-background p-4">
@@ -211,7 +191,7 @@ export default function Auth() {
                   button: "w-full",
                 },
               }}
-              providers={["google", "github"]}
+              providers={["google"]}
               redirectTo={window.location.origin}
               magicLink={false}
             />
