@@ -88,8 +88,9 @@ export function UserMentionsPopover({
                   key={user.id}
                   value={user.full_name || ""}
                   onSelect={handleSelect}
+                  className="cursor-pointer select-none"
                 >
-                  <div className="flex items-center gap-2 w-full text-sm">
+                  <div className="flex items-center gap-2 w-full text-sm pointer-events-none">
                     <span className="font-medium">{user.full_name}</span>
                     <span className="text-muted-foreground">@{user.email.split('@')[0]}</span>
                   </div>
