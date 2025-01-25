@@ -15,13 +15,9 @@ export default function AuthPage() {
       if (event === 'SIGNED_OUT') {
         console.log("User signed out")
       }
-      if (event === 'USER_DELETED') {
-        console.log("User was deleted")
-      }
       if (event === 'USER_UPDATED') {
         console.log("User was updated:", session?.user)
       }
-      // Log any error events
       if (event === 'TOKEN_REFRESHED') {
         console.log("Token was refreshed")
       }
@@ -54,9 +50,6 @@ export default function AuthPage() {
             }}
             providers={["google"]}
             redirectTo={window.location.origin}
-            onError={(error) => {
-              console.error("Auth error:", error)
-            }}
           />
         </CardContent>
       </Card>
