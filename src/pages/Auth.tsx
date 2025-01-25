@@ -49,7 +49,7 @@ export default function AuthPage() {
               },
             }}
             providers={["google"]}
-            redirectTo={window.location.origin}
+            redirectTo={`${window.location.protocol}//${window.location.host}`}
           />
         </CardContent>
       </Card>
