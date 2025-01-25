@@ -1,4 +1,4 @@
-import { useState, useRef, RefObject } from "react"
+import { useState, useRef } from "react"
 import { Profile } from "@/types/profiles"
 import { useDispatch } from "react-redux"
 import { fetchProfiles } from "@/store/profilesSlice"
@@ -31,11 +31,22 @@ export function useMentions({ onMentionSelect }: UseMentionsProps) {
       
       // Get position for popover
       const rect = target.getBoundingClientRect()
-      const caretCoords = getCaretCoordinates(target, cursorPosition)
       
+      // Calculate text width up to the @ symbol
+      const textBeforeAt = textBeforeCursor.slice(0, textBeforeCursor.lastIndexOf('@'))
+      const tempSpan = document.createElement('span')
+      tempSpan.style.font = window.getComputedStyle(target).font
+      tempSpan.style.visibility = 'hidden'
+      tempSpan.style.position = 'absolute'
+      tempSpan.textContent = textBeforeAt
+      document.body.appendChild(tempSpan)
+      const atPosition = tempSpan.getBoundingClientRect().width
+      document.body.removeChild(tempSpan)
+      
+      // Set position next to the @ symbol
       setAnchorPoint({
-        x: rect.left + caretCoords.left,
-        y: rect.top + caretCoords.top + 20
+        x: rect.left + atPosition,
+        y: rect.top + rect.height
       })
       
       setShowMentions(true)
@@ -61,9 +72,4 @@ export function useMentions({ onMentionSelect }: UseMentionsProps) {
     handleKeyUp,
     handleMentionSelect,
   }
-}
-
-function getCaretCoordinates(element: HTMLElement, position: number) {
-  const { offsetLeft: left, offsetTop: top } = element
-  return { left, top }
 }

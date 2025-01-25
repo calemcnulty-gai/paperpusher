@@ -50,13 +50,13 @@ export function UserMentionsPopover({
   return (
     <Popover open={open} onOpenChange={onOpenChange}>
       <PopoverContent 
-        className="p-0" 
+        className="p-0 w-[250px]" 
         style={{
-          position: 'fixed',
+          position: 'absolute',
           left: `${anchorPoint.x}px`,
           top: `${anchorPoint.y}px`,
-          width: '250px'
         }}
+        align="start"
       >
         <Command>
           <CommandInput 
