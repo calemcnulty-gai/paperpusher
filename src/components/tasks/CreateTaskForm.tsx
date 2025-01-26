@@ -8,7 +8,6 @@ import {
   FormLabel,
   FormMessage,
 } from "@/components/ui/form"
-import { Input } from "@/components/ui/input"
 import { useToast } from "@/components/ui/use-toast"
 import { supabase } from "@/integrations/supabase/client"
 import { useAuth } from "@/hooks/useAuth"
@@ -77,7 +76,7 @@ export function CreateTaskForm({ onSuccess }: CreateTaskFormProps) {
             <FormItem>
               <FormLabel>Title</FormLabel>
               <FormControl>
-                <Input placeholder="Task title" {...field} />
+                <MentionsInput placeholder="Task title" {...field} />
               </FormControl>
               <FormMessage />
             </FormItem>
@@ -90,7 +89,11 @@ export function CreateTaskForm({ onSuccess }: CreateTaskFormProps) {
             <FormItem>
               <FormLabel>Description</FormLabel>
               <FormControl>
-                <MentionsInput placeholder="Describe the task..." {...field} />
+                <MentionsInput 
+                  placeholder="Describe the task..." 
+                  multiline={true} 
+                  {...field} 
+                />
               </FormControl>
               <FormMessage />
             </FormItem>
