@@ -21,13 +21,17 @@ import { supabase } from "@/integrations/supabase/client"
 import { DialogClose } from "@/components/ui/dialog"
 import { useAuth } from "@/hooks/useAuth"
 import { MentionsInput } from "@/components/ui/mentions-input/MentionsInput"
+import * as z from "zod"
+import { zodResolver } from "@hookform/resolvers/zod"
 
-type FormData = {
-  title: string
-  description: string
-  priority: string
-  status: string
-}
+const formSchema = z.object({
+  title: z.string().min(1, "Title is required"),
+  description: z.string(),
+  priority: z.string(),
+  status: z.string()
+})
+
+type FormData = z.infer<typeof formSchema>
 
 export function CreateTaskForm({ onSuccess }: { onSuccess: () => void }) {
   const [isSubmitting, setIsSubmitting] = useState(false)
@@ -35,6 +39,7 @@ export function CreateTaskForm({ onSuccess }: { onSuccess: () => void }) {
   const { user } = useAuth()
 
   const form = useForm<FormData>({
+    resolver: zodResolver(formSchema),
     defaultValues: {
       title: "",
       description: "",
@@ -48,6 +53,7 @@ export function CreateTaskForm({ onSuccess }: { onSuccess: () => void }) {
 
     setIsSubmitting(true)
     try {
+      console.log("Creating task with data:", data)
       const { error } = await supabase
         .from("tasks")
         .insert({
@@ -86,7 +92,7 @@ export function CreateTaskForm({ onSuccess }: { onSuccess: () => void }) {
             <FormItem>
               <FormLabel>Title</FormLabel>
               <FormControl>
-                <MentionsInput {...field} />
+                <MentionsInput {...field} placeholder="Enter task title" />
               </FormControl>
               <FormMessage />
             </FormItem>
@@ -100,7 +106,7 @@ export function CreateTaskForm({ onSuccess }: { onSuccess: () => void }) {
             <FormItem>
               <FormLabel>Description</FormLabel>
               <FormControl>
-                <MentionsInput {...field} multiline />
+                <MentionsInput {...field} multiline placeholder="Enter task description" />
               </FormControl>
               <FormMessage />
             </FormItem>
