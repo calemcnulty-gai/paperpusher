@@ -3,9 +3,6 @@ import { cn } from "@/lib/utils"
 import { Button } from "@/components/ui/button"
 import {
   LayoutDashboard,
-  Users,
-  Briefcase,
-  Building2,
   ShoppingBag,
   FileText,
   CheckSquare,
@@ -52,42 +49,6 @@ export function SidebarMenu() {
         >
           <FileText className="mr-2 h-4 w-4" />
           Documents
-        </Button>
-      </Link>
-      <Link to="/clients">
-        <Button
-          variant="sidebar"
-          className={cn(
-            "w-full justify-start",
-            isActive("/clients") && "bg-sidebar-accent text-sidebar-accent-foreground"
-          )}
-        >
-          <Users className="mr-2 h-4 w-4" />
-          Clients
-        </Button>
-      </Link>
-      <Link to="/suppliers">
-        <Button
-          variant="sidebar"
-          className={cn(
-            "w-full justify-start",
-            isActive("/suppliers") && "bg-sidebar-accent text-sidebar-accent-foreground"
-          )}
-        >
-          <Briefcase className="mr-2 h-4 w-4" />
-          Suppliers
-        </Button>
-      </Link>
-      <Link to="/principals">
-        <Button
-          variant="sidebar"
-          className={cn(
-            "w-full justify-start",
-            isActive("/principals") && "bg-sidebar-accent text-sidebar-accent-foreground"
-          )}
-        >
-          <Building2 className="mr-2 h-4 w-4" />
-          Principals
         </Button>
       </Link>
       <Link to="/tasks">
