@@ -9,6 +9,50 @@ export type Json =
 export type Database = {
   public: {
     Tables: {
+      document_embeddings: {
+        Row: {
+          content: string | null
+          created_at: string
+          embedding: string | null
+          file_path: string
+          filename: string
+          id: string
+          metadata: Json | null
+          product_id: string | null
+          updated_at: string
+        }
+        Insert: {
+          content?: string | null
+          created_at?: string
+          embedding?: string | null
+          file_path: string
+          filename: string
+          id?: string
+          metadata?: Json | null
+          product_id?: string | null
+          updated_at?: string
+        }
+        Update: {
+          content?: string | null
+          created_at?: string
+          embedding?: string | null
+          file_path?: string
+          filename?: string
+          id?: string
+          metadata?: Json | null
+          product_id?: string | null
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "document_embeddings_product_id_fkey"
+            columns: ["product_id"]
+            isOneToOne: false
+            referencedRelation: "products"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       products: {
         Row: {
           brand: string | null

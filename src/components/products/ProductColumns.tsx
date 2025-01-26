@@ -1,6 +1,7 @@
 import { ColumnDef } from "@tanstack/react-table"
 import { formatDate } from "@/lib/utils"
 import type { Product } from "@/types/products"
+import { DocumentUpload } from "./DocumentUpload"
 
 export const productColumns: ColumnDef<Product>[] = [
   {
@@ -42,5 +43,11 @@ export const productColumns: ColumnDef<Product>[] = [
     accessorKey: "created_at",
     header: "Created",
     cell: ({ row }) => formatDate(row.getValue("created_at")),
+  },
+  {
+    id: "actions",
+    cell: ({ row }) => {
+      return <DocumentUpload productId={row.original.id} />
+    },
   },
 ]
