@@ -83,14 +83,14 @@ export function MentionsInput({
 
   const handleMentionSelect = (selectedProfile: Profile) => {
     console.log("Selected profile:", selectedProfile)
-    const ref = multiline ? textareaRef.current : inputRef.current
-    if (!ref) {
+    const currentRef = multiline ? textareaRef.current : inputRef.current
+    if (!currentRef) {
       console.error("No input ref available")
       return
     }
 
-    const cursorPosition = ref.selectionStart || 0
-    const value = ref.value
+    const cursorPosition = currentRef.selectionStart || 0
+    const value = currentRef.value
     const textBeforeCursor = value.slice(0, cursorPosition)
     const textAfterCursor = value.slice(cursorPosition)
     const lastAtIndex = textBeforeCursor.lastIndexOf("@")
@@ -112,19 +112,27 @@ export function MentionsInput({
     setShowMentions(false)
   }
 
-  const InputComponent = multiline ? Textarea : Input
-  const ref = multiline ? textareaRef : inputRef
-
   return (
     <div className="relative" ref={containerRef}>
-      <InputComponent
-        ref={ref}
-        value={value}
-        onChange={(e) => onChange(e.target.value)}
-        onKeyUp={handleKeyUp}
-        placeholder={placeholder}
-        className={cn("w-full", className)}
-      />
+      {multiline ? (
+        <Textarea
+          ref={textareaRef}
+          value={value}
+          onChange={(e) => onChange(e.target.value)}
+          onKeyUp={handleKeyUp}
+          placeholder={placeholder}
+          className={cn("w-full", className)}
+        />
+      ) : (
+        <Input
+          ref={inputRef}
+          value={value}
+          onChange={(e) => onChange(e.target.value)}
+          onKeyUp={handleKeyUp}
+          placeholder={placeholder}
+          className={cn("w-full", className)}
+        />
+      )}
       {showMentions && filteredProfiles.length > 0 && (
         <div
           className="absolute z-50 w-64 bg-white border rounded-md shadow-lg"
