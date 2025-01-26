@@ -1,10 +1,10 @@
-import { useState, useEffect } from "react"
+import { useState } from "react"
 import { Button } from "@/components/ui/button"
 import { useToast } from "@/hooks/use-toast"
 import { supabase } from "@/integrations/supabase/client"
-import { Upload, FileText, Loader2 } from "lucide-react"
+import { Upload, FileText, Loader2, RefreshCw } from "lucide-react"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
-import { useQuery } from "@tanstack/react-query"
+import { useQuery, useQueryClient } from "@tanstack/react-query"
 
 interface DocumentEmbedding {
   id: string
@@ -16,7 +16,9 @@ interface DocumentEmbedding {
 
 export default function Documents() {
   const [isUploading, setIsUploading] = useState(false)
+  const [processingDocIds, setProcessingDocIds] = useState<string[]>([])
   const { toast } = useToast()
+  const queryClient = useQueryClient()
 
   // Fetch documents
   const { data: documents, isLoading: isLoadingDocs } = useQuery({
@@ -96,6 +98,36 @@ export default function Documents() {
     }
   }
 
+  const handleRetryProcessing = async (documentId: string) => {
+    console.log('Retrying processing for document:', documentId)
+    setProcessingDocIds(prev => [...prev, documentId])
+    
+    try {
+      const { error } = await supabase.functions.invoke('process-pdf', {
+        body: { document_id: documentId }
+      })
+
+      if (error) throw error
+
+      // Refetch documents to get updated status
+      await queryClient.invalidateQueries({ queryKey: ['documents'] })
+
+      toast({
+        title: "Processing started",
+        description: "The document is being processed. This may take a few moments."
+      })
+    } catch (error) {
+      console.error('Error retrying document processing:', error)
+      toast({
+        title: "Processing failed",
+        description: "There was an error processing the document. Please try again.",
+        variant: "destructive"
+      })
+    } finally {
+      setProcessingDocIds(prev => prev.filter(id => id !== documentId))
+    }
+  }
+
   return (
     <div className="container mx-auto py-6 space-y-6">
       <Card>
@@ -159,10 +191,27 @@ export default function Documents() {
                         Processed
                       </span>
                     ) : (
-                      <span className="text-sm text-yellow-600 bg-yellow-50 px-2 py-1 rounded flex items-center gap-2">
-                        <Loader2 className="h-3 w-3 animate-spin" />
-                        Processing
-                      </span>
+                      <div className="flex items-center gap-2">
+                        <span className="text-sm text-yellow-600 bg-yellow-50 px-2 py-1 rounded flex items-center gap-2">
+                          {processingDocIds.includes(doc.id) ? (
+                            <>
+                              <Loader2 className="h-3 w-3 animate-spin" />
+                              Processing
+                            </>
+                          ) : (
+                            'Unprocessed'
+                          )}
+                        </span>
+                        {!processingDocIds.includes(doc.id) && (
+                          <Button
+                            variant="ghost"
+                            size="sm"
+                            onClick={() => handleRetryProcessing(doc.id)}
+                          >
+                            <RefreshCw className="h-4 w-4" />
+                          </Button>
+                        )}
+                      </div>
                     )}
                   </div>
                 </div>
