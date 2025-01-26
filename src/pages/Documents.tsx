@@ -1,6 +1,6 @@
 import { useState } from "react"
 import { Button } from "@/components/ui/button"
-import { useToast } from "@/components/ui/use-toast"
+import { useToast } from "@/hooks/use-toast"
 import { supabase } from "@/integrations/supabase/client"
 import { Upload } from "lucide-react"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
@@ -37,18 +37,28 @@ export default function Documents() {
       if (uploadError) throw uploadError
 
       // Create document embedding record
-      const { error: dbError } = await supabase
+      const { data: docData, error: dbError } = await supabase
         .from('document_embeddings')
         .insert({
           filename: file.name,
           file_path: filePath,
         })
+        .select()
+        .single()
 
       if (dbError) throw dbError
 
+      // Trigger document processing
+      const { error: processError } = await supabase.functions
+        .invoke('process-pdf', {
+          body: { document_id: docData.id }
+        })
+
+      if (processError) throw processError
+
       toast({
         title: "Document uploaded",
-        description: "The document has been uploaded successfully"
+        description: "The document has been uploaded and is being processed"
       })
 
     } catch (error) {
@@ -85,7 +95,7 @@ export default function Documents() {
               onClick={() => document.getElementById('file-upload')?.click()}
             >
               <Upload className="h-4 w-4 mr-2" />
-              {isUploading ? "Uploading..." : "Upload Document"}
+              {isUploading ? "Processing..." : "Upload Document"}
             </Button>
           </div>
         </CardContent>
