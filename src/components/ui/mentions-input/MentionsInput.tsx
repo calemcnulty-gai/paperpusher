@@ -12,7 +12,7 @@ import { RootState } from "@/store"
 import { Profile } from "@/types/profiles"
 import { cn } from "@/lib/utils"
 
-interface MentionsInputProps extends React.ComponentPropsWithoutRef<"div"> {
+interface MentionsInputProps {
   value: string
   onChange: (value: string) => void
   multiline?: boolean
@@ -26,7 +26,6 @@ export function MentionsInput({
   multiline = false,
   placeholder,
   className,
-  ...props
 }: MentionsInputProps) {
   const [showMentions, setShowMentions] = useState(false)
   const [mentionAnchor, setMentionAnchor] = useState({ x: 0, y: 0 })
@@ -92,11 +91,11 @@ export function MentionsInput({
   const InputComponent = multiline ? Textarea : Input
 
   return (
-    <div className={cn("relative", className)} {...props}>
+    <div className={cn("relative", className)}>
       <InputComponent
-        ref={inputRef}
+        ref={inputRef as any}
         value={value}
-        onChange={(e) => onChange(e.target.value)}
+        onChange={(e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => onChange(e.target.value)}
         onKeyUp={handleKeyUp}
         placeholder={placeholder}
         className="w-full"
