@@ -91,18 +91,18 @@ export function MentionsInput({
 
   if (multiline) {
     return (
-      <div className={cn("relative", className)}>
+      <div className="relative">
         <Textarea
           ref={textareaRef}
           value={value}
           onChange={(e) => onChange(e.target.value)}
           onKeyUp={handleKeyUp}
           placeholder={placeholder}
-          className="w-full"
+          className={cn("w-full", className)}
         />
         {showMentions && filteredProfiles.length > 0 && (
           <div
-            className="absolute z-50 w-64 bg-white border rounded-md shadow-lg"
+            className="fixed z-50 w-64 bg-popover border rounded-md shadow-lg"
             style={{
               left: `${mentionAnchor.x}px`,
               top: `${mentionAnchor.y}px`,
@@ -131,18 +131,18 @@ export function MentionsInput({
   }
 
   return (
-    <div className={cn("relative", className)}>
+    <div className="relative">
       <Input
         ref={inputRef}
         value={value}
         onChange={(e) => onChange(e.target.value)}
         onKeyUp={handleKeyUp}
         placeholder={placeholder}
-        className="w-full"
+        className={cn("w-full", className)}
       />
       {showMentions && filteredProfiles.length > 0 && (
         <div
-          className="absolute z-50 w-64 bg-white border rounded-md shadow-lg"
+          className="fixed z-50 w-64 bg-popover border rounded-md shadow-lg"
           style={{
             left: `${mentionAnchor.x}px`,
             top: `${mentionAnchor.y}px`,
