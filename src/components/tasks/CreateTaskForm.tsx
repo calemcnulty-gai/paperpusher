@@ -1,4 +1,4 @@
-import { useState, useRef } from "react"
+import { useState } from "react"
 import { useForm } from "react-hook-form"
 import { Button } from "@/components/ui/button"
 import {
@@ -9,7 +9,6 @@ import {
   FormLabel,
   FormMessage,
 } from "@/components/ui/form"
-import { Input } from "@/components/ui/input"
 import {
   Select,
   SelectContent,
@@ -17,13 +16,11 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select"
-import { Textarea } from "@/components/ui/textarea"
 import { useToast } from "@/components/ui/use-toast"
 import { supabase } from "@/integrations/supabase/client"
 import { DialogClose } from "@/components/ui/dialog"
 import { useAuth } from "@/hooks/useAuth"
-import { UserMentionsPopover } from "./UserMentionsPopover"
-import { useMentions } from "@/hooks/useMentions"
+import { MentionsInput } from "@/components/ui/mentions-input/MentionsInput"
 
 type FormData = {
   title: string
@@ -34,11 +31,8 @@ type FormData = {
 
 export function CreateTaskForm({ onSuccess }: { onSuccess: () => void }) {
   const [isSubmitting, setIsSubmitting] = useState(false)
-  const [currentField, setCurrentField] = useState<"title" | "description" | null>(null)
   const { toast } = useToast()
   const { user } = useAuth()
-  const titleRef = useRef<HTMLInputElement>(null)
-  const descriptionRef = useRef<HTMLTextAreaElement>(null)
 
   const form = useForm<FormData>({
     defaultValues: {
@@ -47,41 +41,6 @@ export function CreateTaskForm({ onSuccess }: { onSuccess: () => void }) {
       priority: "medium",
       status: "open"
     }
-  })
-
-  const handleMentionInsert = (text: string) => {
-    if (!currentField) return
-
-    const formValue = form.getValues(currentField)
-    const target = currentField === "title" ? titleRef.current : descriptionRef.current
-    if (!target) return
-
-    const cursorPosition = target.selectionStart || 0
-    const textBeforeCursor = formValue.slice(0, cursorPosition)
-    const textAfterCursor = formValue.slice(cursorPosition)
-    
-    // Find the last @ symbol before cursor
-    const lastAtIndex = textBeforeCursor.lastIndexOf("@")
-    if (lastAtIndex === -1) return
-
-    const newText = 
-      textBeforeCursor.slice(0, lastAtIndex) + 
-      text + 
-      textAfterCursor
-
-    form.setValue(currentField, newText)
-  }
-
-  const {
-    showMentions,
-    setShowMentions,
-    anchorPoint,
-    searchTerm,
-    setSearchTerm,
-    handleKeyUp,
-    handleMentionSelect,
-  } = useMentions({
-    onMentionSelect: handleMentionInsert,
   })
 
   const onSubmit = async (data: FormData) => {
@@ -127,14 +86,7 @@ export function CreateTaskForm({ onSuccess }: { onSuccess: () => void }) {
             <FormItem>
               <FormLabel>Title</FormLabel>
               <FormControl>
-                <Input 
-                  {...field} 
-                  ref={titleRef}
-                  onKeyUp={(e) => {
-                    setCurrentField("title")
-                    handleKeyUp(e, e.currentTarget)
-                  }}
-                />
+                <MentionsInput {...field} />
               </FormControl>
               <FormMessage />
             </FormItem>
@@ -148,14 +100,7 @@ export function CreateTaskForm({ onSuccess }: { onSuccess: () => void }) {
             <FormItem>
               <FormLabel>Description</FormLabel>
               <FormControl>
-                <Textarea 
-                  {...field} 
-                  ref={descriptionRef}
-                  onKeyUp={(e) => {
-                    setCurrentField("description")
-                    handleKeyUp(e, e.currentTarget)
-                  }}
-                />
+                <MentionsInput {...field} multiline />
               </FormControl>
               <FormMessage />
             </FormItem>
@@ -196,15 +141,6 @@ export function CreateTaskForm({ onSuccess }: { onSuccess: () => void }) {
             {isSubmitting ? "Creating..." : "Create Task"}
           </Button>
         </div>
-
-        <UserMentionsPopover
-          open={showMentions}
-          onOpenChange={setShowMentions}
-          anchorPoint={anchorPoint}
-          searchTerm={searchTerm}
-          onSearchChange={setSearchTerm}
-          onUserSelect={handleMentionSelect}
-        />
       </form>
     </Form>
   )
