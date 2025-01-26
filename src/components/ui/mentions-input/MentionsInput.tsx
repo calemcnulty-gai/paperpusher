@@ -4,6 +4,7 @@ import {
   SelectContent,
   SelectItem,
   SelectTrigger,
+  SelectValue,
 } from "@/components/ui/select"
 import { Input } from "@/components/ui/input"
 import { Textarea } from "@/components/ui/textarea"
@@ -65,10 +66,10 @@ export function MentionsInput({
 
       setMentionAnchor({
         x: rect.left + atPosition,
-        y: rect.top + rect.height
+        y: rect.bottom
       })
       setShowMentions(true)
-      console.log("Showing mentions dropdown", { x: rect.left + atPosition, y: rect.top + rect.height })
+      console.log("Showing mentions dropdown", { x: rect.left + atPosition, y: rect.bottom })
     } else {
       setShowMentions(false)
     }
@@ -98,7 +99,7 @@ export function MentionsInput({
   return (
     <div className={cn("relative", className)}>
       <InputComponent
-        ref={inputRef as (multiline extends true ? React.RefObject<HTMLTextAreaElement> : React.RefObject<HTMLInputElement>)}
+        ref={inputRef}
         value={value}
         onChange={(e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => onChange(e.target.value)}
         onKeyUp={handleKeyUp}
@@ -107,37 +108,30 @@ export function MentionsInput({
       />
       
       {showMentions && filteredProfiles.length > 0 && (
-        <Select
-          open={showMentions}
-          onOpenChange={setShowMentions}
-          onValueChange={(value) => {
-            const selectedProfile = profiles.find(p => p.id === value)
-            if (selectedProfile) {
-              handleMentionSelect(selectedProfile)
-            }
+        <div
+          className="absolute z-50 w-64 bg-white border rounded-md shadow-lg"
+          style={{
+            left: `${mentionAnchor.x}px`,
+            top: `${mentionAnchor.y}px`,
           }}
         >
-          <SelectContent
-            style={{
-              position: 'absolute',
-              left: `${mentionAnchor.x}px`,
-              top: `${mentionAnchor.y}px`,
-              width: '250px',
-              zIndex: 50
-            }}
-          >
+          <div className="py-1">
             {filteredProfiles.map((profile) => (
-              <SelectItem key={profile.id} value={profile.id}>
+              <button
+                key={profile.id}
+                className="w-full px-4 py-2 text-left hover:bg-accent hover:text-accent-foreground"
+                onClick={() => handleMentionSelect(profile)}
+              >
                 <div className="flex items-center gap-2">
                   <span className="font-medium">{profile.full_name}</span>
                   <span className="text-muted-foreground">
                     @{profile.email?.split('@')[0]}
                   </span>
                 </div>
-              </SelectItem>
+              </button>
             ))}
-          </SelectContent>
-        </Select>
+          </div>
+        </div>
       )}
     </div>
   )
