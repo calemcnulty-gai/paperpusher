@@ -89,20 +89,57 @@ export function MentionsInput({
     setShowMentions(false)
   }
 
-  const InputComponent = multiline ? Textarea : Input
-  const currentRef = multiline ? textareaRef : inputRef
+  if (multiline) {
+    return (
+      <div className={cn("relative", className)}>
+        <Textarea
+          ref={textareaRef}
+          value={value}
+          onChange={(e) => onChange(e.target.value)}
+          onKeyUp={handleKeyUp}
+          placeholder={placeholder}
+          className="w-full"
+        />
+        {showMentions && filteredProfiles.length > 0 && (
+          <div
+            className="absolute z-50 w-64 bg-white border rounded-md shadow-lg"
+            style={{
+              left: `${mentionAnchor.x}px`,
+              top: `${mentionAnchor.y}px`,
+            }}
+          >
+            <div className="py-1">
+              {filteredProfiles.map((profile) => (
+                <button
+                  key={profile.id}
+                  className="w-full px-4 py-2 text-left hover:bg-accent hover:text-accent-foreground"
+                  onClick={() => handleMentionSelect(profile)}
+                >
+                  <div className="flex items-center gap-2">
+                    <span className="font-medium">{profile.full_name}</span>
+                    <span className="text-muted-foreground">
+                      @{profile.email?.split('@')[0]}
+                    </span>
+                  </div>
+                </button>
+              ))}
+            </div>
+          </div>
+        )}
+      </div>
+    )
+  }
 
   return (
     <div className={cn("relative", className)}>
-      <InputComponent
-        ref={currentRef}
+      <Input
+        ref={inputRef}
         value={value}
-        onChange={(e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => onChange(e.target.value)}
+        onChange={(e) => onChange(e.target.value)}
         onKeyUp={handleKeyUp}
         placeholder={placeholder}
         className="w-full"
       />
-      
       {showMentions && filteredProfiles.length > 0 && (
         <div
           className="absolute z-50 w-64 bg-white border rounded-md shadow-lg"
