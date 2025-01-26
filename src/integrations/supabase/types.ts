@@ -20,6 +20,7 @@ export type Database = {
           material: string | null
           name: string
           price: number | null
+          season: string | null
           size: string | null
           sku: string
           specifications: Json | null
@@ -37,6 +38,7 @@ export type Database = {
           material?: string | null
           name: string
           price?: number | null
+          season?: string | null
           size?: string | null
           sku: string
           specifications?: Json | null
@@ -54,6 +56,7 @@ export type Database = {
           material?: string | null
           name?: string
           price?: number | null
+          season?: string | null
           size?: string | null
           sku?: string
           specifications?: Json | null
