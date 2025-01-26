@@ -1,12 +1,6 @@
 import { createSlice, createAsyncThunk } from '@reduxjs/toolkit';
 import { supabase } from '@/integrations/supabase/client';
-
-type Profile = {
-  id: string;
-  full_name: string | null;
-  role: string | null;
-  email: string;
-};
+import type { Profile } from '@/types/profiles';
 
 interface ProfilesState {
   profiles: Profile[];
