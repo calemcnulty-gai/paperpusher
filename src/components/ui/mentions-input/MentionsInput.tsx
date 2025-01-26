@@ -1,11 +1,4 @@
 import React, { useRef, useState } from "react"
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from "@/components/ui/select"
 import { Input } from "@/components/ui/input"
 import { Textarea } from "@/components/ui/textarea"
 import { useSelector } from "react-redux"
@@ -31,7 +24,8 @@ export function MentionsInput({
   const [showMentions, setShowMentions] = useState(false)
   const [mentionAnchor, setMentionAnchor] = useState({ x: 0, y: 0 })
   const [searchTerm, setSearchTerm] = useState("")
-  const inputRef = useRef<HTMLInputElement | HTMLTextAreaElement>(null)
+  const textareaRef = useRef<HTMLTextAreaElement>(null)
+  const inputRef = useRef<HTMLInputElement>(null)
 
   const { profiles } = useSelector((state: RootState) => state.profiles)
   const filteredProfiles = profiles.filter(profile =>
@@ -76,10 +70,11 @@ export function MentionsInput({
   }
 
   const handleMentionSelect = (selectedProfile: Profile) => {
-    if (!inputRef.current) return
+    const ref = multiline ? textareaRef.current : inputRef.current
+    if (!ref) return
 
-    const cursorPosition = inputRef.current.selectionStart || 0
-    const value = inputRef.current.value
+    const cursorPosition = ref.selectionStart || 0
+    const value = ref.value
     const textBeforeCursor = value.slice(0, cursorPosition)
     const textAfterCursor = value.slice(cursorPosition)
     const lastAtIndex = textBeforeCursor.lastIndexOf("@")
@@ -95,11 +90,12 @@ export function MentionsInput({
   }
 
   const InputComponent = multiline ? Textarea : Input
+  const currentRef = multiline ? textareaRef : inputRef
 
   return (
     <div className={cn("relative", className)}>
       <InputComponent
-        ref={inputRef}
+        ref={currentRef}
         value={value}
         onChange={(e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => onChange(e.target.value)}
         onKeyUp={handleKeyUp}
