@@ -29,9 +29,12 @@ export function MentionsInput({
   const containerRef = useRef<HTMLDivElement>(null)
 
   const { profiles } = useSelector((state: RootState) => state.profiles)
+  console.log("Available profiles:", profiles)
+
   const filteredProfiles = profiles.filter(profile =>
     profile.full_name?.toLowerCase().includes(searchTerm.toLowerCase())
   )
+  console.log("Filtered profiles:", filteredProfiles, "for search term:", searchTerm)
 
   const handleKeyUp = (e: React.KeyboardEvent<HTMLInputElement | HTMLTextAreaElement>) => {
     const target = e.currentTarget
@@ -41,37 +44,63 @@ export function MentionsInput({
     const words = textBeforeCursor.split(/\s/)
     const currentWord = words[words.length - 1]
 
-    console.log("Current word:", currentWord)
+    console.log("KeyUp event:", {
+      value,
+      cursorPosition,
+      textBeforeCursor,
+      words,
+      currentWord,
+      key: e.key,
+      keyCode: e.keyCode
+    })
 
     if (currentWord.startsWith("@")) {
       const search = currentWord.slice(1)
+      console.log("@ detected - Setting search term:", search)
       setSearchTerm(search)
       
-      // Calculate position for the mentions dropdown
       const rect = target.getBoundingClientRect()
       const containerRect = containerRef.current?.getBoundingClientRect()
       
+      console.log("Element positions:", {
+        targetRect: {
+          top: rect.top,
+          left: rect.left,
+          bottom: rect.bottom,
+          height: rect.height,
+          width: rect.width
+        },
+        containerRect: containerRect ? {
+          top: containerRect.top,
+          left: containerRect.left,
+          bottom: containerRect.bottom,
+          height: containerRect.height,
+          width: containerRect.width
+        } : 'No container ref'
+      })
+
       if (containerRect) {
-        setMentionAnchor({
-          x: rect.left - containerRect.left,
-          y: rect.height
-        })
+        const newPosition = {
+          x: 0, // Start from left edge of container
+          y: rect.height // Position below input
+        }
+        console.log("Setting dropdown position to:", newPosition)
+        setMentionAnchor(newPosition)
         setShowMentions(true)
-        console.log("Showing mentions dropdown", { 
-          x: rect.left - containerRect.left, 
-          y: rect.height,
-          containerRect,
-          targetRect: rect
-        })
       }
     } else {
+      console.log("No @ detected, hiding dropdown")
       setShowMentions(false)
     }
   }
 
   const handleMentionSelect = (selectedProfile: Profile) => {
+    console.log("Selected profile:", selectedProfile)
     const ref = multiline ? textareaRef.current : inputRef.current
-    if (!ref) return
+    if (!ref) {
+      console.error("No input ref available")
+      return
+    }
 
     const cursorPosition = ref.selectionStart || 0
     const value = ref.value
@@ -79,12 +108,19 @@ export function MentionsInput({
     const textAfterCursor = value.slice(cursorPosition)
     const lastAtIndex = textBeforeCursor.lastIndexOf("@")
     
+    console.log("Mention selection:", {
+      cursorPosition,
+      textBeforeCursor,
+      textAfterCursor,
+      lastAtIndex
+    })
+
     const newText = 
       textBeforeCursor.slice(0, lastAtIndex) + 
       `@${selectedProfile.full_name} ` + 
       textAfterCursor
 
-    console.log("Selected profile:", selectedProfile.full_name)
+    console.log("New text after mention:", newText)
     onChange(newText)
     setShowMentions(false)
   }
@@ -102,7 +138,7 @@ export function MentionsInput({
         />
         {showMentions && filteredProfiles.length > 0 && (
           <div
-            className="absolute z-50 w-64 bg-popover border rounded-md shadow-lg"
+            className="absolute z-50 w-64 bg-white border rounded-md shadow-lg"
             style={{
               left: `${mentionAnchor.x}px`,
               top: `${mentionAnchor.y}px`,
@@ -142,7 +178,7 @@ export function MentionsInput({
       />
       {showMentions && filteredProfiles.length > 0 && (
         <div
-          className="absolute z-50 w-64 bg-popover border rounded-md shadow-lg"
+          className="absolute z-50 w-64 bg-white border rounded-md shadow-lg"
           style={{
             left: `${mentionAnchor.x}px`,
             top: `${mentionAnchor.y}px`,
