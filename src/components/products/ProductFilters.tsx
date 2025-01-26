@@ -48,7 +48,7 @@ export function ProductFilters({
             <SelectValue placeholder="Select supplier" />
           </SelectTrigger>
           <SelectContent>
-            <SelectItem value="">All suppliers</SelectItem>
+            <SelectItem value="all">All suppliers</SelectItem>
             {suppliers?.map((supplier) => (
               <SelectItem key={supplier.id} value={supplier.id}>
                 {supplier.full_name}
