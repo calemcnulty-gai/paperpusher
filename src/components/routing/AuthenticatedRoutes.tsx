@@ -9,6 +9,8 @@ import Index from "@/pages/Index"
 import Users from "@/pages/Users"
 import Tasks from "@/pages/Tasks"
 import Clients from "@/pages/Clients"
+import ClientDetail from "@/pages/ClientDetail"
+import SupplierDetail from "@/pages/SupplierDetail"
 import { MainLayout } from "@/components/layout/MainLayout"
 
 export const AuthenticatedRoutes = () => {
@@ -42,11 +44,21 @@ export const AuthenticatedRoutes = () => {
           }
         />
         <Route
-          path="/users/:userId"
+          path="/clients/:userId"
           element={
             <RequireAuth>
               <MainLayout>
-                <Users />
+                <ClientDetail />
+              </MainLayout>
+            </RequireAuth>
+          }
+        />
+        <Route
+          path="/suppliers/:userId"
+          element={
+            <RequireAuth>
+              <MainLayout>
+                <SupplierDetail />
               </MainLayout>
             </RequireAuth>
           }
