@@ -12,6 +12,7 @@ import Suppliers from "@/pages/Suppliers"
 import Principals from "@/pages/Principals"
 import ClientDetail from "@/pages/ClientDetail"
 import SupplierDetail from "@/pages/SupplierDetail"
+import Products from "@/pages/Products"
 import { MainLayout } from "@/components/layout/MainLayout"
 
 export const AuthenticatedRoutes = () => {
@@ -30,6 +31,16 @@ export const AuthenticatedRoutes = () => {
             <RequireAuth>
               <MainLayout>
                 <Index />
+              </MainLayout>
+            </RequireAuth>
+          }
+        />
+        <Route
+          path="/products"
+          element={
+            <RequireAuth>
+              <MainLayout>
+                <Products />
               </MainLayout>
             </RequireAuth>
           }
