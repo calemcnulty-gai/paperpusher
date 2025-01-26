@@ -28,13 +28,17 @@ export function MentionsInput({
   const inputRef = useRef<HTMLInputElement>(null)
   const containerRef = useRef<HTMLDivElement>(null)
 
-  const { profiles } = useSelector((state: RootState) => state.profiles)
-  console.log("Available profiles:", profiles)
+  const { profiles } = useSelector((state: RootState) => {
+    console.log("Redux state:", state)
+    console.log("Profiles in state:", state.profiles)
+    return state.profiles
+  })
 
-  const filteredProfiles = profiles.filter(profile =>
-    profile.full_name?.toLowerCase().includes(searchTerm.toLowerCase())
-  )
-  console.log("Filtered profiles:", filteredProfiles, "for search term:", searchTerm)
+  const filteredProfiles = profiles.filter(profile => {
+    const matches = profile.full_name?.toLowerCase().includes(searchTerm.toLowerCase())
+    console.log(`Filtering profile ${profile.full_name}: ${matches ? 'matches' : 'no match'} for term "${searchTerm}"`)
+    return matches
+  })
 
   const handleKeyUp = (e: React.KeyboardEvent<HTMLInputElement | HTMLTextAreaElement>) => {
     const target = e.currentTarget
@@ -44,14 +48,14 @@ export function MentionsInput({
     const words = textBeforeCursor.split(/\s/)
     const currentWord = words[words.length - 1]
 
-    console.log("KeyUp event:", {
+    console.log("Input event:", {
       value,
       cursorPosition,
       textBeforeCursor,
       words,
       currentWord,
-      key: e.key,
-      keyCode: e.keyCode
+      showingDropdown: showMentions,
+      filteredProfilesCount: filteredProfiles.length
     })
 
     if (currentWord.startsWith("@")) {
@@ -62,29 +66,12 @@ export function MentionsInput({
       const rect = target.getBoundingClientRect()
       const containerRect = containerRef.current?.getBoundingClientRect()
       
-      console.log("Element positions:", {
-        targetRect: {
-          top: rect.top,
-          left: rect.left,
-          bottom: rect.bottom,
-          height: rect.height,
-          width: rect.width
-        },
-        containerRect: containerRect ? {
-          top: containerRect.top,
-          left: containerRect.left,
-          bottom: containerRect.bottom,
-          height: containerRect.height,
-          width: containerRect.width
-        } : 'No container ref'
-      })
-
       if (containerRect) {
         const newPosition = {
-          x: 0, // Start from left edge of container
-          y: rect.height // Position below input
+          x: 0,
+          y: rect.height
         }
-        console.log("Setting dropdown position to:", newPosition)
+        console.log("Setting dropdown position:", newPosition)
         setMentionAnchor(newPosition)
         setShowMentions(true)
       }
@@ -125,51 +112,13 @@ export function MentionsInput({
     setShowMentions(false)
   }
 
-  if (multiline) {
-    return (
-      <div className="relative" ref={containerRef}>
-        <Textarea
-          ref={textareaRef}
-          value={value}
-          onChange={(e) => onChange(e.target.value)}
-          onKeyUp={handleKeyUp}
-          placeholder={placeholder}
-          className={cn("w-full", className)}
-        />
-        {showMentions && filteredProfiles.length > 0 && (
-          <div
-            className="absolute z-50 w-64 bg-white border rounded-md shadow-lg"
-            style={{
-              left: `${mentionAnchor.x}px`,
-              top: `${mentionAnchor.y}px`,
-            }}
-          >
-            <div className="py-1">
-              {filteredProfiles.map((profile) => (
-                <button
-                  key={profile.id}
-                  className="w-full px-4 py-2 text-left hover:bg-accent hover:text-accent-foreground"
-                  onClick={() => handleMentionSelect(profile)}
-                >
-                  <div className="flex items-center gap-2">
-                    <span className="font-medium">{profile.full_name}</span>
-                    <span className="text-muted-foreground">
-                      @{profile.email?.split('@')[0]}
-                    </span>
-                  </div>
-                </button>
-              ))}
-            </div>
-          </div>
-        )}
-      </div>
-    )
-  }
+  const InputComponent = multiline ? Textarea : Input
+  const ref = multiline ? textareaRef : inputRef
 
   return (
     <div className="relative" ref={containerRef}>
-      <Input
-        ref={inputRef}
+      <InputComponent
+        ref={ref}
         value={value}
         onChange={(e) => onChange(e.target.value)}
         onKeyUp={handleKeyUp}
