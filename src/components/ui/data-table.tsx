@@ -20,11 +20,15 @@ import {
 interface DataTableProps<TData, TValue> {
   columns: ColumnDef<TData, TValue>[]
   data: TData[]
+  rowProps?: React.HTMLAttributes<HTMLTableRowElement> & {
+    onClick?: (row: TData) => void
+  }
 }
 
 export function DataTable<TData, TValue>({
   columns,
   data,
+  rowProps,
 }: DataTableProps<TData, TValue>) {
   const table = useReactTable({
     data,
@@ -59,6 +63,11 @@ export function DataTable<TData, TValue>({
               <TableRow
                 key={row.id}
                 data-state={row.getIsSelected() && "selected"}
+                {...(rowProps && {
+                  ...rowProps,
+                  onClick: () => rowProps.onClick?.(row.original),
+                  className: `${rowProps.className || ""}`
+                })}
               >
                 {row.getVisibleCells().map((cell) => (
                   <TableCell key={cell.id}>

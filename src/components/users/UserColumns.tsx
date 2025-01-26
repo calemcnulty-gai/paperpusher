@@ -2,6 +2,7 @@ import { ColumnDef } from "@tanstack/react-table"
 import { Profile } from "@/types/profiles"
 import { Badge } from "@/components/ui/badge"
 import { formatDate } from "@/lib/utils"
+import { useNavigate } from "react-router-dom"
 
 export const columns: ColumnDef<Profile>[] = [
   {
@@ -32,3 +33,14 @@ export const columns: ColumnDef<Profile>[] = [
     },
   },
 ]
+
+export const useUserRowProps = () => {
+  const navigate = useNavigate()
+
+  return {
+    className: "cursor-pointer hover:bg-gray-50",
+    onClick: (row: Profile) => {
+      navigate(`/${row.role}s/${row.id}`)
+    },
+  }
+}
