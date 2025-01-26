@@ -2,7 +2,7 @@ import { useState } from "react"
 import { Button } from "@/components/ui/button"
 import { useToast } from "@/hooks/use-toast"
 import { supabase } from "@/integrations/supabase/client"
-import { Upload, FileText, Loader2, RefreshCw } from "lucide-react"
+import { Upload, FileText, RefreshCw, Loader2 } from "lucide-react"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { useQuery, useQueryClient } from "@tanstack/react-query"
 
@@ -20,25 +20,37 @@ export default function Documents() {
   const { toast } = useToast()
   const queryClient = useQueryClient()
 
+  console.log('Documents component rendered')
+
   // Fetch documents
   const { data: documents, isLoading: isLoadingDocs } = useQuery({
     queryKey: ['documents'],
     queryFn: async () => {
+      console.log('Fetching documents from Supabase')
       const { data, error } = await supabase
         .from('document_embeddings')
         .select('*')
         .order('created_at', { ascending: false })
 
-      if (error) throw error
+      if (error) {
+        console.error('Error fetching documents:', error)
+        throw error
+      }
+      
+      console.log('Documents fetched successfully:', data?.length || 0, 'documents')
       return data as DocumentEmbedding[]
     }
   })
 
   const handleFileUpload = async (event: React.ChangeEvent<HTMLInputElement>) => {
     const file = event.target.files?.[0]
-    if (!file) return
+    if (!file) {
+      console.log('No file selected')
+      return
+    }
 
     if (file.type !== 'application/pdf') {
+      console.warn('Invalid file type:', file.type)
       toast({
         title: "Invalid file type",
         description: "Please upload a PDF file",
@@ -47,19 +59,25 @@ export default function Documents() {
       return
     }
 
+    console.log('Starting file upload:', file.name)
     setIsUploading(true)
+    
     try {
-      console.log('Uploading document')
-      
       // Upload file to storage
       const fileExt = file.name.split('.').pop()
       const filePath = `${crypto.randomUUID()}.${fileExt}`
       
+      console.log('Uploading to storage path:', filePath)
       const { error: uploadError } = await supabase.storage
         .from('product_docs')
         .upload(filePath, file)
 
-      if (uploadError) throw uploadError
+      if (uploadError) {
+        console.error('Storage upload error:', uploadError)
+        throw uploadError
+      }
+
+      console.log('File uploaded successfully to storage')
 
       // Create document embedding record
       const { data: docData, error: dbError } = await supabase
@@ -71,23 +89,33 @@ export default function Documents() {
         .select()
         .single()
 
-      if (dbError) throw dbError
+      if (dbError) {
+        console.error('Database insert error:', dbError)
+        throw dbError
+      }
+
+      console.log('Document record created:', docData.id)
 
       // Trigger document processing
+      console.log('Triggering document processing for:', docData.id)
       const { error: processError } = await supabase.functions
         .invoke('process-pdf', {
           body: { document_id: docData.id }
         })
 
-      if (processError) throw processError
+      if (processError) {
+        console.error('Processing function error:', processError)
+        throw processError
+      }
 
+      console.log('Processing triggered successfully')
       toast({
         title: "Document uploaded",
         description: "The document has been uploaded and is being processed"
       })
 
     } catch (error) {
-      console.error('Error uploading document:', error)
+      console.error('Error in upload process:', error)
       toast({
         title: "Upload failed",
         description: "There was an error uploading the document",
@@ -95,6 +123,7 @@ export default function Documents() {
       })
     } finally {
       setIsUploading(false)
+      console.log('Upload process completed')
     }
   }
 
@@ -107,9 +136,12 @@ export default function Documents() {
         body: { document_id: documentId }
       })
 
-      if (error) throw error
+      if (error) {
+        console.error('Retry processing error:', error)
+        throw error
+      }
 
-      // Refetch documents to get updated status
+      console.log('Retry processing triggered successfully')
       await queryClient.invalidateQueries({ queryKey: ['documents'] })
 
       toast({
@@ -117,7 +149,7 @@ export default function Documents() {
         description: "The document is being processed. This may take a few moments."
       })
     } catch (error) {
-      console.error('Error retrying document processing:', error)
+      console.error('Error in retry processing:', error)
       toast({
         title: "Processing failed",
         description: "There was an error processing the document. Please try again.",
@@ -125,6 +157,7 @@ export default function Documents() {
       })
     } finally {
       setProcessingDocIds(prev => prev.filter(id => id !== documentId))
+      console.log('Retry processing completed for:', documentId)
     }
   }
 
@@ -186,33 +219,23 @@ export default function Documents() {
                     </div>
                   </div>
                   <div className="flex items-center gap-2">
-                    {doc.content ? (
+                    {doc.content && (
                       <span className="text-sm text-green-600 bg-green-50 px-2 py-1 rounded">
                         Processed
                       </span>
-                    ) : (
-                      <div className="flex items-center gap-2">
-                        <span className="text-sm text-yellow-600 bg-yellow-50 px-2 py-1 rounded flex items-center gap-2">
-                          {processingDocIds.includes(doc.id) ? (
-                            <>
-                              <Loader2 className="h-3 w-3 animate-spin" />
-                              Processing
-                            </>
-                          ) : (
-                            'Unprocessed'
-                          )}
-                        </span>
-                        {!processingDocIds.includes(doc.id) && (
-                          <Button
-                            variant="ghost"
-                            size="sm"
-                            onClick={() => handleRetryProcessing(doc.id)}
-                          >
-                            <RefreshCw className="h-4 w-4" />
-                          </Button>
-                        )}
-                      </div>
                     )}
+                    <Button
+                      variant="ghost"
+                      size="sm"
+                      onClick={() => handleRetryProcessing(doc.id)}
+                      disabled={processingDocIds.includes(doc.id)}
+                    >
+                      {processingDocIds.includes(doc.id) ? (
+                        <Loader2 className="h-4 w-4 animate-spin" />
+                      ) : (
+                        <RefreshCw className="h-4 w-4" />
+                      )}
+                    </Button>
                   </div>
                 </div>
               ))}
