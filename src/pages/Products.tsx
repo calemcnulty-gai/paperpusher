@@ -9,22 +9,20 @@ import type { Product } from "@/types/products"
 export default function Products() {
   const [selectedSupplier, setSelectedSupplier] = useState<string | null>(null)
   const [selectedSeason, setSelectedSeason] = useState<string | null>(null)
-  const [selectedUser, setSelectedUser] = useState<string | null>(null)
 
   const { data: products, isLoading } = useQuery({
-    queryKey: ['products', selectedSupplier, selectedSeason, selectedUser],
+    queryKey: ['products', selectedSupplier, selectedSeason],
     queryFn: async () => {
-      console.log('Fetching products with filters:', { selectedSupplier, selectedSeason, selectedUser })
-      let query = supabase.from('products').select('*, profiles:supplier_id(full_name)')
+      console.log('Fetching products with filters:', { selectedSupplier, selectedSeason })
+      let query = supabase
+        .from('products')
+        .select('*, profiles:supplier_id(full_name)')
 
       if (selectedSupplier) {
         query = query.eq('supplier_id', selectedSupplier)
       }
-      if (selectedSeason) {
+      if (selectedSeason && selectedSeason !== 'all') {
         query = query.eq('season', selectedSeason)
-      }
-      if (selectedUser) {
-        query = query.eq('creator_id', selectedUser)
       }
 
       const { data, error } = await query
@@ -50,7 +48,7 @@ export default function Products() {
       <ProductFilters 
         onSupplierChange={setSelectedSupplier}
         onSeasonChange={setSelectedSeason}
-        onUserChange={setSelectedUser}
+        onUserChange={() => {}} // Removed user filter functionality
       />
 
       <DataTable 
