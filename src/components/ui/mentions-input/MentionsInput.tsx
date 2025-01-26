@@ -98,7 +98,7 @@ export function MentionsInput({
   return (
     <div className={cn("relative", className)}>
       <InputComponent
-        ref={inputRef}
+        ref={inputRef as (multiline extends true ? React.RefObject<HTMLTextAreaElement> : React.RefObject<HTMLInputElement>)}
         value={value}
         onChange={(e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => onChange(e.target.value)}
         onKeyUp={handleKeyUp}
