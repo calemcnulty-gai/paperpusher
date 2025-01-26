@@ -23,6 +23,9 @@ import { useAuth } from "@/hooks/useAuth"
 import { MentionsInput } from "@/components/ui/mentions-input/MentionsInput"
 import * as z from "zod"
 import { zodResolver } from "@hookform/resolvers/zod"
+import type { Database } from "@/integrations/supabase/types"
+
+type TaskInsert = Database["public"]["Tables"]["tasks"]["Insert"]
 
 const formSchema = z.object({
   title: z.string().min(1, "Title is required"),
@@ -54,12 +57,17 @@ export function CreateTaskForm({ onSuccess }: { onSuccess: () => void }) {
     setIsSubmitting(true)
     try {
       console.log("Creating task with data:", data)
+      const taskData: TaskInsert = {
+        title: data.title,
+        description: data.description,
+        priority: data.priority,
+        status: data.status,
+        creator_id: user.id
+      }
+
       const { error } = await supabase
         .from("tasks")
-        .insert({
-          ...data,
-          creator_id: user.id
-        })
+        .insert(taskData)
 
       if (error) throw error
 
