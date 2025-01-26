@@ -6,6 +6,7 @@ import { RootState } from "@/store"
 import { Profile } from "@/types/profiles"
 import { cn } from "@/lib/utils"
 import { supabase } from "@/integrations/supabase/client"
+import { useNavigate } from "react-router-dom"
 
 interface MentionsInputProps {
   value: string
@@ -40,6 +41,7 @@ export function MentionsInput({
   const textareaRef = useRef<HTMLTextAreaElement>(null)
   const inputRef = useRef<HTMLInputElement>(null)
   const containerRef = useRef<HTMLDivElement>(null)
+  const navigate = useNavigate()
 
   const { profiles } = useSelector((state: RootState) => {
     console.log("Redux state:", state)
@@ -156,6 +158,9 @@ export function MentionsInput({
     console.log("New text after mention:", newText)
     onChange(newText)
     setShowMentions(false)
+
+    // Navigate to the appropriate user route based on role
+    navigate(`/${selectedProfile.role}s/${selectedProfile.id}`)
   }
 
   const handleProductSelect = (selectedProduct: Product) => {
@@ -180,6 +185,9 @@ export function MentionsInput({
     console.log("New text after product mention:", newText)
     onChange(newText)
     setShowProducts(false)
+
+    // Navigate to the product route
+    navigate(`/products/${selectedProduct.id}`)
   }
 
   return (
