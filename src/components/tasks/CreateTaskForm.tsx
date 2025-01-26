@@ -11,10 +11,10 @@ import {
 import { useToast } from "@/components/ui/use-toast"
 import { supabase } from "@/integrations/supabase/client"
 import { useAuth } from "@/hooks/useAuth"
-import { MentionsInput } from "@/components/ui/mentions-input/MentionsInput"
 import { useEffect } from "react"
 import { useAppDispatch } from "@/store"
 import { fetchProfiles } from "@/store/profilesSlice"
+import { EnhancedInput } from "@/components/ui/enhanced-input/EnhancedInput"
 
 interface CreateTaskFormProps {
   onSuccess: () => void
@@ -76,7 +76,7 @@ export function CreateTaskForm({ onSuccess }: CreateTaskFormProps) {
             <FormItem>
               <FormLabel>Title</FormLabel>
               <FormControl>
-                <MentionsInput placeholder="Task title" {...field} />
+                <EnhancedInput placeholder="Task title" {...field} />
               </FormControl>
               <FormMessage />
             </FormItem>
@@ -89,7 +89,7 @@ export function CreateTaskForm({ onSuccess }: CreateTaskFormProps) {
             <FormItem>
               <FormLabel>Description</FormLabel>
               <FormControl>
-                <MentionsInput 
+                <EnhancedInput 
                   placeholder="Describe the task..." 
                   multiline={true} 
                   {...field} 
