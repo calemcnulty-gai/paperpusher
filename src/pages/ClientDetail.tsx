@@ -28,22 +28,22 @@ export default function ClientDetail() {
     },
   })
 
-  const { data: tickets, isLoading: ticketsLoading } = useQuery({
-    queryKey: ["tickets", userId],
+  const { data: tasks, isLoading: tasksLoading } = useQuery({
+    queryKey: ["tasks", userId],
     queryFn: async () => {
-      console.log("Fetching client tickets:", userId)
+      console.log("Fetching client tasks:", userId)
       const { data, error } = await supabase
-        .from("tickets")
+        .from("tasks")
         .select("*")
-        .eq("customer_id", userId)
+        .eq("creator_id", userId)
         .order("created_at", { ascending: false })
 
       if (error) {
-        console.error("Error fetching client tickets:", error)
+        console.error("Error fetching client tasks:", error)
         throw error
       }
 
-      console.log("Fetched client tickets:", data)
+      console.log("Fetched client tasks:", data)
       return data || []
     },
   })
@@ -57,8 +57,8 @@ export default function ClientDetail() {
     )
   }
 
-  const openTickets = tickets?.filter((ticket) => ticket.status !== "closed") || []
-  const closedTickets = tickets?.filter((ticket) => ticket.status === "closed") || []
+  const openTasks = tasks?.filter((task) => task.status !== "resolved") || []
+  const closedTasks = tasks?.filter((task) => task.status === "resolved") || []
 
   return (
     <div className="space-y-6">
@@ -82,30 +82,30 @@ export default function ClientDetail() {
 
       <Tabs defaultValue="open" className="w-full">
         <TabsList>
-          <TabsTrigger value="open">Open Tickets ({openTickets.length})</TabsTrigger>
-          <TabsTrigger value="closed">Closed Tickets ({closedTickets.length})</TabsTrigger>
+          <TabsTrigger value="open">Open Tasks ({openTasks.length})</TabsTrigger>
+          <TabsTrigger value="closed">Closed Tasks ({closedTasks.length})</TabsTrigger>
         </TabsList>
         <TabsContent value="open">
-          {ticketsLoading ? (
+          {tasksLoading ? (
             <div className="space-y-2">
               <Skeleton className="h-20 w-full" />
               <Skeleton className="h-20 w-full" />
             </div>
-          ) : openTickets.length === 0 ? (
-            <p className="text-center text-gray-500 py-4">No open tickets</p>
+          ) : openTasks.length === 0 ? (
+            <p className="text-center text-gray-500 py-4">No open tasks</p>
           ) : (
             <div className="space-y-4">
-              {openTickets.map((ticket) => (
-                <Card key={ticket.id}>
+              {openTasks.map((task) => (
+                <Card key={task.id}>
                   <CardContent className="pt-6">
-                    <h3 className="font-medium">{ticket.subject}</h3>
-                    <p className="text-sm text-gray-500 mt-1">{ticket.description}</p>
+                    <h3 className="font-medium">{task.title}</h3>
+                    <p className="text-sm text-gray-500 mt-1">{task.description}</p>
                     <div className="flex gap-2 mt-2">
                       <span className="text-xs bg-blue-100 text-blue-800 px-2 py-1 rounded">
-                        {ticket.status}
+                        {task.status}
                       </span>
                       <span className="text-xs bg-purple-100 text-purple-800 px-2 py-1 rounded">
-                        {ticket.priority}
+                        {task.priority}
                       </span>
                     </div>
                   </CardContent>
@@ -115,20 +115,20 @@ export default function ClientDetail() {
           )}
         </TabsContent>
         <TabsContent value="closed">
-          {ticketsLoading ? (
+          {tasksLoading ? (
             <div className="space-y-2">
               <Skeleton className="h-20 w-full" />
               <Skeleton className="h-20 w-full" />
             </div>
-          ) : closedTickets.length === 0 ? (
-            <p className="text-center text-gray-500 py-4">No closed tickets</p>
+          ) : closedTasks.length === 0 ? (
+            <p className="text-center text-gray-500 py-4">No closed tasks</p>
           ) : (
             <div className="space-y-4">
-              {closedTickets.map((ticket) => (
-                <Card key={ticket.id}>
+              {closedTasks.map((task) => (
+                <Card key={task.id}>
                   <CardContent className="pt-6">
-                    <h3 className="font-medium">{ticket.subject}</h3>
-                    <p className="text-sm text-gray-500 mt-1">{ticket.description}</p>
+                    <h3 className="font-medium">{task.title}</h3>
+                    <p className="text-sm text-gray-500 mt-1">{task.description}</p>
                     <div className="flex gap-2 mt-2">
                       <span className="text-xs bg-gray-100 text-gray-800 px-2 py-1 rounded">
                         Closed

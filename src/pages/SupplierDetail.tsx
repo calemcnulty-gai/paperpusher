@@ -28,22 +28,22 @@ export default function SupplierDetail() {
     },
   })
 
-  const { data: tickets, isLoading: ticketsLoading } = useQuery({
-    queryKey: ["tickets", userId],
+  const { data: tasks, isLoading: tasksLoading } = useQuery({
+    queryKey: ["tasks", userId],
     queryFn: async () => {
-      console.log("Fetching supplier tickets:", userId)
+      console.log("Fetching supplier tasks:", userId)
       const { data, error } = await supabase
-        .from("tickets")
+        .from("tasks")
         .select("*")
-        .eq("assigned_to", userId)
+        .eq("assignee_id", userId)
         .order("created_at", { ascending: false })
 
       if (error) {
-        console.error("Error fetching supplier tickets:", error)
+        console.error("Error fetching supplier tasks:", error)
         throw error
       }
 
-      console.log("Fetched supplier tickets:", data)
+      console.log("Fetched supplier tasks:", data)
       return data || []
     },
   })
@@ -77,7 +77,7 @@ export default function SupplierDetail() {
     )
   }
 
-  const openTickets = tickets?.filter((ticket) => ticket.status !== "closed") || []
+  const openTasks = tasks?.filter((task) => task.status !== "resolved") || []
 
   return (
     <div className="space-y-6">
@@ -99,32 +99,32 @@ export default function SupplierDetail() {
         </CardContent>
       </Card>
 
-      <Tabs defaultValue="tickets" className="w-full">
+      <Tabs defaultValue="tasks" className="w-full">
         <TabsList>
-          <TabsTrigger value="tickets">Open Tickets ({openTickets.length})</TabsTrigger>
+          <TabsTrigger value="tasks">Open Tasks ({openTasks.length})</TabsTrigger>
           <TabsTrigger value="products">Products ({products?.length || 0})</TabsTrigger>
         </TabsList>
-        <TabsContent value="tickets">
-          {ticketsLoading ? (
+        <TabsContent value="tasks">
+          {tasksLoading ? (
             <div className="space-y-2">
               <Skeleton className="h-20 w-full" />
               <Skeleton className="h-20 w-full" />
             </div>
-          ) : openTickets.length === 0 ? (
-            <p className="text-center text-gray-500 py-4">No open tickets</p>
+          ) : openTasks.length === 0 ? (
+            <p className="text-center text-gray-500 py-4">No open tasks</p>
           ) : (
             <div className="space-y-4">
-              {openTickets.map((ticket) => (
-                <Card key={ticket.id}>
+              {openTasks.map((task) => (
+                <Card key={task.id}>
                   <CardContent className="pt-6">
-                    <h3 className="font-medium">{ticket.subject}</h3>
-                    <p className="text-sm text-gray-500 mt-1">{ticket.description}</p>
+                    <h3 className="font-medium">{task.title}</h3>
+                    <p className="text-sm text-gray-500 mt-1">{task.description}</p>
                     <div className="flex gap-2 mt-2">
                       <span className="text-xs bg-blue-100 text-blue-800 px-2 py-1 rounded">
-                        {ticket.status}
+                        {task.status}
                       </span>
                       <span className="text-xs bg-purple-100 text-purple-800 px-2 py-1 rounded">
-                        {ticket.priority}
+                        {task.priority}
                       </span>
                     </div>
                   </CardContent>
