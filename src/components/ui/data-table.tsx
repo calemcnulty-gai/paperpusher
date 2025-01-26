@@ -20,8 +20,9 @@ import {
 interface DataTableProps<TData, TValue> {
   columns: ColumnDef<TData, TValue>[]
   data: TData[]
-  rowProps?: React.HTMLAttributes<HTMLTableRowElement> & {
+  rowProps?: Omit<React.HTMLAttributes<HTMLTableRowElement>, 'onClick'> & {
     onClick?: (row: TData) => void
+    className?: string
   }
 }
 
@@ -65,7 +66,10 @@ export function DataTable<TData, TValue>({
                 data-state={row.getIsSelected() && "selected"}
                 {...(rowProps && {
                   ...rowProps,
-                  onClick: () => rowProps.onClick?.(row.original),
+                  onClick: (e: React.MouseEvent<HTMLTableRowElement>) => {
+                    e.preventDefault()
+                    rowProps.onClick?.(row.original)
+                  },
                   className: `${rowProps.className || ""}`
                 })}
               >
