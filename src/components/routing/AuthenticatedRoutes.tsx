@@ -6,9 +6,10 @@ import { setupRealtimeSubscriptions } from "@/store/realtimeSlice"
 import { AuthProvider } from "@/components/auth/AuthProvider"
 import { RequireAuth } from "@/components/auth/RequireAuth"
 import Index from "@/pages/Index"
-import Users from "@/pages/Users"
 import Tasks from "@/pages/Tasks"
 import Clients from "@/pages/Clients"
+import Suppliers from "@/pages/Suppliers"
+import Principals from "@/pages/Principals"
 import ClientDetail from "@/pages/ClientDetail"
 import SupplierDetail from "@/pages/SupplierDetail"
 import { MainLayout } from "@/components/layout/MainLayout"
@@ -34,11 +35,31 @@ export const AuthenticatedRoutes = () => {
           }
         />
         <Route
-          path="/users"
+          path="/clients"
           element={
             <RequireAuth>
               <MainLayout>
-                <Users />
+                <Clients />
+              </MainLayout>
+            </RequireAuth>
+          }
+        />
+        <Route
+          path="/suppliers"
+          element={
+            <RequireAuth>
+              <MainLayout>
+                <Suppliers />
+              </MainLayout>
+            </RequireAuth>
+          }
+        />
+        <Route
+          path="/principals"
+          element={
+            <RequireAuth>
+              <MainLayout>
+                <Principals />
               </MainLayout>
             </RequireAuth>
           }
@@ -69,16 +90,6 @@ export const AuthenticatedRoutes = () => {
             <RequireAuth>
               <MainLayout>
                 <Tasks />
-              </MainLayout>
-            </RequireAuth>
-          }
-        />
-        <Route
-          path="/clients"
-          element={
-            <RequireAuth>
-              <MainLayout>
-                <Clients />
               </MainLayout>
             </RequireAuth>
           }

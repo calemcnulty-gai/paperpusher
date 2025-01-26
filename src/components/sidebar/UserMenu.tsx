@@ -10,9 +10,9 @@ import {
 } from "@/components/ui/sidebar"
 
 const userMenuItems = [
-  { title: "Clients", icon: Users, url: "/users?role=client" },
-  { title: "Suppliers", icon: Users, url: "/users?role=supplier" },
-  { title: "Principals", icon: Users, url: "/users?role=principal" },
+  { title: "Clients", icon: Users, url: "/clients" },
+  { title: "Suppliers", icon: Users, url: "/suppliers" },
+  { title: "Principals", icon: Users, url: "/principals" },
 ]
 
 export function UserMenu() {

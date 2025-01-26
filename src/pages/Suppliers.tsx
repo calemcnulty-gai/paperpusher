@@ -3,23 +3,23 @@ import { DataTable } from "@/components/ui/data-table"
 import { columns, useUserRowProps } from "@/components/users/UserColumns"
 import { supabase } from "@/integrations/supabase/client"
 
-export default function Clients() {
-  const { data: clients, isLoading } = useQuery({
-    queryKey: ["clients"],
+export default function Suppliers() {
+  const { data: suppliers, isLoading } = useQuery({
+    queryKey: ["suppliers"],
     queryFn: async () => {
-      console.log("Fetching clients from Supabase")
+      console.log("Fetching suppliers from Supabase")
       const { data, error } = await supabase
         .from("profiles")
         .select("*")
-        .eq("role", "client")
+        .eq("role", "supplier")
         .order("created_at", { ascending: false })
 
       if (error) {
-        console.error("Error fetching clients:", error)
+        console.error("Error fetching suppliers:", error)
         throw error
       }
 
-      console.log("Fetched clients:", data)
+      console.log("Fetched suppliers:", data)
       return data
     },
   })
@@ -29,12 +29,12 @@ export default function Clients() {
   return (
     <div className="container mx-auto py-10">
       <div className="flex justify-between items-center mb-8">
-        <h1 className="text-3xl font-bold">Clients</h1>
+        <h1 className="text-3xl font-bold">Suppliers</h1>
       </div>
 
       <DataTable 
         columns={columns} 
-        data={clients || []} 
+        data={suppliers || []} 
         rowProps={rowProps}
       />
     </div>
