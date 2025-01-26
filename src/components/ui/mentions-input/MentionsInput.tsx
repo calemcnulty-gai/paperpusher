@@ -26,6 +26,7 @@ export function MentionsInput({
   const [searchTerm, setSearchTerm] = useState("")
   const textareaRef = useRef<HTMLTextAreaElement>(null)
   const inputRef = useRef<HTMLInputElement>(null)
+  const containerRef = useRef<HTMLDivElement>(null)
 
   const { profiles } = useSelector((state: RootState) => state.profiles)
   const filteredProfiles = profiles.filter(profile =>
@@ -48,22 +49,21 @@ export function MentionsInput({
       
       // Calculate position for the mentions dropdown
       const rect = target.getBoundingClientRect()
-      const textBeforeAt = textBeforeCursor.slice(0, textBeforeCursor.lastIndexOf('@'))
-      const tempSpan = document.createElement('span')
-      tempSpan.style.font = window.getComputedStyle(target).font
-      tempSpan.style.visibility = 'hidden'
-      tempSpan.style.position = 'absolute'
-      tempSpan.textContent = textBeforeAt
-      document.body.appendChild(tempSpan)
-      const atPosition = tempSpan.getBoundingClientRect().width
-      document.body.removeChild(tempSpan)
-
-      setMentionAnchor({
-        x: rect.left + atPosition,
-        y: rect.bottom
-      })
-      setShowMentions(true)
-      console.log("Showing mentions dropdown", { x: rect.left + atPosition, y: rect.bottom })
+      const containerRect = containerRef.current?.getBoundingClientRect()
+      
+      if (containerRect) {
+        setMentionAnchor({
+          x: rect.left - containerRect.left,
+          y: rect.height
+        })
+        setShowMentions(true)
+        console.log("Showing mentions dropdown", { 
+          x: rect.left - containerRect.left, 
+          y: rect.height,
+          containerRect,
+          targetRect: rect
+        })
+      }
     } else {
       setShowMentions(false)
     }
@@ -91,7 +91,7 @@ export function MentionsInput({
 
   if (multiline) {
     return (
-      <div className="relative">
+      <div className="relative" ref={containerRef}>
         <Textarea
           ref={textareaRef}
           value={value}
@@ -102,7 +102,7 @@ export function MentionsInput({
         />
         {showMentions && filteredProfiles.length > 0 && (
           <div
-            className="fixed z-50 w-64 bg-popover border rounded-md shadow-lg"
+            className="absolute z-50 w-64 bg-popover border rounded-md shadow-lg"
             style={{
               left: `${mentionAnchor.x}px`,
               top: `${mentionAnchor.y}px`,
@@ -131,7 +131,7 @@ export function MentionsInput({
   }
 
   return (
-    <div className="relative">
+    <div className="relative" ref={containerRef}>
       <Input
         ref={inputRef}
         value={value}
@@ -142,7 +142,7 @@ export function MentionsInput({
       />
       {showMentions && filteredProfiles.length > 0 && (
         <div
-          className="fixed z-50 w-64 bg-popover border rounded-md shadow-lg"
+          className="absolute z-50 w-64 bg-popover border rounded-md shadow-lg"
           style={{
             left: `${mentionAnchor.x}px`,
             top: `${mentionAnchor.y}px`,
