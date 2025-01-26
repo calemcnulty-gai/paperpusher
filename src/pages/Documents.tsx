@@ -3,12 +3,9 @@ import { Button } from "@/components/ui/button"
 import { useToast } from "@/components/ui/use-toast"
 import { supabase } from "@/integrations/supabase/client"
 import { Upload } from "lucide-react"
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 
-interface DocumentUploadProps {
-  productId: string
-}
-
-export function DocumentUpload({ productId }: DocumentUploadProps) {
+export default function Documents() {
   const [isUploading, setIsUploading] = useState(false)
   const { toast } = useToast()
 
@@ -27,11 +24,11 @@ export function DocumentUpload({ productId }: DocumentUploadProps) {
 
     setIsUploading(true)
     try {
-      console.log('Uploading document for product:', productId)
+      console.log('Uploading document')
       
       // Upload file to storage
       const fileExt = file.name.split('.').pop()
-      const filePath = `${productId}/${crypto.randomUUID()}.${fileExt}`
+      const filePath = `${crypto.randomUUID()}.${fileExt}`
       
       const { error: uploadError } = await supabase.storage
         .from('product_docs')
@@ -45,7 +42,6 @@ export function DocumentUpload({ productId }: DocumentUploadProps) {
         .insert({
           filename: file.name,
           file_path: filePath,
-          product_id: productId,
         })
 
       if (dbError) throw dbError
@@ -68,24 +64,32 @@ export function DocumentUpload({ productId }: DocumentUploadProps) {
   }
 
   return (
-    <div className="flex items-center gap-2">
-      <input
-        type="file"
-        accept=".pdf"
-        onChange={handleFileUpload}
-        className="hidden"
-        id={`file-upload-${productId}`}
-        disabled={isUploading}
-      />
-      <Button
-        variant="outline"
-        size="sm"
-        disabled={isUploading}
-        onClick={() => document.getElementById(`file-upload-${productId}`)?.click()}
-      >
-        <Upload className="h-4 w-4 mr-2" />
-        {isUploading ? "Uploading..." : "Upload Document"}
-      </Button>
+    <div className="container mx-auto py-6">
+      <Card>
+        <CardHeader>
+          <CardTitle>Document Upload</CardTitle>
+        </CardHeader>
+        <CardContent>
+          <div className="flex items-center gap-2">
+            <input
+              type="file"
+              accept=".pdf"
+              onChange={handleFileUpload}
+              className="hidden"
+              id="file-upload"
+              disabled={isUploading}
+            />
+            <Button
+              variant="outline"
+              disabled={isUploading}
+              onClick={() => document.getElementById('file-upload')?.click()}
+            >
+              <Upload className="h-4 w-4 mr-2" />
+              {isUploading ? "Uploading..." : "Upload Document"}
+            </Button>
+          </div>
+        </CardContent>
+      </Card>
     </div>
   )
 }
