@@ -45,10 +45,13 @@ export function MentionsInput({
     const words = textBeforeCursor.split(/\s/)
     const currentWord = words[words.length - 1]
 
+    console.log("Current word:", currentWord)
+
     if (currentWord.startsWith("@")) {
       const search = currentWord.slice(1)
       setSearchTerm(search)
       
+      // Calculate position for the mentions dropdown
       const rect = target.getBoundingClientRect()
       const textBeforeAt = textBeforeCursor.slice(0, textBeforeCursor.lastIndexOf('@'))
       const tempSpan = document.createElement('span')
@@ -65,6 +68,7 @@ export function MentionsInput({
         y: rect.top + rect.height
       })
       setShowMentions(true)
+      console.log("Showing mentions dropdown", { x: rect.left + atPosition, y: rect.top + rect.height })
     } else {
       setShowMentions(false)
     }
@@ -84,6 +88,7 @@ export function MentionsInput({
       `@${selectedProfile.full_name} ` + 
       textAfterCursor
 
+    console.log("Selected profile:", selectedProfile.full_name)
     onChange(newText)
     setShowMentions(false)
   }
@@ -93,7 +98,7 @@ export function MentionsInput({
   return (
     <div className={cn("relative", className)}>
       <InputComponent
-        ref={inputRef as any}
+        ref={inputRef}
         value={value}
         onChange={(e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => onChange(e.target.value)}
         onKeyUp={handleKeyUp}
@@ -101,7 +106,7 @@ export function MentionsInput({
         className="w-full"
       />
       
-      {showMentions && (
+      {showMentions && filteredProfiles.length > 0 && (
         <Select
           open={showMentions}
           onOpenChange={setShowMentions}
@@ -117,7 +122,8 @@ export function MentionsInput({
               position: 'absolute',
               left: `${mentionAnchor.x}px`,
               top: `${mentionAnchor.y}px`,
-              width: '250px'
+              width: '250px',
+              zIndex: 50
             }}
           >
             {filteredProfiles.map((profile) => (
@@ -125,7 +131,7 @@ export function MentionsInput({
                 <div className="flex items-center gap-2">
                   <span className="font-medium">{profile.full_name}</span>
                   <span className="text-muted-foreground">
-                    @{profile.email.split('@')[0]}
+                    @{profile.email?.split('@')[0]}
                   </span>
                 </div>
               </SelectItem>
