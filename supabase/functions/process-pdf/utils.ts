@@ -68,12 +68,17 @@ async function checkJobStatus(jobId: string, apiKey: string): Promise<string> {
 
   const result = await response.json()
   console.log('Job status result:', result)
+  
+  if (result.status === 'error') {
+    throw new Error(`Job failed: ${result.message || 'Unknown error'}`)
+  }
+  
   return result.status
 }
 
 async function getJobResult(jobId: string, apiKey: string): Promise<string> {
   console.log('Getting job result for:', jobId)
-  const response = await fetch(`https://api.pdf.co/v1/job/result?jobid=${jobId}`, {
+  const response = await fetch(`https://api.pdf.co/v1/job/get?jobid=${jobId}`, {
     headers: {
       'x-api-key': apiKey
     }
@@ -92,11 +97,15 @@ async function getJobResult(jobId: string, apiKey: string): Promise<string> {
   const result = await response.json()
   console.log('Job result:', result)
   
-  if (!result.urls || !result.urls.length) {
-    throw new Error('No image URLs returned in job result')
+  if (result.status === 'error') {
+    throw new Error(`Failed to get result: ${result.message}`)
+  }
+  
+  if (!result.url) {
+    throw new Error('No image URL returned in job result')
   }
 
-  return result.urls[0]
+  return result.url
 }
 
 export const convertPDFToImage = async (pdfData: Uint8Array) => {
