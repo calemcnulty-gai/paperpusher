@@ -15,6 +15,11 @@ export const DocumentUpload = () => {
     const file = event.target.files?.[0]
     if (!file) {
       console.log('No file selected')
+      toast({
+        title: "No file selected",
+        description: "Please select a PDF file to upload",
+        variant: "destructive"
+      })
       return
     }
 
@@ -22,7 +27,7 @@ export const DocumentUpload = () => {
       console.warn('Invalid file type:', file.type)
       toast({
         title: "Invalid file type",
-        description: "Please upload a PDF file",
+        description: "Only PDF files are supported",
         variant: "destructive"
       })
       return
@@ -42,7 +47,7 @@ export const DocumentUpload = () => {
 
       if (uploadError) {
         console.error('Storage upload error:', uploadError)
-        throw uploadError
+        throw new Error(`Failed to upload file: ${uploadError.message}`)
       }
 
       console.log('File uploaded successfully to storage')
@@ -58,7 +63,7 @@ export const DocumentUpload = () => {
 
       if (dbError) {
         console.error('Database insert error:', dbError)
-        throw dbError
+        throw new Error(`Failed to create document record: ${dbError.message}`)
       }
 
       console.log('Document record created:', docData.id)
@@ -70,7 +75,7 @@ export const DocumentUpload = () => {
 
       if (processError) {
         console.error('Processing function error:', processError)
-        throw processError
+        throw new Error(`Failed to process document: ${processError.message}`)
       }
 
       console.log('Processing triggered successfully')
@@ -83,9 +88,15 @@ export const DocumentUpload = () => {
       console.error('Error in upload process:', error)
       toast({
         title: "Upload failed",
-        description: "There was an error uploading the document",
+        description: error instanceof Error ? error.message : "There was an error uploading the document",
         variant: "destructive"
       })
+
+      // Reset the file input
+      const fileInput = document.getElementById('file-upload') as HTMLInputElement
+      if (fileInput) {
+        fileInput.value = ''
+      }
     } finally {
       setIsUploading(false)
       console.log('Upload process completed')

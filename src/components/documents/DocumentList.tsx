@@ -1,9 +1,10 @@
 import { useState } from "react"
 import { useQuery } from "@tanstack/react-query"
 import { supabase } from "@/integrations/supabase/client"
-import { Loader2 } from "lucide-react"
+import { Loader2, AlertCircle } from "lucide-react"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { DocumentItem } from "./DocumentItem"
+import { Alert, AlertDescription } from "@/components/ui/alert"
 
 interface DocumentEmbedding {
   id: string
@@ -13,7 +14,7 @@ interface DocumentEmbedding {
 }
 
 export const DocumentList = () => {
-  const { data: documents, isLoading } = useQuery({
+  const { data: documents, isLoading, error } = useQuery({
     queryKey: ['documents'],
     queryFn: async () => {
       console.log('Fetching documents from Supabase')
@@ -48,7 +49,14 @@ export const DocumentList = () => {
         <CardTitle>Uploaded Documents</CardTitle>
       </CardHeader>
       <CardContent>
-        {isLoading ? (
+        {error ? (
+          <Alert variant="destructive">
+            <AlertCircle className="h-4 w-4" />
+            <AlertDescription>
+              Failed to load documents: {error instanceof Error ? error.message : 'Unknown error occurred'}
+            </AlertDescription>
+          </Alert>
+        ) : isLoading ? (
           <div className="flex items-center justify-center p-4">
             <Loader2 className="h-6 w-6 animate-spin" />
           </div>
