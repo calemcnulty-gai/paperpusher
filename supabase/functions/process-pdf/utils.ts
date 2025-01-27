@@ -10,10 +10,9 @@ export const initSupabaseClient = () => {
   const supabaseUrl = Deno.env.get('SUPABASE_URL')
   const supabaseKey = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')
   
+  console.log('Initializing Supabase client...')
   console.log('Supabase URL present:', !!supabaseUrl)
   console.log('Supabase key present:', !!supabaseKey)
-  if (supabaseUrl) console.log('Supabase URL prefix:', supabaseUrl.substring(0, 10) + '...')
-  if (supabaseKey) console.log('Supabase key prefix:', supabaseKey.substring(0, 5) + '...')
   
   if (!supabaseUrl || !supabaseKey) {
     throw new Error('Supabase configuration is incomplete')
@@ -69,7 +68,6 @@ export const downloadAndConvertPDF = async (supabase: any, filePath: string) => 
   console.log('Successfully downloaded PDF file')
   console.log('Converting PDF to base64...')
   
-  // Convert ArrayBuffer to Uint8Array for base64 encoding
   const uint8Array = new Uint8Array(await fileData.arrayBuffer())
   const base64Pdf = encode(uint8Array)
   
@@ -80,7 +78,6 @@ export const downloadAndConvertPDF = async (supabase: any, filePath: string) => 
 export const convertPDFToImage = async (base64Pdf: string) => {
   const pdfCoApiKey = Deno.env.get('PDF_CO_API_KEY')
   console.log('PDF.co API key present:', !!pdfCoApiKey)
-  if (pdfCoApiKey) console.log('PDF.co key prefix:', pdfCoApiKey.substring(0, 5) + '...')
   
   if (!pdfCoApiKey) {
     throw new Error('PDF.co API key is not configured')
@@ -101,7 +98,8 @@ export const convertPDFToImage = async (base64Pdf: string) => {
   })
 
   console.log('PDF.co response status:', pdfResponse.status)
-  console.log('PDF.co response headers:', Object.fromEntries(pdfResponse.headers.entries()))
+  const responseHeaders = Object.fromEntries(pdfResponse.headers.entries())
+  console.log('PDF.co response headers:', responseHeaders)
 
   if (!pdfResponse.ok) {
     const errorText = await pdfResponse.text()
@@ -129,13 +127,15 @@ export const convertPDFToImage = async (base64Pdf: string) => {
 export const analyzeImageWithOpenAI = async (imageUrl: string, filename: string) => {
   const openAiApiKey = Deno.env.get('OPENAI_API_KEY')
   console.log('OpenAI API key present:', !!openAiApiKey)
-  if (openAiApiKey) console.log('OpenAI key prefix:', openAiApiKey.substring(0, 5) + '...')
   
   if (!openAiApiKey) {
     throw new Error('OpenAI API key is not configured')
   }
 
   console.log('Sending request to OpenAI API...')
+  console.log('Image URL:', imageUrl)
+  console.log('Filename:', filename)
+  
   const openAIResponse = await fetch('https://api.openai.com/v1/chat/completions', {
     method: 'POST',
     headers: {
@@ -168,7 +168,8 @@ export const analyzeImageWithOpenAI = async (imageUrl: string, filename: string)
   })
 
   console.log('OpenAI response status:', openAIResponse.status)
-  console.log('OpenAI response headers:', Object.fromEntries(openAIResponse.headers.entries()))
+  const responseHeaders = Object.fromEntries(openAIResponse.headers.entries())
+  console.log('OpenAI response headers:', responseHeaders)
 
   if (!openAIResponse.ok) {
     const errorText = await openAIResponse.text()
@@ -181,9 +182,8 @@ export const analyzeImageWithOpenAI = async (imageUrl: string, filename: string)
   }
 
   const analysisResult = await openAIResponse.json()
-  console.log('OpenAI Analysis completed successfully:', {
-    response: JSON.stringify(analysisResult)
-  })
+  console.log('OpenAI Analysis completed successfully')
+  console.log('Analysis result:', JSON.stringify(analysisResult))
 
   return analysisResult
 }
