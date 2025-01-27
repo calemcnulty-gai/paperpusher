@@ -1,4 +1,4 @@
-import { useState } from "react"
+import { useState, useEffect } from "react"
 import { Button } from "@/components/ui/button"
 import { useToast } from "@/hooks/use-toast"
 import { supabase } from "@/integrations/supabase/client"
@@ -21,6 +21,34 @@ export default function Documents() {
   const queryClient = useQueryClient()
 
   console.log('Documents component rendered')
+
+  // Set up real-time subscription
+  useEffect(() => {
+    console.log('Setting up real-time subscription for document_embeddings')
+    const channel = supabase
+      .channel('document-changes')
+      .on(
+        'postgres_changes',
+        { 
+          event: '*', 
+          schema: 'public', 
+          table: 'document_embeddings' 
+        },
+        (payload) => {
+          console.log('Real-time update received:', payload)
+          // Invalidate and refetch documents when changes occur
+          queryClient.invalidateQueries({ queryKey: ['documents'] })
+        }
+      )
+      .subscribe((status) => {
+        console.log('Subscription status:', status)
+      })
+
+    return () => {
+      console.log('Cleaning up real-time subscription')
+      supabase.removeChannel(channel)
+    }
+  }, [queryClient])
 
   // Fetch documents
   const { data: documents, isLoading: isLoadingDocs } = useQuery({
