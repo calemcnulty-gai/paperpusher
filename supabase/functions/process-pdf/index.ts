@@ -56,11 +56,22 @@ serve(async (req) => {
       console.log('Processing document with ID:', document_id)
 
       const supabase = initSupabaseClient()
+      console.log('Supabase client initialized')
+
       const document = await getDocument(supabase, document_id)
+      console.log('Document retrieved:', { id: document.id, filename: document.filename })
+
       const base64Pdf = await downloadAndConvertPDF(supabase, document.file_path)
+      console.log('PDF downloaded and converted to base64')
+
       const imageUrl = await convertPDFToImage(base64Pdf)
+      console.log('PDF converted to image:', imageUrl)
+
       const analysisResult = await analyzeImageWithOpenAI(imageUrl, document.filename)
+      console.log('OpenAI analysis completed')
+
       await updateDocumentContent(supabase, document_id, analysisResult.choices[0].message.content)
+      console.log('Document content updated successfully')
 
       return new Response(
         JSON.stringify({ success: true, message: 'Document processed successfully' }),

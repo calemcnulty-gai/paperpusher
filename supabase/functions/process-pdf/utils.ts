@@ -140,7 +140,7 @@ export const analyzeImageWithOpenAI = async (imageUrl: string, filename: string)
       'Content-Type': 'application/json',
     },
     body: JSON.stringify({
-      model: "gpt-4-vision-preview",
+      model: "gpt-4o-mini",
       messages: [
         {
           role: "system",
@@ -194,7 +194,7 @@ export const updateDocumentContent = async (supabase: any, documentId: string, c
       metadata: {
         processed: true,
         processed_at: new Date().toISOString(),
-        model_used: "gpt-4-vision-preview",
+        model_used: "gpt-4o-mini",
         pages_processed: 1
       }
     })
