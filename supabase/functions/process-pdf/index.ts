@@ -1,6 +1,5 @@
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts"
 import { createClient } from 'https://esm.sh/@supabase/supabase-js@2.38.4'
-import { parsePdf } from "https://deno.land/x/pdfparser@v0.0.3/mod.ts"
 
 const corsHeaders = {
   'Access-Control-Allow-Origin': '*',
@@ -22,13 +21,13 @@ serve(async (req) => {
     const { document_id } = await req.json()
     console.log('Processing document:', document_id)
 
-    const supabase = createClient(
+    const supabaseClient = createClient(
       Deno.env.get('SUPABASE_URL') ?? '',
       Deno.env.get('SUPABASE_SERVICE_ROLE_KEY') ?? ''
     )
 
     // Get document record
-    const { data: doc, error: docError } = await supabase
+    const { data: doc, error: docError } = await supabaseClient
       .from('document_embeddings')
       .select('*')
       .eq('id', document_id)
@@ -40,7 +39,7 @@ serve(async (req) => {
     }
 
     // Download PDF from storage
-    const { data: fileData, error: downloadError } = await supabase
+    const { data: fileData, error: downloadError } = await supabaseClient
       .storage
       .from('product_docs')
       .download(doc.file_path)
@@ -50,52 +49,22 @@ serve(async (req) => {
       throw new Error(`Error downloading file: ${downloadError.message}`)
     }
 
-    console.log('PDF downloaded, starting text extraction...')
+    console.log('PDF downloaded successfully')
     
-    // Convert Blob to ArrayBuffer
-    const arrayBuffer = await fileData.arrayBuffer()
-    
-    console.log('Parsing PDF content...')
-    const pdfData = await parsePdf(new Uint8Array(arrayBuffer))
-    
-    console.log('PDF parsed successfully')
-    const fullText = pdfData.pages.map(page => page.text).join('\n')
-
-    console.log('Text extracted, parsing product information...')
-    
-    // Extract product information from the text
-    const productInfo = await extractProductInfo(fullText)
-    
-    // Create a new product record
-    const { data: product, error: productError } = await supabase
-      .from('products')
-      .insert([{
-        name: productInfo.name || `Product from ${doc.filename}`,
-        sku: `SKU-${Date.now()}`,
-        color: productInfo.color,
-        price: productInfo.price,
-        description: productInfo.description,
-      }])
-      .select()
-      .single()
-
-    if (productError) {
-      console.error('Error creating product:', productError)
-      throw new Error(`Error creating product: ${productError.message}`)
+    // For now, we'll store the file info and update the status
+    // Later we can implement more sophisticated text extraction
+    const metadata = {
+      processedAt: new Date().toISOString(),
+      fileSize: fileData.size,
+      mimeType: fileData.type,
     }
 
-    console.log('Product created:', product)
-
-    // Update document with extracted content and link to product
-    const { error: updateError } = await supabase
+    // Update document with basic content and metadata
+    const { error: updateError } = await supabaseClient
       .from('document_embeddings')
       .update({
-        content: fullText,
-        product_id: product.id,
-        metadata: {
-          processedAt: new Date().toISOString(),
-          extractedInfo: productInfo
-        },
+        content: `Document processed: ${doc.filename}`,
+        metadata,
         updated_at: new Date().toISOString(),
       })
       .eq('id', document_id)
@@ -110,7 +79,7 @@ serve(async (req) => {
     return new Response(
       JSON.stringify({ 
         success: true,
-        product: product
+        metadata
       }),
       { 
         headers: { 
@@ -134,45 +103,3 @@ serve(async (req) => {
     )
   }
 })
-
-async function extractProductInfo(text: string) {
-  console.log('Extracting product info from text')
-  
-  // Initialize default values
-  const productInfo = {
-    name: '',
-    color: '',
-    price: null as number | null,
-    description: '',
-  }
-
-  // Extract name (assume it's in the first few lines)
-  const nameMatch = text.match(/Product(?:\s+)?Name(?:\s*)?:(?:\s*)?([\w\s-]+)/i) ||
-                   text.match(/Name(?:\s*)?:(?:\s*)?([\w\s-]+)/i) ||
-                   text.match(/Model(?:\s*)?:(?:\s*)?([\w\s-]+)/i)
-  if (nameMatch) {
-    productInfo.name = nameMatch[1].trim()
-  }
-
-  // Extract color
-  const colorMatch = text.match(/Colou?r(?:\s*)?:(?:\s*)?([\w\s-]+)/i)
-  if (colorMatch) {
-    productInfo.color = colorMatch[1].trim()
-  }
-
-  // Extract price (look for currency symbols and numbers)
-  const priceMatch = text.match(/(?:Price|Cost|RRP)(?:\s*)?:(?:\s*)?[$£€]?\s*(\d+(?:\.\d{2})?)/i) ||
-                    text.match(/[$£€]\s*(\d+(?:\.\d{2})?)/i)
-  if (priceMatch) {
-    productInfo.price = parseFloat(priceMatch[1])
-  }
-
-  // Extract description (look for a description section)
-  const descMatch = text.match(/Description(?:\s*)?:(?:\s*)?([\s\S]+?)(?:\n\n|\n(?=[A-Z]))/i)
-  if (descMatch) {
-    productInfo.description = descMatch[1].trim()
-  }
-
-  console.log('Extracted product info:', productInfo)
-  return productInfo
-}
