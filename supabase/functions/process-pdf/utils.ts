@@ -185,14 +185,29 @@ export const analyzeImageWithOpenAI = async (imageUrl: string, filename: string)
     messages: [
       {
         role: "system",
-        content: "You are a product information extraction assistant. Extract and structure key information from product documents into a clear, organized format."
+        content: `You are a product information extraction assistant. Extract information from product documents into a specific JSON format that matches our database schema. The JSON should include these fields:
+- name (required, string): Product name/title
+- sku (required, string): Generate a SKU if not explicitly shown
+- brand (string): Brand name
+- category (string): Product category, defaults to 'shoes'
+- size (string): Size information
+- color (string): Color information
+- material (string): Material information
+- price (number): Price in numeric format
+- product_number (string): Product model/number
+- description (string): Product description
+- specifications (object): Additional specifications as key-value pairs
+- season (string): Season information, defaults to 'all'
+- extracted_metadata (object): Any additional information that doesn't fit in other fields
+
+Return ONLY the JSON object, no additional text or explanation.`
       },
       {
         role: "user",
         content: [
           {
             type: "text",
-            text: `Please analyze this product document titled "${filename}" and extract key information like product names, numbers, specifications, and any other relevant details. Format the information in a clear, structured way.`
+            text: `Extract product information from this document titled "${filename}" into the specified JSON format.`
           },
           {
             type: "image_url",
@@ -203,7 +218,8 @@ export const analyzeImageWithOpenAI = async (imageUrl: string, filename: string)
         ]
       }
     ],
-    max_tokens: 4096
+    max_tokens: 4096,
+    response_format: { type: "json_object" }
   }
   console.log('Request payload:', JSON.stringify(requestPayload, null, 2))
   
@@ -231,10 +247,58 @@ export const analyzeImageWithOpenAI = async (imageUrl: string, filename: string)
   console.log('\nOpenAI Analysis completed')
   console.log('Response status:', openAIResponse.status)
   console.log('Response headers:', Object.fromEntries(openAIResponse.headers))
-  console.log('Analysis content:', analysisResult.choices[0].message.content)
+  console.log('Analysis content:', JSON.stringify(analysisResult.choices[0].message.content, null, 2))
   console.log('=== End OpenAI Analysis ===\n')
 
-  return analysisResult
+  // Parse the JSON content
+  const productData = JSON.parse(analysisResult.choices[0].message.content)
+  return productData
+}
+
+export const createProduct = async (supabase: any, documentId: string, productData: any) => {
+  console.log('\n=== Creating Product ===')
+  console.log('Document ID:', documentId)
+  console.log('Product Data:', JSON.stringify(productData, null, 2))
+
+  // Ensure required fields are present
+  if (!productData.name || !productData.sku) {
+    throw new Error('Product name and SKU are required')
+  }
+
+  const productInsert = {
+    document_id: documentId,
+    name: productData.name,
+    sku: productData.sku,
+    brand: productData.brand,
+    category: productData.category || 'shoes',
+    size: productData.size,
+    color: productData.color,
+    material: productData.material,
+    price: productData.price ? Number(productData.price) : null,
+    product_number: productData.product_number,
+    description: productData.description,
+    specifications: productData.specifications || {},
+    season: productData.season || 'all',
+    extracted_metadata: productData.extracted_metadata || {},
+    processing_status: 'processed'
+  }
+
+  console.log('Inserting product:', JSON.stringify(productInsert, null, 2))
+  const { data: product, error } = await supabase
+    .from('products')
+    .insert(productInsert)
+    .select()
+    .single()
+
+  if (error) {
+    console.error('Error creating product:', error)
+    throw error
+  }
+
+  console.log('Product created successfully:', product.id)
+  console.log('=== End Product Creation ===\n')
+
+  return product
 }
 
 export const updateDocumentContent = async (supabase: any, documentId: string, content: string, pagesProcessed: number = 1) => {

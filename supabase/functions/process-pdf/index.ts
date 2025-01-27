@@ -1,8 +1,7 @@
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts"
 import { corsHeaders } from './corsHeaders.ts'
-import { initSupabaseClient, downloadAndConvertPDF, updateDocumentContent } from './supabaseUtils.ts'
+import { initSupabaseClient, downloadAndConvertPDF, updateDocumentContent, analyzeImageWithOpenAI, createProduct } from './utils.ts'
 import { convertPDFToImage } from './pdfProcessing.ts'
-import { analyzeImageWithOpenAI } from './openaiProcessing.ts'
 
 // Track processing documents to prevent duplicate requests
 const processingFiles = new Set()
@@ -43,7 +42,7 @@ serve(async (req) => {
 
     const { data: doc, error: docError } = await supabase
       .from('document_embeddings')
-      .select('id, content')
+      .select('id, content, filename')
       .eq('file_path', file_path)
       .single()
 
@@ -90,16 +89,27 @@ serve(async (req) => {
       const imageUrls = await convertPDFToImage(base64Pdf)
       console.log('PDF converted to images:', imageUrls)
 
-      // Analyze each page and combine the results
-      const allAnalyses = await Promise.all(imageUrls.map(async (imageUrl, index) => {
+      // Analyze each page and create products
+      const products = []
+      const allAnalyses = []
+      
+      for (let index = 0; index < imageUrls.length; index++) {
         console.log(`Analyzing page ${index + 1}/${imageUrls.length}`)
-        const pageResult = await analyzeImageWithOpenAI(imageUrl, `${doc.filename} - Page ${index + 1}`)
-        return pageResult.choices[0].message.content
-      }))
+        const imageUrl = imageUrls[index]
+        const productData = await analyzeImageWithOpenAI(imageUrl, `${doc.filename} - Page ${index + 1}`)
+        allAnalyses.push(productData)
+        
+        // If the product data has required fields, create a product
+        if (productData.name && productData.sku) {
+          console.log(`Creating product from page ${index + 1}`)
+          const product = await createProduct(supabase, doc.id, productData)
+          products.push(product)
+        }
+      }
 
       // Combine all analyses into one document
       const combinedContent = allAnalyses.map((content, index) => 
-        `=== Page ${index + 1} ===\n${content}`
+        `=== Page ${index + 1} ===\n${JSON.stringify(content, null, 2)}`
       ).join('\n\n')
 
       await updateDocumentContent(supabase, doc.id, combinedContent, imageUrls.length)
@@ -109,7 +119,8 @@ serve(async (req) => {
         JSON.stringify({ 
           success: true, 
           message: 'Document processed successfully',
-          pages_processed: imageUrls.length
+          pages_processed: imageUrls.length,
+          products_created: products.length
         }),
         { 
           headers: { ...corsHeaders, 'Content-Type': 'application/json' },
