@@ -1,6 +1,10 @@
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts"
 import { createClient } from 'https://esm.sh/@supabase/supabase-js@2.38.4'
 import * as pdfjs from 'https://cdn.jsdelivr.net/npm/pdfjs-dist@4.0.269/build/pdf.min.mjs'
+import { GlobalWorkerOptions } from 'https://cdn.jsdelivr.net/npm/pdfjs-dist@4.0.269/build/pdf.min.mjs'
+
+// Set worker source - using the same CDN path
+GlobalWorkerOptions.workerSrc = 'https://cdn.jsdelivr.net/npm/pdfjs-dist@4.0.269/build/pdf.worker.min.js'
 
 const corsHeaders = {
   'Access-Control-Allow-Origin': '*',
@@ -110,6 +114,7 @@ serve(async (req) => {
     }
 
     console.log('Text extracted, parsing product information...')
+    console.log('Full text content:', fullText)
     
     // Extract product information from the text
     const productInfo = await extractProductInfo(fullText)
@@ -118,7 +123,7 @@ serve(async (req) => {
     const { data: product, error: productError } = await supabase
       .from('products')
       .insert([{
-        name: productInfo.name,
+        name: productInfo.name || `Product from ${doc.filename}`,
         sku: `SKU-${Date.now()}`, // Generate a temporary SKU
         color: productInfo.color,
         price: productInfo.price,
