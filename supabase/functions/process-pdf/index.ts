@@ -38,6 +38,12 @@ serve(async (req) => {
     const supabaseUrl = Deno.env.get('SUPABASE_URL')
     const supabaseKey = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')
     
+    // Log key presence and partial values for debugging
+    console.log('Supabase URL present:', !!supabaseUrl)
+    console.log('Supabase key present:', !!supabaseKey)
+    if (supabaseUrl) console.log('Supabase URL prefix:', supabaseUrl.substring(0, 10) + '...')
+    if (supabaseKey) console.log('Supabase key prefix:', supabaseKey.substring(0, 5) + '...')
+    
     if (!supabaseUrl || !supabaseKey) {
       console.error('Error: Missing Supabase credentials')
       throw new Error('Supabase configuration is incomplete')
@@ -93,10 +99,13 @@ serve(async (req) => {
     console.log('Converting PDF to base64...')
     const pdfData = await fileData.arrayBuffer()
     const base64Pdf = btoa(String.fromCharCode(...new Uint8Array(pdfData)))
-    console.log('PDF converted to base64')
+    console.log('PDF converted to base64, length:', base64Pdf.length)
 
     // Verify PDF.co API key
     const pdfCoApiKey = Deno.env.get('PDF_CO_API_KEY')
+    console.log('PDF.co API key present:', !!pdfCoApiKey)
+    if (pdfCoApiKey) console.log('PDF.co key prefix:', pdfCoApiKey.substring(0, 5) + '...')
+    
     if (!pdfCoApiKey) {
       console.error('Error: Missing PDF.co API key')
       throw new Error('PDF.co API key is not configured')
@@ -117,6 +126,9 @@ serve(async (req) => {
       })
     })
 
+    console.log('PDF.co response status:', pdfResponse.status)
+    console.log('PDF.co response headers:', Object.fromEntries(pdfResponse.headers.entries()))
+
     if (!pdfResponse.ok) {
       const errorText = await pdfResponse.text()
       console.error('PDF.co API Error:', {
@@ -129,7 +141,8 @@ serve(async (req) => {
 
     const pdfResult = await pdfResponse.json()
     console.log('PDF.co conversion successful:', {
-      urls: pdfResult.urls ? pdfResult.urls.length : 0
+      urls: pdfResult.urls ? pdfResult.urls.length : 0,
+      response: JSON.stringify(pdfResult)
     })
 
     if (!pdfResult.urls || !pdfResult.urls.length) {
@@ -139,6 +152,9 @@ serve(async (req) => {
 
     // Verify OpenAI API key
     const openAiApiKey = Deno.env.get('OPENAI_API_KEY')
+    console.log('OpenAI API key present:', !!openAiApiKey)
+    if (openAiApiKey) console.log('OpenAI key prefix:', openAiApiKey.substring(0, 5) + '...')
+    
     if (!openAiApiKey) {
       console.error('Error: Missing OpenAI API key')
       throw new Error('OpenAI API key is not configured')
@@ -177,6 +193,9 @@ serve(async (req) => {
       })
     })
 
+    console.log('OpenAI response status:', openAIResponse.status)
+    console.log('OpenAI response headers:', Object.fromEntries(openAIResponse.headers.entries()))
+
     if (!openAIResponse.ok) {
       const errorText = await openAIResponse.text()
       console.error('OpenAI API Error:', {
@@ -188,7 +207,9 @@ serve(async (req) => {
     }
 
     const analysisResult = await openAIResponse.json()
-    console.log('OpenAI Analysis completed successfully')
+    console.log('OpenAI Analysis completed successfully:', {
+      response: JSON.stringify(analysisResult)
+    })
 
     // Update document with analysis results
     console.log('Updating document with analysis results...')
