@@ -22,7 +22,6 @@ export const DocumentList = () => {
         .from('document_embeddings')
         .select('*')
         .order('created_at', { ascending: false })
-        .limit(10) // Limit to 10 most recent documents
 
       if (error) {
         console.error('Error fetching documents:', error)
