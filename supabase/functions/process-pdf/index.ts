@@ -31,6 +31,7 @@ serve(async (req) => {
       .single()
 
     if (docError || !document) {
+      console.error('Document not found:', docError?.message)
       throw new Error(`Document not found: ${docError?.message}`)
     }
 
@@ -43,6 +44,7 @@ serve(async (req) => {
       .download(document.file_path)
 
     if (fileError || !fileData) {
+      console.error('Failed to download file:', fileError?.message)
       throw new Error(`Failed to download file: ${fileError?.message}`)
     }
 
@@ -61,7 +63,7 @@ serve(async (req) => {
       },
       body: JSON.stringify({
         file: base64Pdf,
-        pages: "1",  // Convert only first page to avoid memory issues
+        pages: "1",  // Convert only first page
         async: false
       })
     })
@@ -135,6 +137,7 @@ serve(async (req) => {
       .eq('id', document_id)
 
     if (updateError) {
+      console.error('Failed to update document:', updateError)
       throw new Error(`Failed to update document: ${updateError.message}`)
     }
 
