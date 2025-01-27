@@ -1,5 +1,6 @@
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts"
 import { createClient } from 'https://esm.sh/@supabase/supabase-js@2.38.4'
+import "https://deno.land/x/xhr@0.1.0/mod.ts"
 
 const corsHeaders = {
   'Access-Control-Allow-Origin': '*',
@@ -7,9 +8,8 @@ const corsHeaders = {
 }
 
 serve(async (req) => {
-  console.log('Received request:', req.method, req.url)
+  console.log('Processing PDF request received')
 
-  // Handle CORS preflight requests
   if (req.method === 'OPTIONS') {
     console.log('Handling CORS preflight request')
     return new Response(null, { 
@@ -50,28 +50,95 @@ serve(async (req) => {
     }
 
     console.log('PDF downloaded successfully')
-    
-    // For now, we'll store the file info and update the status
-    // Later we can implement more sophisticated text extraction
-    const metadata = {
-      processedAt: new Date().toISOString(),
-      fileSize: fileData.size,
-      mimeType: fileData.type,
+
+    // Convert PDF to base64
+    const buffer = await fileData.arrayBuffer()
+    const base64String = btoa(String.fromCharCode(...new Uint8Array(buffer)))
+
+    // Use OpenAI's GPT-4 Vision to extract information from the PDF
+    const openAIResponse = await fetch('https://api.openai.com/v1/chat/completions', {
+      method: 'POST',
+      headers: {
+        'Authorization': `Bearer ${Deno.env.get('OPENAI_API_KEY')}`,
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify({
+        model: "gpt-4o",
+        messages: [
+          {
+            role: "system",
+            content: "You are a product information extraction specialist. Extract product name, product number, and color information from the image. Return the information in a structured JSON format with keys: name, product_number, color."
+          },
+          {
+            role: "user",
+            content: [
+              {
+                type: "text",
+                text: "Please extract the product information from this image and return it in JSON format."
+              },
+              {
+                type: "image",
+                image_url: {
+                  url: `data:application/pdf;base64,${base64String}`
+                }
+              }
+            ]
+          }
+        ]
+      })
+    })
+
+    const aiData = await openAIResponse.json()
+    console.log('OpenAI response:', aiData)
+
+    let extractedInfo
+    try {
+      extractedInfo = JSON.parse(aiData.choices[0].message.content)
+    } catch (e) {
+      console.error('Error parsing OpenAI response:', e)
+      extractedInfo = {
+        name: "Unknown",
+        product_number: "Unknown",
+        color: "Unknown"
+      }
     }
 
-    // Update document with basic content and metadata
+    // Store the extracted information
     const { error: updateError } = await supabaseClient
+      .from('products')
+      .upsert({
+        name: extractedInfo.name,
+        sku: extractedInfo.product_number,
+        color: extractedInfo.color,
+        created_at: new Date().toISOString(),
+        updated_at: new Date().toISOString()
+      }, {
+        onConflict: 'sku'
+      })
+
+    if (updateError) {
+      console.error('Error updating products:', updateError)
+      throw new Error(`Error updating products: ${updateError.message}`)
+    }
+
+    // Update document with content and metadata
+    const { error: docUpdateError } = await supabaseClient
       .from('document_embeddings')
       .update({
-        content: `Document processed: ${doc.filename}`,
-        metadata,
+        content: JSON.stringify(extractedInfo),
+        metadata: {
+          processedAt: new Date().toISOString(),
+          fileSize: fileData.size,
+          mimeType: fileData.type,
+          extractedInfo
+        },
         updated_at: new Date().toISOString(),
       })
       .eq('id', document_id)
 
-    if (updateError) {
-      console.error('Error updating document:', updateError)
-      throw new Error(`Error updating document: ${updateError.message}`)
+    if (docUpdateError) {
+      console.error('Error updating document:', docUpdateError)
+      throw new Error(`Error updating document: ${docUpdateError.message}`)
     }
 
     console.log('Processing completed successfully')
@@ -79,7 +146,7 @@ serve(async (req) => {
     return new Response(
       JSON.stringify({ 
         success: true,
-        metadata
+        extractedInfo
       }),
       { 
         headers: { 
