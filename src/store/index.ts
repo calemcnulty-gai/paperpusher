@@ -3,12 +3,14 @@ import { TypedUseSelectorHook, useDispatch, useSelector } from "react-redux"
 import authReducer from "./authSlice"
 import realtimeReducer from "./realtimeSlice"
 import profilesReducer from "./profilesSlice"
+import productFiltersReducer from "./productFiltersSlice"
 
 export const store = configureStore({
   reducer: {
     auth: authReducer,
     realtime: realtimeReducer,
     profiles: profilesReducer,
+    productFilters: productFiltersReducer,
   },
 })
 

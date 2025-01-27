@@ -8,18 +8,15 @@ import {
   SelectValue,
 } from "@/components/ui/select"
 import { supabase } from "@/integrations/supabase/client"
+import { useAppDispatch, useAppSelector } from "@/store"
+import { setSelectedSupplier, setSelectedSeason } from "@/store/productFiltersSlice"
 
-interface ProductFiltersProps {
-  onSupplierChange: (value: string | null) => void
-  onSeasonChange: (value: string | null) => void
-  onUserChange: (value: string | null) => void
-}
+export function ProductFilters() {
+  const dispatch = useAppDispatch()
+  const { selectedSupplier, selectedSeason } = useAppSelector(
+    (state) => state.productFilters
+  )
 
-export function ProductFilters({ 
-  onSupplierChange, 
-  onSeasonChange, 
-  onUserChange 
-}: ProductFiltersProps) {
   const { data: suppliers } = useQuery({
     queryKey: ['suppliers'],
     queryFn: async () => {
@@ -43,7 +40,10 @@ export function ProductFilters({
       </div>
       
       <div className="flex flex-wrap gap-4">
-        <Select onValueChange={onSupplierChange}>
+        <Select 
+          value={selectedSupplier || undefined}
+          onValueChange={(value) => dispatch(setSelectedSupplier(value === 'all' ? null : value))}
+        >
           <SelectTrigger className="w-[180px]">
             <SelectValue placeholder="Select supplier" />
           </SelectTrigger>
@@ -57,7 +57,10 @@ export function ProductFilters({
           </SelectContent>
         </Select>
 
-        <Select onValueChange={onSeasonChange}>
+        <Select 
+          value={selectedSeason || undefined}
+          onValueChange={(value) => dispatch(setSelectedSeason(value === 'all' ? null : value))}
+        >
           <SelectTrigger className="w-[180px]">
             <SelectValue placeholder="Select season" />
           </SelectTrigger>
