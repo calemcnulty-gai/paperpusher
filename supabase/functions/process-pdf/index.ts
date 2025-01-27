@@ -1,7 +1,6 @@
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts"
 import { createClient } from 'https://esm.sh/@supabase/supabase-js@2.38.4'
-import "https://deno.land/x/xhr@0.1.0/mod.ts"
-import * as pdfjs from "https://cdn.jsdelivr.net/npm/pdfjs-dist@3.11.174/build/pdf.min.js"
+import * as pdfjsLib from 'npm:pdfjs-dist@3.11.174'
 
 const corsHeaders = {
   'Access-Control-Allow-Origin': '*',
@@ -48,8 +47,11 @@ serve(async (req) => {
     const arrayBuffer = await fileData.arrayBuffer()
     const typedArray = new Uint8Array(arrayBuffer)
 
+    // Initialize the PDF.js worker
+    pdfjsLib.GlobalWorkerOptions.workerSrc = `npm:pdfjs-dist@3.11.174/build/pdf.worker.min.js`;
+
     console.log('Loading PDF document...')
-    const loadingTask = pdfjs.getDocument({ data: typedArray })
+    const loadingTask = pdfjsLib.getDocument({ data: typedArray })
     const pdfDocument = await loadingTask.promise
     
     console.log('PDF document loaded. Number of pages:', pdfDocument.numPages)
@@ -67,7 +69,6 @@ serve(async (req) => {
     console.log('Extracted text sample:', fullText.substring(0, 200) + '...')
 
     // Parse content for product information
-    // This is a basic example - enhance based on your PDF structure
     const products = []
     const lines = fullText.split('\n').filter(line => line.trim().length > 0)
     
