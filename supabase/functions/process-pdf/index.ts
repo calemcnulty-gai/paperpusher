@@ -1,6 +1,6 @@
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts"
 import { createClient } from 'https://esm.sh/@supabase/supabase-js@2.38.4'
-import { getDocument, GlobalWorkerOptions } from 'npm:pdfjs-dist@3.11.174'
+import { getDocument } from 'npm:pdfjs-dist@3.11.174'
 
 const corsHeaders = {
   'Access-Control-Allow-Origin': '*',
@@ -10,7 +10,12 @@ const corsHeaders = {
 serve(async (req) => {
   // Handle CORS preflight requests
   if (req.method === 'OPTIONS') {
-    return new Response(null, { headers: corsHeaders })
+    return new Response(null, { 
+      headers: {
+        ...corsHeaders,
+        'Access-Control-Allow-Methods': 'POST, OPTIONS',
+      }
+    })
   }
 
   try {
@@ -71,7 +76,6 @@ serve(async (req) => {
     }
 
     console.log('Text extracted, parsing product information...')
-    console.log('Full text content:', fullText)
     
     // Extract product information from the text
     const productInfo = await extractProductInfo(fullText)
@@ -81,7 +85,7 @@ serve(async (req) => {
       .from('products')
       .insert([{
         name: productInfo.name || `Product from ${doc.filename}`,
-        sku: `SKU-${Date.now()}`, // Generate a temporary SKU
+        sku: `SKU-${Date.now()}`,
         color: productInfo.color,
         price: productInfo.price,
         description: productInfo.description,
@@ -122,7 +126,12 @@ serve(async (req) => {
         product: product,
         pageCount: pdfDoc.numPages
       }),
-      { headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+      { 
+        headers: { 
+          ...corsHeaders, 
+          'Content-Type': 'application/json'
+        } 
+      }
     )
 
   } catch (error) {
@@ -131,7 +140,10 @@ serve(async (req) => {
       JSON.stringify({ error: error.message }),
       { 
         status: 500, 
-        headers: { ...corsHeaders, 'Content-Type': 'application/json' } 
+        headers: { 
+          ...corsHeaders, 
+          'Content-Type': 'application/json'
+        } 
       }
     )
   }
