@@ -1,7 +1,8 @@
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts"
 import { corsHeaders } from './corsHeaders.ts'
-import { initSupabaseClient, downloadAndConvertPDF, updateDocumentContent, analyzeImageWithOpenAI, createProduct } from './utils.ts'
+import { initSupabaseClient, downloadAndConvertPDF, updateDocumentContent, createProduct } from './utils.ts'
 import { convertPDFToImage } from './pdfProcessing.ts'
+import { analyzeImageWithOpenAI } from './openaiProcessing.ts'
 
 // Track processing documents to prevent duplicate requests
 const processingFiles = new Set()

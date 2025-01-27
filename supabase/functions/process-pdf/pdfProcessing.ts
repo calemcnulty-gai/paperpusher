@@ -97,7 +97,7 @@ async function checkJobStatus(jobId: string, apiKey: string): Promise<{status: s
   }
 }
 
-export async function convertPDFToImage(pdfData: Uint8Array): Promise<string[]> {
+export const convertPDFToImage = async (pdfData: Uint8Array): Promise<string[]> => {
   const pdfCoApiKey = Deno.env.get('PDF_CO_API_KEY')
   console.log('PDF.co API key present:', !!pdfCoApiKey)
   
