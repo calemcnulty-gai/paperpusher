@@ -52,6 +52,7 @@ export const DocumentUpload = () => {
 
       console.log('File uploaded successfully to storage')
 
+      // First create the document record
       const { data: docData, error: dbError } = await supabase
         .from('document_embeddings')
         .insert({
@@ -66,11 +67,13 @@ export const DocumentUpload = () => {
         throw new Error(`Failed to create document record: ${dbError.message}`)
       }
 
-      console.log('Document record created:', docData.id)
+      const documentId = docData.id
+      console.log('Document record created with ID:', documentId)
 
+      // Then trigger processing with the specific document ID
       const { error: processError } = await supabase.functions
         .invoke('process-pdf', {
-          body: { document_id: docData.id }
+          body: { document_id: documentId }
         })
 
       if (processError) {
@@ -78,11 +81,14 @@ export const DocumentUpload = () => {
         throw new Error(`Failed to process document: ${processError.message}`)
       }
 
-      console.log('Processing triggered successfully')
+      console.log('Processing triggered successfully for document:', documentId)
       toast({
         title: "Document uploaded",
         description: "The document has been uploaded and is being processed"
       })
+
+      // Invalidate queries to refresh the document list
+      await queryClient.invalidateQueries({ queryKey: ['documents'] })
 
     } catch (error) {
       console.error('Error in upload process:', error)
