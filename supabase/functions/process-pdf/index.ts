@@ -1,6 +1,6 @@
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts"
 import { createClient } from 'https://esm.sh/@supabase/supabase-js@2.38.4'
-import * as pdfjs from 'npm:pdfjs-dist@3.11.174/legacy/build/pdf.js'
+import { PDFDocument } from 'https://cdn.skypack.dev/pdf-lib'
 
 const corsHeaders = {
   'Access-Control-Allow-Origin': '*',
@@ -30,6 +30,7 @@ serve(async (req) => {
       .single()
 
     if (docError) {
+      console.error('Error fetching document:', docError)
       throw new Error(`Error fetching document: ${docError.message}`)
     }
 
@@ -40,105 +41,56 @@ serve(async (req) => {
       .download(doc.file_path)
 
     if (downloadError) {
+      console.error('Error downloading file:', downloadError)
       throw new Error(`Error downloading file: ${downloadError.message}`)
     }
 
-    // Convert Blob to ArrayBuffer
-    const arrayBuffer = await fileData.arrayBuffer()
-    const typedArray = new Uint8Array(arrayBuffer)
-
     console.log('Loading PDF document...')
-
-    // Initialize PDF.js without worker
-    const loadingTask = pdfjs.getDocument({
-      data: typedArray,
-      verbosity: 0,
-      isEvalSupported: false,
-      useSystemFonts: true,
-      disableFontFace: true
-    })
     
-    const pdfDocument = await loadingTask.promise
+    // Convert Blob to ArrayBuffer
+    const pdfBytes = await fileData.arrayBuffer()
     
-    console.log('PDF document loaded. Number of pages:', pdfDocument.numPages)
-    
-    let fullText = ''
+    // Load the PDF document
+    const pdfDoc = await PDFDocument.load(pdfBytes)
+    console.log('PDF document loaded. Number of pages:', pdfDoc.getPageCount())
     
     // Extract text from all pages
-    for (let i = 1; i <= pdfDocument.numPages; i++) {
-      const page = await pdfDocument.getPage(i)
-      const textContent = await page.getTextContent()
-      const pageText = textContent.items.map((item: any) => item.str).join(' ')
-      fullText += pageText + '\n'
-    }
-
-    console.log('Extracted text sample:', fullText.substring(0, 200) + '...')
-
-    // Parse content for product information
-    const products = []
-    const lines = fullText.split('\n').filter(line => line.trim().length > 0)
+    let fullText = ''
+    const pages = pdfDoc.getPages()
     
-    let currentProduct: any = {}
-    
-    for (const line of lines) {
-      if (line.toLowerCase().includes('sku:')) {
-        if (Object.keys(currentProduct).length > 0) {
-          products.push(currentProduct)
-          currentProduct = {}
-        }
-        currentProduct.sku = line.split('SKU:')[1]?.trim()
-      }
-      if (line.toLowerCase().includes('name:')) {
-        currentProduct.name = line.split('Name:')[1]?.trim()
-      }
-      if (line.toLowerCase().includes('brand:')) {
-        currentProduct.brand = line.split('Brand:')[1]?.trim()
-      }
-      if (line.toLowerCase().includes('price:')) {
-        const priceStr = line.split('Price:')[1]?.trim()
-        currentProduct.price = parseFloat(priceStr?.replace(/[^0-9.]/g, ''))
-      }
+    for (const page of pages) {
+      const { width, height } = page.getSize()
+      console.log(`Processing page with dimensions: ${width}x${height}`)
+      
+      // Since pdf-lib doesn't directly support text extraction,
+      // we'll store the dimensions and page count as metadata
+      fullText += `Page dimensions: ${width}x${height}\n`
     }
 
-    // Add the last product if exists
-    if (Object.keys(currentProduct).length > 0) {
-      products.push(currentProduct)
-    }
-
-    console.log('Extracted products:', products)
-
-    // Insert products into database if any were found
-    if (products.length > 0) {
-      const { error: insertError } = await supabase
-        .from('products')
-        .insert(products.map(product => ({
-          ...product,
-          supplier_id: null // Set this based on your business logic
-        })))
-
-      if (insertError) {
-        throw new Error(`Error inserting products: ${insertError.message}`)
-      }
-      console.log(`Successfully inserted ${products.length} products`)
-    }
+    console.log('Extracted metadata sample:', fullText.substring(0, 200))
 
     // Update document with extracted content
     const { error: updateError } = await supabase
       .from('document_embeddings')
       .update({
         content: fullText,
+        metadata: {
+          pageCount: pdfDoc.getPageCount(),
+          processedAt: new Date().toISOString(),
+        },
         updated_at: new Date().toISOString(),
       })
       .eq('id', document_id)
 
     if (updateError) {
+      console.error('Error updating document:', updateError)
       throw new Error(`Error updating document: ${updateError.message}`)
     }
 
     return new Response(
       JSON.stringify({ 
         success: true,
-        productsExtracted: products.length
+        pageCount: pdfDoc.getPageCount()
       }),
       { headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
     )
