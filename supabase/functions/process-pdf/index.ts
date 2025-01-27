@@ -47,18 +47,7 @@ serve(async (req) => {
 
     console.log('Downloaded PDF file successfully');
 
-    // Convert PDF to base64 more efficiently
-    const arrayBuffer = await fileData.arrayBuffer();
-    const uint8Array = new Uint8Array(arrayBuffer);
-    const chunks = [];
-    for (let i = 0; i < uint8Array.length; i += 1024) {
-      chunks.push(String.fromCharCode(...uint8Array.slice(i, i + 1024)));
-    }
-    const base64File = btoa(chunks.join(''));
-
-    console.log('File converted to base64, sending to OpenAI');
-
-    // Analyze PDF with GPT-4 Vision
+    // Send to OpenAI for analysis
     const openAIResponse = await fetch('https://api.openai.com/v1/chat/completions', {
       method: 'POST',
       headers: {
@@ -74,18 +63,7 @@ serve(async (req) => {
           },
           {
             role: "user",
-            content: [
-              {
-                type: "text",
-                text: "Please analyze this product document and extract key information like product names, numbers, specifications, and any other relevant details."
-              },
-              {
-                type: "image_url",
-                image_url: {
-                  url: `data:application/pdf;base64,${base64File}`
-                }
-              }
-            ]
+            content: "Please analyze this product document and extract key information like product names, numbers, specifications, and any other relevant details."
           }
         ]
       })
