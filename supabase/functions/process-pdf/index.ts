@@ -81,7 +81,9 @@ serve(async (req) => {
               },
               {
                 type: "image_url",
-                image_url: `data:application/pdf;base64,${base64File}`
+                image_url: {
+                  url: `data:application/pdf;base64,${base64File}`
+                }
               }
             ]
           }
