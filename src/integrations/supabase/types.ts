@@ -66,9 +66,9 @@ export type Database = {
           image_url: string | null
           material: string | null
           name: string
-          price: number | null
           processing_status: string | null
           product_number: string | null
+          retail_price: number | null
           season: string | null
           size: string | null
           sku: string
@@ -76,6 +76,7 @@ export type Database = {
           stock_quantity: number | null
           supplier_id: string | null
           updated_at: string
+          wholesale_price: number | null
         }
         Insert: {
           brand?: string | null
@@ -89,9 +90,9 @@ export type Database = {
           image_url?: string | null
           material?: string | null
           name: string
-          price?: number | null
           processing_status?: string | null
           product_number?: string | null
+          retail_price?: number | null
           season?: string | null
           size?: string | null
           sku: string
@@ -99,6 +100,7 @@ export type Database = {
           stock_quantity?: number | null
           supplier_id?: string | null
           updated_at?: string
+          wholesale_price?: number | null
         }
         Update: {
           brand?: string | null
@@ -112,9 +114,9 @@ export type Database = {
           image_url?: string | null
           material?: string | null
           name?: string
-          price?: number | null
           processing_status?: string | null
           product_number?: string | null
+          retail_price?: number | null
           season?: string | null
           size?: string | null
           sku?: string
@@ -122,6 +124,7 @@ export type Database = {
           stock_quantity?: number | null
           supplier_id?: string | null
           updated_at?: string
+          wholesale_price?: number | null
         }
         Relationships: [
           {
