@@ -27,17 +27,33 @@ export const DocumentItem = ({
   const queryClient = useQueryClient()
 
   const handleRetryProcessing = async () => {
+    if (isProcessing) {
+      console.log('Document already processing, ignoring request:', id)
+      return
+    }
+
     console.log('Retrying processing for document:', id)
     onProcessingStart(id)
     
     try {
-      const { error } = await supabase.functions.invoke('process-pdf', {
+      const { error, data } = await supabase.functions.invoke('process-pdf', {
         body: { document_id: id }
       })
 
       if (error) {
         console.error('Retry processing error:', error)
         throw error
+      }
+
+      // Check for 409 status in the response
+      if (data?.error === 'Document is already being processed') {
+        console.log('Document is already being processed:', id)
+        toast({
+          title: "Processing in progress",
+          description: "This document is already being processed. Please wait.",
+          variant: "default"
+        })
+        return
       }
 
       console.log('Retry processing triggered successfully')
@@ -51,7 +67,7 @@ export const DocumentItem = ({
       console.error('Error in retry processing:', error)
       toast({
         title: "Processing failed",
-        description: "There was an error processing the document. Please try again.",
+        description: error instanceof Error ? error.message : "There was an error processing the document. Please try again.",
         variant: "destructive"
       })
     } finally {
