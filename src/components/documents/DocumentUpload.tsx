@@ -67,14 +67,13 @@ export const DocumentUpload = () => {
         throw new Error(`Failed to create document record: ${dbError.message}`)
       }
 
-      const documentId = docData.id
-      console.log('Document record created with ID:', documentId)
+      console.log('Document record created:', docData)
 
-      // Then trigger processing with the specific document ID
-      console.log('Triggering processing for document:', documentId)
+      // Then trigger processing with the file path
+      console.log('Triggering processing with file path:', filePath)
       const { error: processError, data: processData } = await supabase.functions
         .invoke('process-pdf', {
-          body: { document_id: documentId }
+          body: { file_path: filePath }
         })
 
       if (processError) {

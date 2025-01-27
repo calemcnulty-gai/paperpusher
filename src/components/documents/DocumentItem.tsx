@@ -7,6 +7,7 @@ import { useQueryClient } from "@tanstack/react-query"
 interface DocumentItemProps {
   id: string
   filename: string
+  file_path: string
   created_at: string
   content: string | null
   isProcessing: boolean
@@ -17,6 +18,7 @@ interface DocumentItemProps {
 export const DocumentItem = ({
   id,
   filename,
+  file_path,
   created_at,
   content,
   isProcessing,
@@ -53,9 +55,9 @@ export const DocumentItem = ({
         return
       }
 
-      console.log('Invoking process-pdf function with document ID:', id)
+      console.log('Invoking process-pdf function with file path:', file_path)
       const { error: processError, data: processData } = await supabase.functions.invoke('process-pdf', {
-        body: { document_id: id }
+        body: { file_path: file_path }
       })
 
       if (processError) {

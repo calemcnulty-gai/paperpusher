@@ -3,7 +3,6 @@ import { serve } from "https://deno.land/std@0.168.0/http/server.ts"
 import { 
   corsHeaders,
   initSupabaseClient,
-  getDocument,
   downloadAndConvertPDF,
   convertPDFToImage,
   analyzeImageWithOpenAI,
@@ -11,7 +10,7 @@ import {
 } from './utils.ts'
 
 // Track processing documents to prevent duplicate requests
-const processingDocuments = new Set()
+const processingFiles = new Set()
 
 serve(async (req) => {
   console.log('=== PDF Processing Function Started ===')
@@ -41,32 +40,32 @@ serve(async (req) => {
       }
     }
 
-    const { document_id } = await req.json()
-    console.log('Processing request for document_id:', document_id)
+    const { file_path } = await req.json()
+    console.log('Processing request for file:', file_path)
     
-    if (!document_id) {
-      console.error('Error: Missing document_id in request')
-      throw new Error('Document ID is required')
+    if (!file_path) {
+      console.error('Error: Missing file_path in request')
+      throw new Error('File path is required')
     }
 
-    // Initialize Supabase client first to verify the document exists
+    // Initialize Supabase client
     const supabase = initSupabaseClient()
     console.log('Supabase client initialized')
 
-    // Verify document exists before adding to processing set
-    const { data: existingDoc } = await supabase
+    // Find the document record for this file
+    const { data: doc, error: docError } = await supabase
       .from('document_embeddings')
       .select('id, content')
-      .eq('id', document_id)
+      .eq('file_path', file_path)
       .single()
 
-    if (!existingDoc) {
-      console.error('Document not found:', document_id)
-      throw new Error('Document not found')
+    if (docError) {
+      console.error('Error finding document:', docError)
+      throw new Error('Could not find document record')
     }
 
-    if (existingDoc.content) {
-      console.log('Document already processed:', document_id)
+    if (doc.content) {
+      console.log('Document already processed:', doc.id)
       return new Response(
         JSON.stringify({ 
           success: true, 
@@ -79,8 +78,8 @@ serve(async (req) => {
       )
     }
 
-    if (processingDocuments.has(document_id)) {
-      console.log('Document already being processed:', document_id)
+    if (processingFiles.has(file_path)) {
+      console.log('File already being processed:', file_path)
       return new Response(
         JSON.stringify({ 
           success: false, 
@@ -94,30 +93,19 @@ serve(async (req) => {
     }
 
     try {
-      processingDocuments.add(document_id)
-      console.log('Added document to processing set:', document_id)
+      processingFiles.add(file_path)
+      console.log('Added file to processing set:', file_path)
 
-      const document = await getDocument(supabase, document_id)
-      console.log('Document retrieved:', { 
-        id: document.id, 
-        filename: document.filename,
-        file_path: document.file_path
-      })
-
-      if (!document.file_path.toLowerCase().endsWith('.pdf')) {
-        throw new Error('Invalid file type: Only PDF files can be processed')
-      }
-
-      const base64Pdf = await downloadAndConvertPDF(supabase, document.file_path)
+      const base64Pdf = await downloadAndConvertPDF(supabase, file_path)
       console.log('PDF downloaded and converted to base64')
 
       const imageUrl = await convertPDFToImage(base64Pdf)
       console.log('PDF converted to image:', imageUrl)
 
-      const analysisResult = await analyzeImageWithOpenAI(imageUrl, document.filename)
+      const analysisResult = await analyzeImageWithOpenAI(imageUrl, doc.filename)
       console.log('OpenAI analysis completed')
 
-      await updateDocumentContent(supabase, document_id, analysisResult.choices[0].message.content)
+      await updateDocumentContent(supabase, doc.id, analysisResult.choices[0].message.content)
       console.log('Document content updated successfully')
 
       return new Response(
@@ -131,8 +119,8 @@ serve(async (req) => {
         }
       )
     } finally {
-      processingDocuments.delete(document_id)
-      console.log('Removed document from processing set:', document_id)
+      processingFiles.delete(file_path)
+      console.log('Removed file from processing set:', file_path)
     }
 
   } catch (error) {
