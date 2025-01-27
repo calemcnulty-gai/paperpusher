@@ -2,7 +2,7 @@ import { corsHeaders } from './corsHeaders.ts'
 
 const sleep = (ms: number) => new Promise(resolve => setTimeout(resolve, ms))
 
-async function checkJobStatus(jobId: string, apiKey: string): Promise<string> {
+async function checkJobStatus(jobId: string, apiKey: string): Promise<{status: string, urls?: string[]}> {
   console.log('Checking job status for:', jobId)
   const response = await fetch(`https://api.pdf.co/v1/job/check`, {
     method: 'POST',
@@ -32,44 +32,10 @@ async function checkJobStatus(jobId: string, apiKey: string): Promise<string> {
     throw new Error(`Job failed: ${result.message || 'Unknown error'}`)
   }
   
-  return result.status
-}
-
-async function getJobResult(jobId: string, apiKey: string): Promise<string> {
-  console.log('Getting job result for:', jobId)
-  const response = await fetch(`https://api.pdf.co/v1/job/get`, {
-    method: 'POST',
-    headers: {
-      'x-api-key': apiKey,
-      'Content-Type': 'application/json',
-    },
-    body: JSON.stringify({
-      jobid: jobId
-    })
-  })
-
-  if (!response.ok) {
-    const errorText = await response.text()
-    console.error('Job result error:', {
-      status: response.status,
-      statusText: response.statusText,
-      error: errorText
-    })
-    throw new Error(`Failed to get job result: ${errorText}`)
+  return {
+    status: result.status,
+    urls: result.urls
   }
-
-  const result = await response.json()
-  console.log('Job result:', result)
-  
-  if (result.status === 'error') {
-    throw new Error(`Failed to get result: ${result.message}`)
-  }
-  
-  if (!result.url) {
-    throw new Error('No image URL returned in job result')
-  }
-
-  return result.url
 }
 
 export async function convertPDFToImage(pdfData: Uint8Array): Promise<string> {
@@ -141,17 +107,21 @@ export async function convertPDFToImage(pdfData: Uint8Array): Promise<string> {
   }
 
   // Poll for job completion
-  let status: string
+  let jobInfo;
   do {
     await sleep(2000) // Wait 2 seconds between checks
-    status = await checkJobStatus(pdfResult.jobId, pdfCoApiKey)
-    console.log('Current job status:', status)
-  } while (status === 'working')
+    jobInfo = await checkJobStatus(pdfResult.jobId, pdfCoApiKey)
+    console.log('Current job status:', jobInfo.status)
+  } while (jobInfo.status === 'working')
 
-  if (status !== 'success') {
-    throw new Error(`PDF conversion failed with status: ${status}`)
+  if (jobInfo.status !== 'success') {
+    throw new Error(`PDF conversion failed with status: ${jobInfo.status}`)
   }
 
-  // Get the final result
-  return await getJobResult(pdfResult.jobId, pdfCoApiKey)
+  if (!jobInfo.urls || !jobInfo.urls.length) {
+    throw new Error('No URLs returned from successful job result')
+  }
+
+  // Return the first URL for now - we can modify this to return all URLs if needed
+  return jobInfo.urls[0]
 }
