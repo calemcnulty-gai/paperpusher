@@ -1,6 +1,6 @@
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts"
 import { createClient } from 'https://esm.sh/@supabase/supabase-js@2.38.4'
-import { parsePdf } from "https://deno.land/x/deno_pdf@0.0.15/mod.ts"
+import { parse } from "https://deno.land/x/pdf_parse@0.2.0/mod.ts"
 
 const corsHeaders = {
   'Access-Control-Allow-Origin': '*',
@@ -52,20 +52,15 @@ serve(async (req) => {
 
     console.log('PDF downloaded, starting text extraction...')
     
-    // Convert Blob to ArrayBuffer
+    // Convert Blob to ArrayBuffer and then to Uint8Array
     const arrayBuffer = await fileData.arrayBuffer()
+    const uint8Array = new Uint8Array(arrayBuffer)
     
     console.log('Parsing PDF content...')
-    const { pages } = await parsePdf(new Uint8Array(arrayBuffer))
+    const pdfData = await parse(uint8Array)
     
     console.log('PDF parsed successfully')
-    
-    // Extract text from all pages
-    let fullText = ''
-    for (const page of pages) {
-      console.log(`Processing page ${page.pageNumber} of ${pages.length}`)
-      fullText += page.textContent + '\n'
-    }
+    const fullText = pdfData.text
 
     console.log('Text extracted, parsing product information...')
     
@@ -99,7 +94,6 @@ serve(async (req) => {
         content: fullText,
         product_id: product.id,
         metadata: {
-          pageCount: pages.length,
           processedAt: new Date().toISOString(),
           extractedInfo: productInfo
         },
@@ -117,8 +111,7 @@ serve(async (req) => {
     return new Response(
       JSON.stringify({ 
         success: true,
-        product: product,
-        pageCount: pages.length
+        product: product
       }),
       { 
         headers: { 
