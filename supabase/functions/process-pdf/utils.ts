@@ -81,9 +81,12 @@ async function checkJobStatus(jobId: string, apiKey: string): Promise<{status: s
   let urls: string[] = []
   if (result.url) {
     console.log('Found URL in result:', result.url)
-    // If the URL ends with .json, we need to fetch and parse it
-    if (result.url.toLowerCase().endsWith('.json')) {
-      console.log('URL ends with .json, fetching content...')
+    // Check if the path (not query params) ends with .json
+    const urlPath = new URL(result.url).pathname
+    console.log('URL path:', urlPath)
+    
+    if (urlPath.toLowerCase().endsWith('.json')) {
+      console.log('URL path ends with .json, fetching content...')
       const jsonResponse = await fetch(result.url)
       if (!jsonResponse.ok) {
         const errorText = await jsonResponse.text()
@@ -108,7 +111,7 @@ async function checkJobStatus(jobId: string, apiKey: string): Promise<{status: s
         throw new Error('JSON response was not an array of URLs')
       }
     } else {
-      console.log('URL does not end with .json, using directly')
+      console.log('URL path does not end with .json, using directly')
       urls = [result.url]
     }
   } else {
@@ -120,9 +123,10 @@ async function checkJobStatus(jobId: string, apiKey: string): Promise<{status: s
   // Validate that all URLs have valid image extensions
   const validExtensions = ['.png', '.jpg', '.jpeg', '.gif', '.webp']
   const validUrls = urls.filter(url => {
-    const lowercaseUrl = url.toLowerCase()
+    const urlPath = new URL(url).pathname
+    const lowercaseUrl = urlPath.toLowerCase()
     const isValid = validExtensions.some(ext => lowercaseUrl.endsWith(ext))
-    console.log(`URL validation: ${url} -> ${isValid}`)
+    console.log(`URL validation: ${url}\nPath: ${urlPath} -> ${isValid}`)
     return isValid
   })
 
