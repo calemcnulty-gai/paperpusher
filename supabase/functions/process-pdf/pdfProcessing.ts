@@ -26,7 +26,7 @@ async function checkJobStatus(jobId: string, apiKey: string): Promise<{status: s
   }
 
   const result = await response.json()
-  console.log('Job status result:', result)
+  console.log('Job status result:', JSON.stringify(result, null, 2))
   
   if (result.status === 'error') {
     throw new Error(`Job failed: ${result.message || 'Unknown error'}`)
@@ -34,29 +34,53 @@ async function checkJobStatus(jobId: string, apiKey: string): Promise<{status: s
 
   let urls: string[] = []
   if (result.url) {
+    console.log('Found URL in result:', result.url)
     // If the URL ends with .json, we need to fetch and parse it
     if (result.url.toLowerCase().endsWith('.json')) {
-      console.log('Got JSON URL, fetching actual image URLs...')
+      console.log('URL ends with .json, fetching content...')
       const jsonResponse = await fetch(result.url)
       if (!jsonResponse.ok) {
-        throw new Error(`Failed to fetch JSON result: ${await jsonResponse.text()}`)
+        const errorText = await jsonResponse.text()
+        console.error('Failed to fetch JSON content:', {
+          status: jsonResponse.status,
+          statusText: jsonResponse.statusText,
+          error: errorText
+        })
+        throw new Error(`Failed to fetch JSON result: ${errorText}`)
       }
-      urls = await jsonResponse.json()
+      const jsonText = await jsonResponse.text()
+      console.log('Raw JSON response:', jsonText)
+      try {
+        urls = JSON.parse(jsonText)
+        console.log('Parsed URLs array:', urls)
+      } catch (e) {
+        console.error('Failed to parse JSON response:', e)
+        throw new Error(`Failed to parse JSON response: ${e.message}`)
+      }
       if (!Array.isArray(urls)) {
+        console.error('Parsed result is not an array:', urls)
         throw new Error('JSON response was not an array of URLs')
       }
     } else {
-      // Handle non-JSON URLs as before
+      console.log('URL does not end with .json, using directly')
       urls = [result.url]
     }
+  } else {
+    console.warn('No URL found in result')
   }
+  
+  console.log('URLs before validation:', urls)
   
   // Validate that all URLs have valid image extensions
   const validExtensions = ['.png', '.jpg', '.jpeg', '.gif', '.webp']
   const validUrls = urls.filter(url => {
     const lowercaseUrl = url.toLowerCase()
-    return validExtensions.some(ext => lowercaseUrl.endsWith(ext))
+    const isValid = validExtensions.some(ext => lowercaseUrl.endsWith(ext))
+    console.log(`URL validation: ${url} -> ${isValid}`)
+    return isValid
   })
+
+  console.log('Valid URLs after filtering:', validUrls)
 
   if (validUrls.length === 0) {
     console.error('No valid image URLs found in response. URLs received:', urls)
