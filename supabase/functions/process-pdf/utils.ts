@@ -77,14 +77,30 @@ async function checkJobStatus(jobId: string, apiKey: string): Promise<{status: s
   if (result.status === 'error') {
     throw new Error(`Job failed: ${result.message || 'Unknown error'}`)
   }
+
+  let urls: string[] = []
+  if (result.url) {
+    try {
+      // The URL might be a JSON string containing an array of URLs
+      const parsedUrls = JSON.parse(result.url)
+      if (Array.isArray(parsedUrls)) {
+        urls = parsedUrls
+      } else {
+        urls = [result.url]
+      }
+    } catch (e) {
+      // If parsing fails, treat it as a single URL
+      urls = [result.url]
+    }
+  }
   
   return {
     status: result.status,
-    urls: result.urls
+    urls
   }
 }
 
-export const convertPDFToImage = async (pdfData: Uint8Array) => {
+export const convertPDFToImage = async (pdfData: Uint8Array): Promise<string[]> {
   const pdfCoApiKey = Deno.env.get('PDF_CO_API_KEY')
   console.log('PDF.co API key present:', !!pdfCoApiKey)
   
@@ -168,8 +184,7 @@ export const convertPDFToImage = async (pdfData: Uint8Array) => {
     throw new Error('No URLs returned from successful job result')
   }
 
-  // Return the first URL for now - we can modify this to return all URLs if needed
-  return jobInfo.urls[0]
+  return jobInfo.urls
 }
 
 export const analyzeImageWithOpenAI = async (imageUrl: string, filename: string) => {
@@ -234,7 +249,7 @@ export const analyzeImageWithOpenAI = async (imageUrl: string, filename: string)
   return analysisResult
 }
 
-export const updateDocumentContent = async (supabase: any, documentId: string, content: string) => {
+export const updateDocumentContent = async (supabase: any, documentId: string, content: string, pagesProcessed: number = 1) => {
   console.log('Updating document with analysis results...')
   const { error: updateError } = await supabase
     .from('document_embeddings')
@@ -244,7 +259,7 @@ export const updateDocumentContent = async (supabase: any, documentId: string, c
         processed: true,
         processed_at: new Date().toISOString(),
         model_used: "gpt-4-vision-preview",
-        pages_processed: 1
+        pages_processed: pagesProcessed
       }
     })
     .eq('id', documentId)

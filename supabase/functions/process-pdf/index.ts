@@ -87,19 +87,29 @@ serve(async (req) => {
       const base64Pdf = await downloadAndConvertPDF(supabase, file_path)
       console.log('PDF downloaded and converted to base64')
 
-      const imageUrl = await convertPDFToImage(base64Pdf)
-      console.log('PDF converted to image:', imageUrl)
+      const imageUrls = await convertPDFToImage(base64Pdf)
+      console.log('PDF converted to images:', imageUrls)
 
-      const analysisResult = await analyzeImageWithOpenAI(imageUrl, doc.filename)
-      console.log('OpenAI analysis completed')
+      // Analyze each page and combine the results
+      const allAnalyses = await Promise.all(imageUrls.map(async (imageUrl, index) => {
+        console.log(`Analyzing page ${index + 1}/${imageUrls.length}`)
+        const pageResult = await analyzeImageWithOpenAI(imageUrl, `${doc.filename} - Page ${index + 1}`)
+        return pageResult.choices[0].message.content
+      }))
 
-      await updateDocumentContent(supabase, doc.id, analysisResult.choices[0].message.content)
+      // Combine all analyses into one document
+      const combinedContent = allAnalyses.map((content, index) => 
+        `=== Page ${index + 1} ===\n${content}`
+      ).join('\n\n')
+
+      await updateDocumentContent(supabase, doc.id, combinedContent, imageUrls.length)
       console.log('Document content updated successfully')
 
       return new Response(
         JSON.stringify({ 
           success: true, 
-          message: 'Document processed successfully' 
+          message: 'Document processed successfully',
+          pages_processed: imageUrls.length
         }),
         { 
           headers: { ...corsHeaders, 'Content-Type': 'application/json' },
