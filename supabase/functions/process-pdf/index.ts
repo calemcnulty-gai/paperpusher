@@ -1,9 +1,6 @@
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts"
 import { createClient } from 'https://esm.sh/@supabase/supabase-js@2.38.4'
-import * as pdfjsLib from 'npm:pdfjs-dist@3.11.174/build/pdf.js'
-
-// Initialize PDF.js
-pdfjsLib.GlobalWorkerOptions.workerSrc = 'npm:pdfjs-dist@3.11.174/build/pdf.worker.js'
+import * as pdfjsLib from 'npm:pdfjs-dist@3.11.174'
 
 const corsHeaders = {
   'Access-Control-Allow-Origin': '*',
@@ -60,10 +57,16 @@ serve(async (req) => {
     const arrayBuffer = await fileData.arrayBuffer()
     
     console.log('Creating PDF document instance...')
+
+    // Configure PDF.js for Deno environment
     const loadingTask = pdfjsLib.getDocument({
       data: new Uint8Array(arrayBuffer),
-      verbosity: 0
+      useWorkerFetch: false,
+      isEvalSupported: false,
+      useSystemFonts: true
     })
+
+    console.log('Loading PDF document...')
     const pdfDoc = await loadingTask.promise
     
     console.log('PDF document loaded successfully')
