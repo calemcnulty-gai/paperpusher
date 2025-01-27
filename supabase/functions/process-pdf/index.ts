@@ -18,12 +18,31 @@ serve(async (req) => {
   console.log('Request method:', req.method)
   console.log('Request headers:', Object.fromEntries(req.headers.entries()))
   
+  // Handle CORS preflight requests
   if (req.method === 'OPTIONS') {
     console.log('Handling CORS preflight request')
-    return new Response(null, { headers: corsHeaders })
+    return new Response(null, { 
+      headers: corsHeaders,
+      status: 204
+    })
   }
 
   try {
+    // Verify all required environment variables
+    const requiredEnvVars = [
+      'SUPABASE_URL',
+      'SUPABASE_SERVICE_ROLE_KEY',
+      'PDF_CO_API_KEY',
+      'OPENAI_API_KEY'
+    ]
+    
+    for (const envVar of requiredEnvVars) {
+      if (!Deno.env.get(envVar)) {
+        console.error(`Missing required environment variable: ${envVar}`)
+        throw new Error(`Configuration error: ${envVar} is not set`)
+      }
+    }
+
     console.log('Parsing request body...')
     const body = await req.json()
     console.log('Request body:', JSON.stringify(body))
@@ -74,8 +93,14 @@ serve(async (req) => {
       console.log('Document content updated successfully')
 
       return new Response(
-        JSON.stringify({ success: true, message: 'Document processed successfully' }),
-        { headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+        JSON.stringify({ 
+          success: true, 
+          message: 'Document processed successfully' 
+        }),
+        { 
+          headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+          status: 200
+        }
       )
     } finally {
       // Always remove document from processing set, even if there's an error
@@ -89,7 +114,8 @@ serve(async (req) => {
       JSON.stringify({ 
         success: false, 
         error: error.message,
-        details: error.stack 
+        details: error.stack,
+        timestamp: new Date().toISOString()
       }),
       { 
         headers: { ...corsHeaders, 'Content-Type': 'application/json' }, 
