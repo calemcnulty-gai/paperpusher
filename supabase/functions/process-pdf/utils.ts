@@ -179,37 +179,52 @@ export const analyzeImageWithOpenAI = async (imageUrl: string, filename: string)
     throw new Error('OpenAI API key is not configured')
   }
 
+  const schema = {
+    name: "",              // Product name/title
+    sku: "",              // Product SKU or ID
+    brand: "",            // Brand name
+    category: "shoes",    // Product category
+    size: "",            // Size information
+    color: "",           // Color information
+    material: "",        // Material information
+    price: 0,            // Price as number only
+    product_number: "",   // Product model/number
+    description: "",     // Product description
+    specifications: {},  // Additional specs
+    season: "all",      // Season information
+    extracted_metadata: {} // Any other data
+  }
+
   console.log('Preparing OpenAI request payload...')
   const requestPayload = {
     model: "gpt-4-vision-preview",
     messages: [
       {
         role: "system",
-        content: `You are a product info extraction assistant. Return your answer as valid JSON, with no extra text or formatting. Only include the JSON object, nothing else. No markdown, no code blocks, no additional commentary.
+        content: `You are a JSON generation assistant. You ONLY output valid JSON according to this exact schema:
+${JSON.stringify(schema, null, 2)}
 
-The JSON must follow this exact schema:
-{
-  "name": string,           // Product name/title
-  "sku": string,           // Product SKU or ID
-  "brand": string,         // Brand name
-  "category": string,      // Product category
-  "size": string,          // Size information
-  "color": string,         // Color information
-  "material": string,      // Material information
-  "price": number,         // Price as number only
-  "product_number": string, // Product model/number
-  "description": string,   // Product description
-  "specifications": {},    // Additional specs
-  "season": string,        // Season information
-  "extracted_metadata": {} // Any other data
-}`
+CRITICAL INSTRUCTIONS:
+1. Return ONLY the JSON object. No markdown, no code blocks, no explanations.
+2. Any text outside the JSON object is a mistake.
+3. If uncertain about a value, use null instead of omitting the field.
+4. The JSON must be valid - all strings quoted, no trailing commas.
+5. Numbers should be plain numbers without currency symbols.
+6. Arrays and nested objects are allowed in specifications and extracted_metadata.`
       },
       {
         role: "user",
         content: [
           {
             type: "text",
-            text: `Extract product information from this document titled "${filename}" and return strictly as JSON. Return ONLY the JSON object with no additional text, formatting, or explanation.`
+            text: `Extract product data from this image and return ONLY a JSON object matching this schema:
+${JSON.stringify(schema, null, 2)}
+
+Remember:
+- Return ONLY the JSON object
+- No additional text or formatting
+- Every field must be present
+- Use null for missing values`
           },
           {
             type: "image_url",
@@ -221,7 +236,9 @@ The JSON must follow this exact schema:
       }
     ],
     max_tokens: 4096,
-    temperature: 0
+    temperature: 0,
+    presence_penalty: 0,
+    frequency_penalty: 0
   }
   
   console.log('Sending request to OpenAI API...')
@@ -255,42 +272,53 @@ The JSON must follow this exact schema:
     const content = analysisResult.choices[0].message.content || ''
     
     // Try to isolate the JSON object if GPT occasionally wraps or adds text
-    const jsonMatch = content.match(/\{[\s\S]*\}/)
+    const jsonMatch = content.match(/\{[\s\S]*?\}(?=\s*$)/)
     if (!jsonMatch) {
       console.error('No JSON object found in response')
       throw new Error('No JSON object found in response')
     }
     
-    const jsonStr = jsonMatch[0]
+    const jsonStr = jsonMatch[0].trim()
     console.log('Extracted JSON string:', jsonStr)
     
     let productData
     try {
       productData = JSON.parse(jsonStr)
     } catch (parseError) {
-      console.error('JSON parse error:', parseError)
-      console.error('Failed JSON string:', jsonStr)
-      throw new Error('Failed to parse JSON response')
+      // If initial parse fails, try to clean the string
+      console.warn('Initial JSON parse failed, attempting to clean string')
+      const cleanStr = jsonStr
+        .replace(/[\u201C\u201D]/g, '"') // Replace smart quotes
+        .replace(/[\u2018\u2019]/g, "'") // Replace smart apostrophes
+        .replace(/\n/g, ' ')            // Remove newlines
+        .replace(/,\s*}/g, '}')         // Remove trailing commas
+        .replace(/,\s*]/g, ']')         // Remove trailing commas in arrays
+      
+      try {
+        productData = JSON.parse(cleanStr)
+      } catch (secondError) {
+        console.error('JSON parse error after cleaning:', secondError)
+        console.error('Failed JSON string:', cleanStr)
+        throw new Error('Failed to parse JSON response')
+      }
     }
     
-    // Ensure all required fields exist with defaults
-    const template = {
-      name: null,
-      sku: null,
-      brand: null,
-      category: 'shoes',
-      size: null,
-      color: null,
-      material: null,
-      price: null,
-      product_number: null,
-      description: null,
-      specifications: {},
-      season: 'all',
-      extracted_metadata: {}
+    // Validate against schema
+    const result = { ...schema }
+    for (const [key, value] of Object.entries(productData)) {
+      if (key in schema) {
+        // Convert price to number if it's a string
+        if (key === 'price' && typeof value === 'string') {
+          result[key] = parseFloat(value.replace(/[^0-9.-]+/g, '')) || null
+        } else {
+          result[key] = value
+        }
+      } else {
+        // Put unknown fields in extracted_metadata
+        result.extracted_metadata[key] = value
+      }
     }
     
-    const result = { ...template, ...productData }
     console.log('Final parsed product data:', JSON.stringify(result, null, 2))
     console.log('=== End OpenAI Analysis ===\n')
     
