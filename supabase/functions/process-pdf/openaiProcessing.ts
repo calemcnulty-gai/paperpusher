@@ -17,7 +17,8 @@ export async function analyzeImageWithOpenAI(imageUrl: string, filename: string)
     size: "",            // Size information
     color: "",           // Color information
     material: "",        // Material information
-    price: 0,            // Price as number only
+    wholesale_price: 0,  // Wholesale price as number only
+    retail_price: 0,     // Retail price as number only
     product_number: "",   // Product model/number
     description: "",     // Product description
     specifications: {},  // Additional specs
@@ -35,7 +36,12 @@ CRITICAL INSTRUCTIONS:
 3. If uncertain about a value, use null instead of omitting the field.
 4. The JSON must be valid - all strings quoted, no trailing commas.
 5. Numbers should be plain numbers without currency symbols.
-6. Arrays and nested objects are allowed in specifications and extracted_metadata.`
+6. For prices:
+   - wholesale_price is the cost to the retailer
+   - retail_price is the suggested selling price to customers
+   - Both should be numbers only, no currency symbols
+   - If only one price is found, use it as wholesale_price
+7. Arrays and nested objects are allowed in specifications and extracted_metadata.`
 
   console.log('\nSystem Prompt:')
   console.log('='.repeat(80))
@@ -50,7 +56,9 @@ Remember:
 - Return ONLY the JSON object
 - No additional text or formatting
 - Every field must be present
-- Use null for missing values`
+- Use null for missing values
+- Extract both wholesale and retail prices if available
+- If only one price is found, use it as wholesale_price`
 
   console.log('\nUser Prompt:')
   console.log('='.repeat(80))
@@ -162,8 +170,8 @@ Remember:
     const result = { ...schema }
     for (const [key, value] of Object.entries(productData)) {
       if (key in schema) {
-        // Convert price to number if it's a string
-        if (key === 'price' && typeof value === 'string') {
+        // Convert prices to numbers if they're strings
+        if ((key === 'wholesale_price' || key === 'retail_price') && typeof value === 'string') {
           result[key] = parseFloat(value.replace(/[^0-9.-]+/g, '')) || null
         } else {
           result[key] = value
@@ -172,6 +180,14 @@ Remember:
         // Put unknown fields in extracted_metadata
         result.extracted_metadata[key] = value
       }
+    }
+
+    // If we only have a price field in extracted_metadata, use it as retail_price
+    if (result.extracted_metadata.price && !result.retail_price) {
+      const price = typeof result.extracted_metadata.price === 'string' 
+        ? parseFloat(result.extracted_metadata.price.replace(/[^0-9.-]+/g, ''))
+        : result.extracted_metadata.price
+      result.retail_price = price || null
     }
     
     console.log('\nFinal parsed product data:')

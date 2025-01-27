@@ -46,14 +46,26 @@ export const downloadAndConvertPDF = async (supabase: any, filePath: string) => 
   return uint8Array
 }
 
-export const createProduct = async (supabase: any, documentId: string, productData: any) => {
+export const createProduct = async (supabase: any, documentId: string, productData: any, imageUrl?: string) => {
   console.log('\n=== Creating Product ===')
   console.log('Document ID:', documentId)
   console.log('Product Data:', JSON.stringify(productData, null, 2))
+  console.log('Source Image URL:', imageUrl)
 
   // Ensure required fields are present
   if (!productData.name || !productData.sku) {
     throw new Error('Product name and SKU are required')
+  }
+
+  // If we have an image URL, store it in Supabase
+  let storedImageUrl = null
+  if (imageUrl) {
+    try {
+      storedImageUrl = await storeProductImage(supabase, imageUrl, productData.sku)
+    } catch (error) {
+      console.error('Failed to store product image:', error)
+      // Continue without image if storage fails
+    }
   }
 
   const productInsert = {
@@ -65,13 +77,15 @@ export const createProduct = async (supabase: any, documentId: string, productDa
     size: productData.size,
     color: productData.color,
     material: productData.material,
-    price: productData.price ? Number(productData.price) : null,
+    wholesale_price: productData.wholesale_price ? Number(productData.wholesale_price) : null,
+    retail_price: productData.retail_price ? Number(productData.retail_price) : null,
     product_number: productData.product_number,
     description: productData.description,
     specifications: productData.specifications || {},
     season: productData.season || 'all',
     extracted_metadata: productData.extracted_metadata || {},
-    processing_status: 'processed'
+    processing_status: 'processed',
+    image_url: storedImageUrl
   }
 
   console.log('Inserting product:', JSON.stringify(productInsert, null, 2))
@@ -122,4 +136,55 @@ export const updateDocumentContent = async (supabase: any, documentId: string, c
 
   console.log('Document successfully updated')
   console.log('=== End Document Update ===\n')
+}
+
+export const storeProductImage = async (supabase: any, imageUrl: string, productSku: string): Promise<string> => {
+  console.log('\n=== Storing Product Image ===')
+  console.log('Source URL:', imageUrl)
+  console.log('Product SKU:', productSku)
+
+  // Download the image
+  console.log('Downloading image...')
+  const imageResponse = await fetch(imageUrl)
+  if (!imageResponse.ok) {
+    throw new Error(`Failed to download image: ${imageResponse.statusText}`)
+  }
+
+  // Get the content type and file extension
+  const contentType = imageResponse.headers.get('content-type') || 'image/jpeg'
+  const extension = contentType.split('/')[1] || 'jpg'
+  
+  // Create a unique filename using SKU
+  const filename = `products/${productSku.toLowerCase()}.${extension}`
+  console.log('Target filename:', filename)
+
+  // Convert the image data to a Uint8Array
+  const imageData = new Uint8Array(await imageResponse.arrayBuffer())
+  
+  // Upload to Supabase storage
+  console.log('Uploading to Supabase storage...')
+  const { data: uploadData, error: uploadError } = await supabase
+    .storage
+    .from('product_images')
+    .upload(filename, imageData, {
+      contentType,
+      upsert: true
+    })
+
+  if (uploadError) {
+    console.error('Storage upload error:', uploadError)
+    throw uploadError
+  }
+
+  // Get the public URL
+  const { data: { publicUrl } } = supabase
+    .storage
+    .from('product_images')
+    .getPublicUrl(filename)
+
+  console.log('Image stored successfully')
+  console.log('Public URL:', publicUrl)
+  console.log('=== End Image Storage ===\n')
+
+  return publicUrl
 }

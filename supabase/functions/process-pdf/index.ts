@@ -103,7 +103,7 @@ serve(async (req) => {
         // If the product data has required fields, create a product
         if (productData.name && productData.sku) {
           console.log(`Creating product from page ${index + 1}`)
-          const product = await createProduct(supabase, doc.id, productData)
+          const product = await createProduct(supabase, doc.id, productData, imageUrl)
           products.push(product)
         }
       }
