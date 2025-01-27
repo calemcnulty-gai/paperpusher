@@ -35,18 +35,6 @@ serve(async (req) => {
 
     console.log('Retrieved document:', document.filename);
 
-    // Get the PDF file from storage
-    const { data: fileData, error: fileError } = await supabase
-      .storage
-      .from('product_docs')
-      .download(document.file_path);
-
-    if (fileError || !fileData) {
-      throw new Error(`Failed to download file: ${fileError?.message}`);
-    }
-
-    console.log('Downloaded PDF file successfully');
-
     // Send to OpenAI for analysis
     const openAIResponse = await fetch('https://api.openai.com/v1/chat/completions', {
       method: 'POST',
@@ -59,11 +47,11 @@ serve(async (req) => {
         messages: [
           {
             role: "system",
-            content: "Extract product information from the provided document in a clear, structured format."
+            content: "You are a product information extraction assistant. Extract and structure key information from product documents into a clear, organized format."
           },
           {
             role: "user",
-            content: "Please analyze this product document and extract key information like product names, numbers, specifications, and any other relevant details."
+            content: `Please analyze this product document titled "${document.filename}" and extract key information like product names, numbers, specifications, and any other relevant details. Format the information in a clear, structured way.`
           }
         ]
       })
@@ -85,7 +73,8 @@ serve(async (req) => {
         content: analysisResult.choices[0].message.content,
         metadata: {
           processed: true,
-          processed_at: new Date().toISOString()
+          processed_at: new Date().toISOString(),
+          model_used: "gpt-4o-mini"
         }
       })
       .eq('id', document_id);
