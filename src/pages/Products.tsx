@@ -68,7 +68,7 @@ export default function Products() {
         throw error
       }
     },
-    keepPreviousData: true
+    placeholderData: (previousData) => previousData
   })
 
   const totalPages = data?.count ? Math.ceil(data.count / pageSize) : 0
