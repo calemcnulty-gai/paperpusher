@@ -1,7 +1,6 @@
 import "https://deno.land/x/xhr@0.1.0/mod.ts"
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts"
 import { createClient } from 'https://esm.sh/@supabase/supabase-js@2.39.3'
-import { decode as base64Decode } from "https://deno.land/std@0.208.0/encoding/base64.ts"
 
 const corsHeaders = {
   'Access-Control-Allow-Origin': '*',
@@ -16,6 +15,11 @@ serve(async (req) => {
 
   try {
     const { document_id } = await req.json()
+    
+    if (!document_id) {
+      throw new Error('Document ID is required')
+    }
+
     console.log('Processing document:', document_id)
 
     const supabase = createClient(
@@ -63,7 +67,7 @@ serve(async (req) => {
       },
       body: JSON.stringify({
         file: base64Pdf,
-        pages: "1",  // Convert only first page
+        pages: "1",
         async: false
       })
     })
@@ -90,7 +94,7 @@ serve(async (req) => {
         'Content-Type': 'application/json',
       },
       body: JSON.stringify({
-        model: "gpt-4o",
+        model: "gpt-4o-mini",
         messages: [
           {
             role: "system",
@@ -130,7 +134,7 @@ serve(async (req) => {
         metadata: {
           processed: true,
           processed_at: new Date().toISOString(),
-          model_used: "gpt-4o",
+          model_used: "gpt-4o-mini",
           pages_processed: 1
         }
       })
