@@ -46,6 +46,59 @@ export const downloadAndConvertPDF = async (supabase: any, filePath: string) => 
   return uint8Array
 }
 
+const sleep = (ms: number) => new Promise(resolve => setTimeout(resolve, ms))
+
+async function checkJobStatus(jobId: string, apiKey: string): Promise<string> {
+  console.log('Checking job status for:', jobId)
+  const response = await fetch(`https://api.pdf.co/v1/job/check?jobid=${jobId}`, {
+    headers: {
+      'x-api-key': apiKey
+    }
+  })
+
+  if (!response.ok) {
+    const errorText = await response.text()
+    console.error('Job status check error:', {
+      status: response.status,
+      statusText: response.statusText,
+      error: errorText
+    })
+    throw new Error(`Job status check failed: ${errorText}`)
+  }
+
+  const result = await response.json()
+  console.log('Job status result:', result)
+  return result.status
+}
+
+async function getJobResult(jobId: string, apiKey: string): Promise<string> {
+  console.log('Getting job result for:', jobId)
+  const response = await fetch(`https://api.pdf.co/v1/job/result?jobid=${jobId}`, {
+    headers: {
+      'x-api-key': apiKey
+    }
+  })
+
+  if (!response.ok) {
+    const errorText = await response.text()
+    console.error('Job result error:', {
+      status: response.status,
+      statusText: response.statusText,
+      error: errorText
+    })
+    throw new Error(`Failed to get job result: ${errorText}`)
+  }
+
+  const result = await response.json()
+  console.log('Job result:', result)
+  
+  if (!result.urls || !result.urls.length) {
+    throw new Error('No image URLs returned in job result')
+  }
+
+  return result.urls[0]
+}
+
 export const convertPDFToImage = async (pdfData: Uint8Array) => {
   const pdfCoApiKey = Deno.env.get('PDF_CO_API_KEY')
   console.log('PDF.co API key present:', !!pdfCoApiKey)
@@ -82,8 +135,8 @@ export const convertPDFToImage = async (pdfData: Uint8Array) => {
   const uploadResult = await uploadResponse.json()
   console.log('PDF uploaded to PDF.co:', uploadResult)
 
-  // Then convert the uploaded file to PNG
-  console.log('Converting uploaded PDF to PNG...')
+  // Then convert the uploaded file to PNG asynchronously
+  console.log('Starting async PDF to PNG conversion...')
   const pdfResponse = await fetch('https://api.pdf.co/v1/pdf/convert/to/png', {
     method: 'POST',
     headers: {
@@ -93,7 +146,7 @@ export const convertPDFToImage = async (pdfData: Uint8Array) => {
     body: JSON.stringify({
       url: uploadResult.url,
       pages: "1-",  // Convert all pages
-      async: false
+      async: true   // Use async processing
     })
   })
 
@@ -108,17 +161,26 @@ export const convertPDFToImage = async (pdfData: Uint8Array) => {
   }
 
   const pdfResult = await pdfResponse.json()
-  console.log('PDF.co conversion successful:', {
-    urls: pdfResult.urls ? pdfResult.urls.length : 0,
-    response: JSON.stringify(pdfResult)
-  })
+  console.log('Async conversion started:', pdfResult)
 
-  if (!pdfResult.urls || !pdfResult.urls.length) {
-    throw new Error('No image URLs returned from PDF conversion')
+  if (!pdfResult.jobId) {
+    throw new Error('No jobId returned from PDF conversion')
   }
 
-  // Return the first page's URL for now
-  return pdfResult.urls[0]
+  // Poll for job completion
+  let status: string
+  do {
+    await sleep(2000) // Wait 2 seconds between checks
+    status = await checkJobStatus(pdfResult.jobId, pdfCoApiKey)
+    console.log('Current job status:', status)
+  } while (status === 'working')
+
+  if (status !== 'success') {
+    throw new Error(`PDF conversion failed with status: ${status}`)
+  }
+
+  // Get the final result
+  return await getJobResult(pdfResult.jobId, pdfCoApiKey)
 }
 
 export const analyzeImageWithOpenAI = async (imageUrl: string, filename: string) => {
