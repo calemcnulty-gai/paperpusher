@@ -48,6 +48,8 @@ serve(async (req) => {
       btoa(String.fromCharCode(...new Uint8Array(buffer)))
     );
 
+    console.log('File converted to base64, sending to OpenAI');
+
     // Analyze PDF with GPT-4 Vision
     const openAIResponse = await fetch('https://api.openai.com/v1/chat/completions', {
       method: 'POST',
@@ -79,39 +81,52 @@ serve(async (req) => {
       })
     });
 
+    if (!openAIResponse.ok) {
+      const errorText = await openAIResponse.text();
+      console.error('OpenAI API Error:', errorText);
+      throw new Error(`OpenAI API error: ${errorText}`);
+    }
+
     const analysisResult = await openAIResponse.json();
     console.log('OpenAI Analysis Result:', analysisResult);
 
     let extractedProducts = [];
     try {
-      // Parse the response content as JSON
+      // Get the content from the OpenAI response
       const content = analysisResult.choices[0].message.content;
-      extractedProducts = JSON.parse(content);
+      // Try to parse if it's a string, otherwise use as is if it's already an object
+      extractedProducts = typeof content === 'string' ? JSON.parse(content) : content;
     } catch (e) {
       console.error('Failed to parse OpenAI response:', e);
       extractedProducts = [];
     }
 
     // Create products from extracted information
+    const createdProducts = [];
     for (const product of extractedProducts) {
-      const { data: newProduct, error: productError } = await supabase
-        .from('products')
-        .insert({
-          name: product.name,
-          product_number: product.product_number,
-          color: product.color,
-          size: product.size,
-          document_id: document_id,
-          processing_status: 'completed',
-          extracted_metadata: product
-        })
-        .select()
-        .single();
+      try {
+        const { data: newProduct, error: productError } = await supabase
+          .from('products')
+          .insert({
+            name: product.name,
+            product_number: product.product_number,
+            color: product.color,
+            size: product.size,
+            document_id: document_id,
+            processing_status: 'completed',
+            extracted_metadata: product
+          })
+          .select()
+          .single();
 
-      if (productError) {
-        console.error('Error creating product:', productError);
-      } else {
-        console.log('Created product:', newProduct);
+        if (productError) {
+          console.error('Error creating product:', productError);
+        } else {
+          console.log('Created product:', newProduct);
+          createdProducts.push(newProduct);
+        }
+      } catch (error) {
+        console.error('Error processing product:', error);
       }
     }
 
@@ -132,7 +147,7 @@ serve(async (req) => {
       JSON.stringify({ 
         success: true, 
         message: 'Document processed successfully',
-        products: extractedProducts
+        products: createdProducts
       }),
       { 
         headers: { 
