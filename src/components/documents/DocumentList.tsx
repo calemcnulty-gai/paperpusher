@@ -9,6 +9,7 @@ import { Alert, AlertDescription } from "@/components/ui/alert"
 interface DocumentEmbedding {
   id: string
   filename: string
+  file_path: string  // Added this field
   content: string | null
   created_at: string
 }
