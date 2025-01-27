@@ -1,6 +1,6 @@
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts"
 import { createClient } from 'https://esm.sh/@supabase/supabase-js@2.38.4'
-import * as pdfjsLib from 'npm:pdfjs-dist@3.11.174'
+import { Document } from 'https://deno.land/x/pdfjs@v0.1.0/mod.ts'
 
 const corsHeaders = {
   'Access-Control-Allow-Origin': '*',
@@ -53,34 +53,22 @@ serve(async (req) => {
 
     console.log('PDF downloaded, starting text extraction...')
     
-    // Convert Blob to ArrayBuffer
+    // Convert Blob to ArrayBuffer and then to Uint8Array
     const arrayBuffer = await fileData.arrayBuffer()
+    const uint8Array = new Uint8Array(arrayBuffer)
     
     console.log('Creating PDF document instance...')
-
-    // Configure PDF.js for Deno environment
-    const loadingTask = pdfjsLib.getDocument({
-      data: new Uint8Array(arrayBuffer),
-      useWorkerFetch: false,
-      isEvalSupported: false,
-      useSystemFonts: true
-    })
-
-    console.log('Loading PDF document...')
-    const pdfDoc = await loadingTask.promise
+    const pdfDoc = await Document.load(uint8Array)
     
     console.log('PDF document loaded successfully')
     
     // Extract text from all pages
     let fullText = ''
-    for (let i = 1; i <= pdfDoc.numPages; i++) {
-      console.log(`Processing page ${i} of ${pdfDoc.numPages}`)
-      const page = await pdfDoc.getPage(i)
-      const textContent = await page.getTextContent()
-      const pageText = textContent.items
-        .map((item: any) => item.str)
-        .join(' ')
-      fullText += pageText + '\n'
+    const pages = pdfDoc.getPages()
+    for (const page of pages) {
+      console.log(`Processing page ${page.pageNumber} of ${pages.length}`)
+      const content = await page.getTextContent()
+      fullText += content + '\n'
     }
 
     console.log('Text extracted, parsing product information...')
@@ -115,7 +103,7 @@ serve(async (req) => {
         content: fullText,
         product_id: product.id,
         metadata: {
-          pageCount: pdfDoc.numPages,
+          pageCount: pages.length,
           processedAt: new Date().toISOString(),
           extractedInfo: productInfo
         },
@@ -134,7 +122,7 @@ serve(async (req) => {
       JSON.stringify({ 
         success: true,
         product: product,
-        pageCount: pdfDoc.numPages
+        pageCount: pages.length
       }),
       { 
         headers: { 
