@@ -55,8 +55,8 @@ serve(async (req) => {
     const buffer = await fileData.arrayBuffer()
     const base64String = btoa(String.fromCharCode(...new Uint8Array(buffer)))
 
-    // Use OpenAI's GPT-4 Vision to extract information from the PDF
-    const openAIResponse = await fetch('https://api.openai.com/v1/chat/completions', {
+    // First pass: Use GPT-4 Vision to extract text and detect images
+    const firstPassResponse = await fetch('https://api.openai.com/v1/chat/completions', {
       method: 'POST',
       headers: {
         'Authorization': `Bearer ${Deno.env.get('OPENAI_API_KEY')}`,
@@ -67,14 +67,14 @@ serve(async (req) => {
         messages: [
           {
             role: "system",
-            content: "You are a product information extraction specialist. Extract product name, product number, and color information from the image. Return the information in a structured JSON format with keys: name, product_number, color."
+            content: "You are a product information extraction specialist. Extract product name, product number, color information, and identify if there are any product images in the PDF. Return the information in a structured JSON format with keys: name, product_number, color, has_product_images (boolean)."
           },
           {
             role: "user",
             content: [
               {
                 type: "text",
-                text: "Please extract the product information from this image and return it in JSON format."
+                text: "Please extract the product information from this document and identify if there are any product images."
               },
               {
                 type: "image",
@@ -88,37 +88,102 @@ serve(async (req) => {
       })
     })
 
-    const aiData = await openAIResponse.json()
-    console.log('OpenAI response:', aiData)
+    const firstPassData = await firstPassResponse.json()
+    console.log('First pass extraction completed:', firstPassData)
 
     let extractedInfo
     try {
-      extractedInfo = JSON.parse(aiData.choices[0].message.content)
+      extractedInfo = JSON.parse(firstPassData.choices[0].message.content)
     } catch (e) {
-      console.error('Error parsing OpenAI response:', e)
+      console.error('Error parsing first pass response:', e)
       extractedInfo = {
         name: "Unknown",
         product_number: "Unknown",
-        color: "Unknown"
+        color: "Unknown",
+        has_product_images: false
       }
     }
 
-    // Store the extracted information
-    const { error: updateError } = await supabaseClient
+    // Second pass: If images were detected, extract them
+    let imageUrl = null
+    if (extractedInfo.has_product_images) {
+      console.log('Product images detected, initiating image extraction')
+      const imageExtractionResponse = await fetch('https://api.openai.com/v1/chat/completions', {
+        method: 'POST',
+        headers: {
+          'Authorization': `Bearer ${Deno.env.get('OPENAI_API_KEY')}`,
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          model: "gpt-4o",
+          messages: [
+            {
+              role: "system",
+              content: "Extract and describe the main product image from this document. Return the description in a way that could be used as a prompt for image generation."
+            },
+            {
+              role: "user",
+              content: [
+                {
+                  type: "image",
+                  image_url: {
+                    url: `data:application/pdf;base64,${base64String}`
+                  }
+                }
+              ]
+            }
+          ]
+        })
+      })
+
+      const imageExtractionData = await imageExtractionResponse.json()
+      const imagePrompt = imageExtractionData.choices[0].message.content
+
+      // Generate a product image using DALL-E
+      console.log('Generating product image with DALL-E')
+      const imageGenerationResponse = await fetch('https://api.openai.com/v1/images/generations', {
+        method: 'POST',
+        headers: {
+          'Authorization': `Bearer ${Deno.env.get('OPENAI_API_KEY')}`,
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          model: "dall-e-3",
+          prompt: `Professional product photo: ${imagePrompt}`,
+          n: 1,
+          size: "1024x1024"
+        })
+      })
+
+      const imageData = await imageGenerationResponse.json()
+      imageUrl = imageData.data[0].url
+      console.log('Image generated:', imageUrl)
+    }
+
+    // Store the extracted information in products table
+    const { data: productData, error: productError } = await supabaseClient
       .from('products')
       .upsert({
         name: extractedInfo.name,
-        sku: extractedInfo.product_number,
+        product_number: extractedInfo.product_number,
         color: extractedInfo.color,
-        created_at: new Date().toISOString(),
-        updated_at: new Date().toISOString()
+        image_url: imageUrl,
+        document_id: document_id,
+        processing_status: 'completed',
+        extracted_metadata: {
+          processed_at: new Date().toISOString(),
+          has_product_images: extractedInfo.has_product_images,
+          raw_extraction: firstPassData.choices[0].message.content
+        }
       }, {
-        onConflict: 'sku'
+        onConflict: 'product_number'
       })
+      .select()
+      .single()
 
-    if (updateError) {
-      console.error('Error updating products:', updateError)
-      throw new Error(`Error updating products: ${updateError.message}`)
+    if (productError) {
+      console.error('Error updating products:', productError)
+      throw new Error(`Error updating products: ${productError.message}`)
     }
 
     // Update document with content and metadata
@@ -130,8 +195,10 @@ serve(async (req) => {
           processedAt: new Date().toISOString(),
           fileSize: fileData.size,
           mimeType: fileData.type,
-          extractedInfo
+          extractedInfo,
+          productId: productData.id
         },
+        product_id: productData.id,
         updated_at: new Date().toISOString(),
       })
       .eq('id', document_id)
@@ -146,7 +213,8 @@ serve(async (req) => {
     return new Response(
       JSON.stringify({ 
         success: true,
-        extractedInfo
+        extractedInfo,
+        productData
       }),
       { 
         headers: { 

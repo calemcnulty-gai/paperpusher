@@ -60,10 +60,15 @@ export type Database = {
           color: string | null
           created_at: string
           description: string | null
+          document_id: string | null
+          extracted_metadata: Json | null
           id: string
+          image_url: string | null
           material: string | null
           name: string
           price: number | null
+          processing_status: string | null
+          product_number: string | null
           season: string | null
           size: string | null
           sku: string
@@ -78,10 +83,15 @@ export type Database = {
           color?: string | null
           created_at?: string
           description?: string | null
+          document_id?: string | null
+          extracted_metadata?: Json | null
           id?: string
+          image_url?: string | null
           material?: string | null
           name: string
           price?: number | null
+          processing_status?: string | null
+          product_number?: string | null
           season?: string | null
           size?: string | null
           sku: string
@@ -96,10 +106,15 @@ export type Database = {
           color?: string | null
           created_at?: string
           description?: string | null
+          document_id?: string | null
+          extracted_metadata?: Json | null
           id?: string
+          image_url?: string | null
           material?: string | null
           name?: string
           price?: number | null
+          processing_status?: string | null
+          product_number?: string | null
           season?: string | null
           size?: string | null
           sku?: string
@@ -109,6 +124,13 @@ export type Database = {
           updated_at?: string
         }
         Relationships: [
+          {
+            foreignKeyName: "products_document_id_fkey"
+            columns: ["document_id"]
+            isOneToOne: false
+            referencedRelation: "document_embeddings"
+            referencedColumns: ["id"]
+          },
           {
             foreignKeyName: "products_supplier_id_fkey"
             columns: ["supplier_id"]
