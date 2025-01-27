@@ -1,3 +1,4 @@
+import "https://deno.land/x/xhr@0.1.0/mod.ts"
 import { createClient } from 'https://esm.sh/@supabase/supabase-js@2.39.3'
 import { encode } from "https://deno.land/std@0.208.0/encoding/base64.ts"
 
@@ -22,7 +23,7 @@ export const initSupabaseClient = () => {
 }
 
 export const getDocument = async (supabase: any, documentId: string) => {
-  console.log('Fetching document details from database...')
+  console.log('Fetching document details from database for ID:', documentId)
   const { data: document, error: docError } = await supabase
     .from('document_embeddings')
     .select('*')
@@ -50,7 +51,7 @@ export const getDocument = async (supabase: any, documentId: string) => {
 }
 
 export const downloadAndConvertPDF = async (supabase: any, filePath: string) => {
-  console.log('Downloading PDF from storage...')
+  console.log('Downloading PDF from storage bucket:', filePath)
   const { data: fileData, error: fileError } = await supabase
     .storage
     .from('product_docs')

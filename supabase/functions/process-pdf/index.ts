@@ -18,7 +18,6 @@ serve(async (req) => {
   console.log('Request method:', req.method)
   console.log('Request headers:', Object.fromEntries(req.headers.entries()))
   
-  // Handle CORS preflight requests
   if (req.method === 'OPTIONS') {
     console.log('Handling CORS preflight request')
     return new Response(null, { 
@@ -28,7 +27,6 @@ serve(async (req) => {
   }
 
   try {
-    // Verify all required environment variables
     const requiredEnvVars = [
       'SUPABASE_URL',
       'SUPABASE_SERVICE_ROLE_KEY',
@@ -44,17 +42,14 @@ serve(async (req) => {
     }
 
     console.log('Parsing request body...')
-    const body = await req.json()
-    console.log('Request body:', JSON.stringify(body))
-    
-    const { document_id } = body
+    const { document_id } = await req.json()
+    console.log('Received document_id:', document_id)
     
     if (!document_id) {
       console.error('Error: Missing document_id in request')
       throw new Error('Document ID is required')
     }
 
-    // Check if document is already being processed
     if (processingDocuments.has(document_id)) {
       console.log('Document already being processed:', document_id)
       return new Response(
@@ -70,23 +65,19 @@ serve(async (req) => {
     }
 
     try {
-      // Add document to processing set
       processingDocuments.add(document_id)
-      console.log('Processing document with ID:', document_id)
+      console.log('Added document to processing set:', document_id)
 
       const supabase = initSupabaseClient()
       console.log('Supabase client initialized')
 
-      // Get the most recently created document if no specific ID is provided
       const document = await getDocument(supabase, document_id)
       console.log('Document retrieved:', { 
         id: document.id, 
         filename: document.filename,
-        file_path: document.file_path,
-        created_at: document.created_at 
+        file_path: document.file_path
       })
 
-      // Verify it's a PDF file
       if (!document.file_path.toLowerCase().endsWith('.pdf')) {
         throw new Error('Invalid file type: Only PDF files can be processed')
       }
@@ -114,9 +105,8 @@ serve(async (req) => {
         }
       )
     } finally {
-      // Always remove document from processing set, even if there's an error
       processingDocuments.delete(document_id)
-      console.log('Removed document from processing:', document_id)
+      console.log('Removed document from processing set:', document_id)
     }
 
   } catch (error) {
