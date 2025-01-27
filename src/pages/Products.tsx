@@ -14,9 +14,11 @@ import {
   PaginationNext,
   PaginationPrevious,
 } from "@/components/ui/pagination"
+import { useToast } from "@/components/ui/use-toast"
 
 export default function Products() {
   const dispatch = useAppDispatch()
+  const { toast } = useToast()
   const { selectedSupplier, selectedSeason, page, pageSize } = useAppSelector(
     (state) => state.productFilters
   )
@@ -30,7 +32,7 @@ export default function Products() {
         .select('*, profiles:supplier_id(full_name)', { count: 'exact' })
 
       if (selectedSupplier) {
-        query = query.eq('supplier_id', selectedSupplier)
+        query = query.eq('brand', selectedSupplier)
       }
       if (selectedSeason && selectedSeason !== 'all') {
         query = query.eq('season', selectedSeason)
@@ -39,18 +41,34 @@ export default function Products() {
       // Add pagination
       const start = (page - 1) * pageSize
       const end = start + pageSize - 1
-      query = query.range(start, end)
-
-      const { data, error, count } = await query
       
-      if (error) {
+      try {
+        const { data, error, count } = await query.range(start, end)
+        
+        if (error) {
+          // Check if it's a range error
+          if (error.code === 'PGRST103') {
+            // Reset to page 1
+            dispatch(setPage(1))
+            toast({
+              title: "Pagination Error",
+              description: "Returned to first page - no more results available",
+              variant: "destructive",
+            })
+            // Refetch first page
+            const { data: firstPageData, count: firstPageCount } = await query.range(0, pageSize - 1)
+            return { data: firstPageData, count: firstPageCount }
+          }
+          throw error
+        }
+        
+        return { data, count }
+      } catch (error) {
         console.error('Error fetching products:', error)
         throw error
       }
-      
-      console.log('Fetched products:', data)
-      return { data, count }
-    }
+    },
+    keepPreviousData: true
   })
 
   const totalPages = data?.count ? Math.ceil(data.count / pageSize) : 0
