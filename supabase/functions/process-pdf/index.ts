@@ -1,6 +1,6 @@
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts"
 import { createClient } from 'https://esm.sh/@supabase/supabase-js@2.38.4'
-import * as pdfjsLib from 'npm:pdfjs-dist@3.11.174/legacy/build/pdf.js'
+import * as pdfjs from 'npm:pdfjs-dist@3.11.174/legacy/build/pdf.js'
 
 const corsHeaders = {
   'Access-Control-Allow-Origin': '*',
@@ -49,14 +49,13 @@ serve(async (req) => {
 
     console.log('Loading PDF document...')
 
-    // Configure PDF.js for server environment
-    const loadingTask = pdfjsLib.getDocument({
+    // Initialize PDF.js without worker
+    const loadingTask = pdfjs.getDocument({
       data: typedArray,
       verbosity: 0,
-      useSystemFonts: true,
-      disableFontFace: true,
       isEvalSupported: false,
-      useWorkerFetch: false
+      useSystemFonts: true,
+      disableFontFace: true
     })
     
     const pdfDocument = await loadingTask.promise
