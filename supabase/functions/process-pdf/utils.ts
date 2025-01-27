@@ -83,7 +83,7 @@ async function checkJobStatus(jobId: string, apiKey: string): Promise<string> {
 
 async function getJobResult(jobId: string, apiKey: string): Promise<string> {
   console.log('Getting job result for:', jobId)
-  const response = await fetch(`https://api.pdf.co/v1/job/check`, {
+  const response = await fetch(`https://api.pdf.co/v1/job/result`, {
     method: 'POST',
     headers: {
       'x-api-key': apiKey,
