@@ -53,6 +53,7 @@ export const DocumentItem = ({
         return
       }
 
+      console.log('Invoking process-pdf function with document ID:', id)
       const { error: processError, data: processData } = await supabase.functions.invoke('process-pdf', {
         body: { document_id: id }
       })
@@ -62,6 +63,7 @@ export const DocumentItem = ({
         throw processError
       }
 
+      console.log('Processing response:', processData)
       if (processData?.error === 'Document is already being processed') {
         console.log('Document is already being processed:', id)
         toast({

@@ -71,7 +71,8 @@ export const DocumentUpload = () => {
       console.log('Document record created with ID:', documentId)
 
       // Then trigger processing with the specific document ID
-      const { error: processError } = await supabase.functions
+      console.log('Triggering processing for document:', documentId)
+      const { error: processError, data: processData } = await supabase.functions
         .invoke('process-pdf', {
           body: { document_id: documentId }
         })
@@ -81,7 +82,7 @@ export const DocumentUpload = () => {
         throw new Error(`Failed to process document: ${processError.message}`)
       }
 
-      console.log('Processing triggered successfully for document:', documentId)
+      console.log('Processing response:', processData)
       toast({
         title: "Document uploaded",
         description: "The document has been uploaded and is being processed"
