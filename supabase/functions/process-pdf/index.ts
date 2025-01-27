@@ -1,24 +1,16 @@
-import "https://deno.land/x/xhr@0.1.0/mod.ts"
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts"
-import { 
-  corsHeaders,
-  initSupabaseClient,
-  downloadAndConvertPDF,
-  convertPDFToImage,
-  analyzeImageWithOpenAI,
-  updateDocumentContent
-} from './utils.ts'
+import { corsHeaders } from './corsHeaders.ts'
+import { initSupabaseClient, downloadAndConvertPDF, updateDocumentContent } from './supabaseClient.ts'
+import { convertPDFToImage } from './pdfProcessing.ts'
+import { analyzeImageWithOpenAI } from './openaiProcessing.ts'
 
 // Track processing documents to prevent duplicate requests
 const processingFiles = new Set()
 
 serve(async (req) => {
   console.log('=== PDF Processing Function Started ===')
-  console.log('Request method:', req.method)
-  console.log('Request headers:', Object.fromEntries(req.headers.entries()))
   
   if (req.method === 'OPTIONS') {
-    console.log('Handling CORS preflight request')
     return new Response(null, { 
       headers: corsHeaders,
       status: 204
@@ -35,7 +27,6 @@ serve(async (req) => {
     
     for (const envVar of requiredEnvVars) {
       if (!Deno.env.get(envVar)) {
-        console.error(`Missing required environment variable: ${envVar}`)
         throw new Error(`Configuration error: ${envVar} is not set`)
       }
     }
@@ -44,15 +35,12 @@ serve(async (req) => {
     console.log('Processing request for file:', file_path)
     
     if (!file_path) {
-      console.error('Error: Missing file_path in request')
       throw new Error('File path is required')
     }
 
-    // Initialize Supabase client
     const supabase = initSupabaseClient()
     console.log('Supabase client initialized')
 
-    // Find the document record for this file
     const { data: doc, error: docError } = await supabase
       .from('document_embeddings')
       .select('id, content')
