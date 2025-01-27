@@ -87,41 +87,31 @@ async function checkJobStatus(jobId: string, apiKey: string): Promise<{status: s
       if (!jsonResponse.ok) {
         throw new Error(`Failed to fetch JSON result: ${await jsonResponse.text()}`)
       }
-      const jsonResult = await jsonResponse.json()
-      if (Array.isArray(jsonResult)) {
-        urls = jsonResult
-      } else {
+      urls = await jsonResponse.json()
+      if (!Array.isArray(urls)) {
         throw new Error('JSON response was not an array of URLs')
       }
     } else {
       // Handle non-JSON URLs as before
-      try {
-        const parsedUrls = JSON.parse(result.url)
-        if (Array.isArray(parsedUrls)) {
-          urls = parsedUrls
-        } else {
-          urls = [result.url]
-        }
-      } catch (e) {
-        urls = [result.url]
-      }
+      urls = [result.url]
     }
   }
   
   // Validate that all URLs have valid image extensions
   const validExtensions = ['.png', '.jpg', '.jpeg', '.gif', '.webp']
-  urls = urls.filter(url => {
+  const validUrls = urls.filter(url => {
     const lowercaseUrl = url.toLowerCase()
     return validExtensions.some(ext => lowercaseUrl.endsWith(ext))
   })
 
-  if (urls.length === 0) {
+  if (validUrls.length === 0) {
+    console.error('No valid image URLs found in response. URLs received:', urls)
     throw new Error('No valid image URLs found in response')
   }
   
   return {
     status: result.status,
-    urls
+    urls: validUrls
   }
 }
 
