@@ -1,52 +1,10 @@
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts"
 import { createClient } from 'https://esm.sh/@supabase/supabase-js@2.38.4'
-import * as pdfjsLib from 'npm:pdfjs-dist@3.11.174/legacy/build/pdf.js'
+import { getDocument, GlobalWorkerOptions } from 'npm:pdfjs-dist@3.11.174'
 
 const corsHeaders = {
   'Access-Control-Allow-Origin': '*',
   'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type',
-}
-
-async function extractProductInfo(text: string) {
-  console.log('Extracting product info from text:', text)
-  
-  // Initialize default values
-  const productInfo = {
-    name: '',
-    color: '',
-    price: null as number | null,
-    description: '',
-  }
-
-  // Extract name (assume it's in the first few lines)
-  const nameMatch = text.match(/Product(?:\s+)?Name(?:\s*)?:(?:\s*)?([\w\s-]+)/i) ||
-                   text.match(/Name(?:\s*)?:(?:\s*)?([\w\s-]+)/i) ||
-                   text.match(/Model(?:\s*)?:(?:\s*)?([\w\s-]+)/i)
-  if (nameMatch) {
-    productInfo.name = nameMatch[1].trim()
-  }
-
-  // Extract color
-  const colorMatch = text.match(/Colou?r(?:\s*)?:(?:\s*)?([\w\s-]+)/i)
-  if (colorMatch) {
-    productInfo.color = colorMatch[1].trim()
-  }
-
-  // Extract price (look for currency symbols and numbers)
-  const priceMatch = text.match(/(?:Price|Cost|RRP)(?:\s*)?:(?:\s*)?[$£€]?\s*(\d+(?:\.\d{2})?)/i) ||
-                    text.match(/[$£€]\s*(\d+(?:\.\d{2})?)/i)
-  if (priceMatch) {
-    productInfo.price = parseFloat(priceMatch[1])
-  }
-
-  // Extract description (look for a description section)
-  const descMatch = text.match(/Description(?:\s*)?:(?:\s*)?([\s\S]+?)(?:\n\n|\n(?=[A-Z]))/i)
-  if (descMatch) {
-    productInfo.description = descMatch[1].trim()
-  }
-
-  console.log('Extracted product info:', productInfo)
-  return productInfo
 }
 
 serve(async (req) => {
@@ -92,14 +50,12 @@ serve(async (req) => {
     // Convert Blob to ArrayBuffer
     const arrayBuffer = await fileData.arrayBuffer()
     
-    // Initialize PDF.js
-    const loadingTask = pdfjsLib.getDocument({
+    console.log('Creating PDF document instance...')
+    const pdfDoc = await getDocument({
       data: new Uint8Array(arrayBuffer),
-      verbosity: 0 // Reduce console noise
-    })
+      verbosity: 0
+    }).promise
     
-    console.log('PDF loading task created')
-    const pdfDoc = await loadingTask.promise
     console.log('PDF document loaded successfully')
     
     // Extract text from all pages
@@ -180,3 +136,45 @@ serve(async (req) => {
     )
   }
 })
+
+async function extractProductInfo(text: string) {
+  console.log('Extracting product info from text:', text)
+  
+  // Initialize default values
+  const productInfo = {
+    name: '',
+    color: '',
+    price: null as number | null,
+    description: '',
+  }
+
+  // Extract name (assume it's in the first few lines)
+  const nameMatch = text.match(/Product(?:\s+)?Name(?:\s*)?:(?:\s*)?([\w\s-]+)/i) ||
+                   text.match(/Name(?:\s*)?:(?:\s*)?([\w\s-]+)/i) ||
+                   text.match(/Model(?:\s*)?:(?:\s*)?([\w\s-]+)/i)
+  if (nameMatch) {
+    productInfo.name = nameMatch[1].trim()
+  }
+
+  // Extract color
+  const colorMatch = text.match(/Colou?r(?:\s*)?:(?:\s*)?([\w\s-]+)/i)
+  if (colorMatch) {
+    productInfo.color = colorMatch[1].trim()
+  }
+
+  // Extract price (look for currency symbols and numbers)
+  const priceMatch = text.match(/(?:Price|Cost|RRP)(?:\s*)?:(?:\s*)?[$£€]?\s*(\d+(?:\.\d{2})?)/i) ||
+                    text.match(/[$£€]\s*(\d+(?:\.\d{2})?)/i)
+  if (priceMatch) {
+    productInfo.price = parseFloat(priceMatch[1])
+  }
+
+  // Extract description (look for a description section)
+  const descMatch = text.match(/Description(?:\s*)?:(?:\s*)?([\s\S]+?)(?:\n\n|\n(?=[A-Z]))/i)
+  if (descMatch) {
+    productInfo.description = descMatch[1].trim()
+  }
+
+  console.log('Extracted product info:', productInfo)
+  return productInfo
+}
