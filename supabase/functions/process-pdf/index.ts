@@ -1,11 +1,10 @@
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts"
 import { createClient } from 'https://esm.sh/@supabase/supabase-js@2.38.4'
-import { Document } from 'https://deno.land/x/pdfjs@v0.1.0/mod.ts'
+import { parsePdf } from "https://deno.land/x/deno_pdf@0.0.15/mod.ts"
 
 const corsHeaders = {
   'Access-Control-Allow-Origin': '*',
   'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type',
-  'Access-Control-Allow-Methods': 'POST, OPTIONS',
 }
 
 serve(async (req) => {
@@ -53,22 +52,19 @@ serve(async (req) => {
 
     console.log('PDF downloaded, starting text extraction...')
     
-    // Convert Blob to ArrayBuffer and then to Uint8Array
+    // Convert Blob to ArrayBuffer
     const arrayBuffer = await fileData.arrayBuffer()
-    const uint8Array = new Uint8Array(arrayBuffer)
     
-    console.log('Creating PDF document instance...')
-    const pdfDoc = await Document.load(uint8Array)
+    console.log('Parsing PDF content...')
+    const { pages } = await parsePdf(new Uint8Array(arrayBuffer))
     
-    console.log('PDF document loaded successfully')
+    console.log('PDF parsed successfully')
     
     // Extract text from all pages
     let fullText = ''
-    const pages = pdfDoc.getPages()
     for (const page of pages) {
       console.log(`Processing page ${page.pageNumber} of ${pages.length}`)
-      const content = await page.getTextContent()
-      fullText += content + '\n'
+      fullText += page.textContent + '\n'
     }
 
     console.log('Text extracted, parsing product information...')
