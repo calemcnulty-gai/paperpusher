@@ -185,29 +185,31 @@ export const analyzeImageWithOpenAI = async (imageUrl: string, filename: string)
     messages: [
       {
         role: "system",
-        content: `You are a product information extraction assistant. Extract information from product documents into a specific JSON format that matches our database schema. The JSON should include these fields:
-- name (required, string): Product name/title
-- sku (required, string): Generate a SKU if not explicitly shown
-- brand (string): Brand name
-- category (string): Product category, defaults to 'shoes'
-- size (string): Size information
-- color (string): Color information
-- material (string): Material information
-- price (number): Price in numeric format
-- product_number (string): Product model/number
-- description (string): Product description
-- specifications (object): Additional specifications as key-value pairs
-- season (string): Season information, defaults to 'all'
-- extracted_metadata (object): Any additional information that doesn't fit in other fields
+        content: `You are a product info extraction assistant. Return your answer as valid JSON, with no extra text or formatting. Only include the JSON object, nothing else. No markdown, no code blocks, no additional commentary.
 
-Return ONLY the JSON object, no additional text or explanation.`
+The JSON must follow this exact schema:
+{
+  "name": string,           // Product name/title
+  "sku": string,           // Product SKU or ID
+  "brand": string,         // Brand name
+  "category": string,      // Product category
+  "size": string,          // Size information
+  "color": string,         // Color information
+  "material": string,      // Material information
+  "price": number,         // Price as number only
+  "product_number": string, // Product model/number
+  "description": string,   // Product description
+  "specifications": {},    // Additional specs
+  "season": string,        // Season information
+  "extracted_metadata": {} // Any other data
+}`
       },
       {
         role: "user",
         content: [
           {
             type: "text",
-            text: `Extract product information from this document titled "${filename}" into the specified JSON format.`
+            text: `Extract product information from this document titled "${filename}" and return strictly as JSON. Return ONLY the JSON object with no additional text, formatting, or explanation.`
           },
           {
             type: "image_url",
@@ -219,9 +221,8 @@ Return ONLY the JSON object, no additional text or explanation.`
       }
     ],
     max_tokens: 4096,
-    response_format: { type: "json_object" }
+    temperature: 0
   }
-  console.log('Request payload:', JSON.stringify(requestPayload, null, 2))
   
   console.log('Sending request to OpenAI API...')
   const openAIResponse = await fetch('https://api.openai.com/v1/chat/completions', {
@@ -247,12 +248,58 @@ Return ONLY the JSON object, no additional text or explanation.`
   console.log('\nOpenAI Analysis completed')
   console.log('Response status:', openAIResponse.status)
   console.log('Response headers:', Object.fromEntries(openAIResponse.headers))
-  console.log('Analysis content:', JSON.stringify(analysisResult.choices[0].message.content, null, 2))
-  console.log('=== End OpenAI Analysis ===\n')
+  console.log('Raw content:', analysisResult.choices[0].message.content)
 
-  // Parse the JSON content
-  const productData = JSON.parse(analysisResult.choices[0].message.content)
-  return productData
+  // Parse the JSON content with robust error handling
+  try {
+    const content = analysisResult.choices[0].message.content || ''
+    
+    // Try to isolate the JSON object if GPT occasionally wraps or adds text
+    const jsonMatch = content.match(/\{[\s\S]*\}/)
+    if (!jsonMatch) {
+      console.error('No JSON object found in response')
+      throw new Error('No JSON object found in response')
+    }
+    
+    const jsonStr = jsonMatch[0]
+    console.log('Extracted JSON string:', jsonStr)
+    
+    let productData
+    try {
+      productData = JSON.parse(jsonStr)
+    } catch (parseError) {
+      console.error('JSON parse error:', parseError)
+      console.error('Failed JSON string:', jsonStr)
+      throw new Error('Failed to parse JSON response')
+    }
+    
+    // Ensure all required fields exist with defaults
+    const template = {
+      name: null,
+      sku: null,
+      brand: null,
+      category: 'shoes',
+      size: null,
+      color: null,
+      material: null,
+      price: null,
+      product_number: null,
+      description: null,
+      specifications: {},
+      season: 'all',
+      extracted_metadata: {}
+    }
+    
+    const result = { ...template, ...productData }
+    console.log('Final parsed product data:', JSON.stringify(result, null, 2))
+    console.log('=== End OpenAI Analysis ===\n')
+    
+    return result
+  } catch (error) {
+    console.error('Failed to process OpenAI response:', error)
+    console.error('Full OpenAI response:', analysisResult)
+    throw new Error(`Failed to process product data: ${error.message}`)
+  }
 }
 
 export const createProduct = async (supabase: any, documentId: string, productData: any) => {
