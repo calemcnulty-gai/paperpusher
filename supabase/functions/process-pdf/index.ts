@@ -10,6 +10,7 @@ const corsHeaders = {
 serve(async (req) => {
   console.log('=== PDF Processing Function Started ===')
   console.log('Request method:', req.method)
+  console.log('Request headers:', Object.fromEntries(req.headers.entries()))
   
   // Handle CORS
   if (req.method === 'OPTIONS') {
