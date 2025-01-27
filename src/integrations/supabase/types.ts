@@ -58,6 +58,7 @@ export type Database = {
           brand: string | null
           category: string | null
           color: string | null
+          created_at: string
           description: string | null
           document_id: string | null
           extracted_metadata: Json | null
@@ -81,6 +82,7 @@ export type Database = {
           brand?: string | null
           category?: string | null
           color?: string | null
+          created_at?: string
           description?: string | null
           document_id?: string | null
           extracted_metadata?: Json | null
@@ -104,6 +106,7 @@ export type Database = {
           brand?: string | null
           category?: string | null
           color?: string | null
+          created_at?: string
           description?: string | null
           document_id?: string | null
           extracted_metadata?: Json | null

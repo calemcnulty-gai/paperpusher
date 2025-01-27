@@ -7,7 +7,7 @@ import { ImageIcon } from "lucide-react"
 export const productColumns: ColumnDef<Product>[] = [
   {
     accessorKey: "image_url",
-    header: "Image",
+    header: "Thumbnail",
     cell: ({ row }) => {
       const imageUrl = row.getValue("image_url") as string
       return (
