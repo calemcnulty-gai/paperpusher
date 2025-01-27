@@ -1,7 +1,7 @@
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts"
 import { createClient } from 'https://esm.sh/@supabase/supabase-js@2.38.4'
 import "https://deno.land/x/xhr@0.1.0/mod.ts"
-import { extract } from 'https://deno.land/x/pdf_extract@v0.3.0/mod.ts'
+import { PdfReader } from "https://deno.land/x/pdf2text@0.1.1/mod.ts"
 
 const corsHeaders = {
   'Access-Control-Allow-Origin': '*',
@@ -49,7 +49,8 @@ serve(async (req) => {
 
     // Extract text content from PDF
     console.log('Extracting text from PDF...')
-    const pdfContent = await extract(new Uint8Array(arrayBuffer))
+    const reader = new PdfReader()
+    const pdfContent = await reader.readPdf(new Uint8Array(arrayBuffer))
     console.log('Extracted content:', pdfContent.substring(0, 200) + '...')
 
     // Parse content for product information
