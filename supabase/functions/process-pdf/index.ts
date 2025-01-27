@@ -1,12 +1,14 @@
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts"
 import { createClient } from 'https://esm.sh/@supabase/supabase-js@2.38.4'
-import * as pdfjs from 'npm:pdfjs-dist@3.11.174/build/pdf.js'
+import * as pdfjsLib from 'npm:pdfjs-dist@3.11.174/build/pdf.js'
+
+// Initialize PDF.js
+pdfjsLib.GlobalWorkerOptions.workerSrc = 'npm:pdfjs-dist@3.11.174/build/pdf.worker.js'
 
 const corsHeaders = {
   'Access-Control-Allow-Origin': '*',
   'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type',
   'Access-Control-Allow-Methods': 'POST, OPTIONS',
-  'Access-Control-Max-Age': '86400',
 }
 
 serve(async (req) => {
@@ -58,10 +60,11 @@ serve(async (req) => {
     const arrayBuffer = await fileData.arrayBuffer()
     
     console.log('Creating PDF document instance...')
-    const pdfDoc = await pdfjs.getDocument({
+    const loadingTask = pdfjsLib.getDocument({
       data: new Uint8Array(arrayBuffer),
       verbosity: 0
-    }).promise
+    })
+    const pdfDoc = await loadingTask.promise
     
     console.log('PDF document loaded successfully')
     
