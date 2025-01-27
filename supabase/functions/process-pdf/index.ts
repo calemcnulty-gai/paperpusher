@@ -1,6 +1,6 @@
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts"
 import { createClient } from 'https://esm.sh/@supabase/supabase-js@2.38.4'
-import * as pdfjs from 'npm:pdfjs-dist@3.11.174/legacy/build/pdf.js'
+import * as pdfjsLib from 'npm:pdfjs-dist@3.11.174/legacy/build/pdf.js'
 
 const corsHeaders = {
   'Access-Control-Allow-Origin': '*',
@@ -92,15 +92,20 @@ serve(async (req) => {
     // Convert Blob to ArrayBuffer
     const arrayBuffer = await fileData.arrayBuffer()
     
-    // Load the PDF document
-    const loadingTask = pdfjs.getDocument({ data: new Uint8Array(arrayBuffer) })
-    const pdfDoc = await loadingTask.promise
+    // Initialize PDF.js
+    const loadingTask = pdfjsLib.getDocument({
+      data: new Uint8Array(arrayBuffer),
+      verbosity: 0 // Reduce console noise
+    })
     
-    console.log('PDF loaded, extracting text from pages...')
+    console.log('PDF loading task created')
+    const pdfDoc = await loadingTask.promise
+    console.log('PDF document loaded successfully')
     
     // Extract text from all pages
     let fullText = ''
     for (let i = 1; i <= pdfDoc.numPages; i++) {
+      console.log(`Processing page ${i} of ${pdfDoc.numPages}`)
       const page = await pdfDoc.getPage(i)
       const textContent = await page.getTextContent()
       const pageText = textContent.items
