@@ -26,17 +26,39 @@ async function checkJobStatus(jobId: string, apiKey: string): Promise<{status: s
   }
 
   const result = await response.json()
-  console.log('Job status result:', JSON.stringify(result, null, 2))
+  console.log('Raw job status response:', JSON.stringify(result, null, 2))
   
-  if (result.status === 'error') {
-    throw new Error(`Job failed: ${result.message || 'Unknown error'}`)
+  // Log all available fields to help with debugging
+  console.log('Response fields:', Object.keys(result))
+  
+  // First check if we have an error status
+  if (result.status === 'error' || result.error === true) {
+    const errorMessage = result.message || result.errorMessage || 'Unknown error'
+    console.error('Job failed with error:', { result, errorMessage })
+    throw new Error(`Job failed: ${errorMessage}`)
   }
 
-  // Only process URLs if the job is finished
+  // Handle success case
   if (result.status === 'success') {
     let urls: string[] = []
-    if (result.url) {
-      console.log('Found URL in result:', result.url)
+    
+    console.log('Success result structure:', {
+      hasUrl: 'url' in result,
+      hasUrls: 'urls' in result,
+      hasFiles: 'files' in result,
+      urlValue: result.url,
+      resultKeys: Object.keys(result)
+    })
+
+    // Check for different possible URL fields
+    if (result.urls && Array.isArray(result.urls)) {
+      console.log('Found urls array in result')
+      urls = result.urls
+    } else if (result.files && Array.isArray(result.files)) {
+      console.log('Found files array in result')
+      urls = result.files
+    } else if (result.url) {
+      console.log('Found single URL in result:', result.url)
       // Check if the path (not query params) ends with .json
       const urlPath = new URL(result.url).pathname
       console.log('URL path:', urlPath)
@@ -56,22 +78,33 @@ async function checkJobStatus(jobId: string, apiKey: string): Promise<{status: s
         const jsonText = await jsonResponse.text()
         console.log('Raw JSON response:', jsonText)
         try {
-          urls = JSON.parse(jsonText)
+          const jsonResult = JSON.parse(jsonText)
+          if (Array.isArray(jsonResult)) {
+            urls = jsonResult
+          } else if (jsonResult.urls && Array.isArray(jsonResult.urls)) {
+            urls = jsonResult.urls
+          } else if (jsonResult.files && Array.isArray(jsonResult.files)) {
+            urls = jsonResult.files
+          } else if (typeof jsonResult === 'object') {
+            // If it's an object with a URL field
+            urls = [jsonResult.url || result.url]
+          } else {
+            console.error('Unexpected JSON structure:', jsonResult)
+            urls = [result.url]
+          }
           console.log('Parsed URLs array:', urls)
         } catch (e) {
           console.error('Failed to parse JSON response:', e)
-          throw new Error(`Failed to parse JSON response: ${e.message}`)
-        }
-        if (!Array.isArray(urls)) {
-          console.error('Parsed result is not an array:', urls)
-          throw new Error('JSON response was not an array of URLs')
+          // Fallback to using the original URL
+          urls = [result.url]
         }
       } else {
         console.log('URL path does not end with .json, using directly')
         urls = [result.url]
       }
     } else {
-      console.warn('No URL found in result')
+      console.error('No URL or URLs found in success result:', result)
+      throw new Error('Success response contained no URLs')
     }
     
     console.log('URLs before validation:', urls)
@@ -79,11 +112,20 @@ async function checkJobStatus(jobId: string, apiKey: string): Promise<{status: s
     // Validate that all URLs have valid image extensions
     const validExtensions = ['.png', '.jpg', '.jpeg', '.gif', '.webp']
     const validUrls = urls.filter(url => {
-      const urlPath = new URL(url).pathname
-      const lowercaseUrl = urlPath.toLowerCase()
-      const isValid = validExtensions.some(ext => lowercaseUrl.endsWith(ext))
-      console.log(`URL validation: ${url}\nPath: ${urlPath} -> ${isValid}`)
-      return isValid
+      if (!url) {
+        console.log('Found null or undefined URL in array')
+        return false
+      }
+      try {
+        const urlPath = new URL(url).pathname
+        const lowercaseUrl = urlPath.toLowerCase()
+        const isValid = validExtensions.some(ext => lowercaseUrl.endsWith(ext))
+        console.log(`URL validation: ${url}\nPath: ${urlPath} -> ${isValid}`)
+        return isValid
+      } catch (e) {
+        console.error('Invalid URL format:', url, e)
+        return false
+      }
     })
 
     console.log('Valid URLs after filtering:', validUrls)
@@ -99,7 +141,8 @@ async function checkJobStatus(jobId: string, apiKey: string): Promise<{status: s
     }
   }
 
-  // If job is still working, return status without URLs
+  // If job is still working or has another status, return without URLs
+  console.log('Job not yet complete. Current status:', result.status)
   return {
     status: result.status
   }
@@ -178,16 +221,20 @@ export const convertPDFToImage = async (pdfData: Uint8Array): Promise<string[]> 
   let attempts = 0;
   const maxAttempts = 30; // Maximum 5 minutes (30 attempts * 10 seconds)
   
+  console.log('Starting polling loop for job completion...')
   do {
+    console.log(`Polling attempt ${attempts + 1}/${maxAttempts}`)
     await sleep(10000) // Wait 10 seconds between checks
     jobInfo = await checkJobStatus(pdfResult.jobId, pdfCoApiKey)
-    console.log('Current job status:', jobInfo.status)
+    console.log(`Poll result - Status: ${jobInfo.status}, Has URLs: ${!!jobInfo.urls}`)
     attempts++;
     
     if (attempts >= maxAttempts) {
       throw new Error('PDF conversion timed out after 5 minutes')
     }
   } while (jobInfo.status === 'working')
+
+  console.log('Polling complete. Final status:', jobInfo.status)
 
   if (jobInfo.status !== 'success') {
     throw new Error(`PDF conversion failed with status: ${jobInfo.status}`)
