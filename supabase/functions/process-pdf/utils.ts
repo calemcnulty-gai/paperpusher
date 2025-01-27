@@ -1,6 +1,6 @@
 import "https://deno.land/x/xhr@0.1.0/mod.ts"
-import { createClient } from 'https://esm.sh/@supabase/supabase-js@2.39.3'
 import { encode } from "https://deno.land/std@0.208.0/encoding/base64.ts"
+import { createClient } from 'https://esm.sh/@supabase/supabase-js@2.39.3'
 
 export const corsHeaders = {
   'Access-Control-Allow-Origin': '*',
@@ -92,7 +92,7 @@ export const convertPDFToImage = async (pdfData: Uint8Array) => {
     },
     body: JSON.stringify({
       url: uploadResult.url,
-      pages: "1",
+      pages: "1-",  // Convert all pages
       async: false
     })
   })
@@ -117,6 +117,7 @@ export const convertPDFToImage = async (pdfData: Uint8Array) => {
     throw new Error('No image URLs returned from PDF conversion')
   }
 
+  // Return the first page's URL for now
   return pdfResult.urls[0]
 }
 
@@ -154,7 +155,9 @@ export const analyzeImageWithOpenAI = async (imageUrl: string, filename: string)
             },
             {
               type: "image_url",
-              image_url: imageUrl
+              image_url: {
+                url: imageUrl
+              }
             }
           ]
         }
