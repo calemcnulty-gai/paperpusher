@@ -1,5 +1,5 @@
 import { createClient } from 'https://esm.sh/@supabase/supabase-js@2.39.3'
-import { encode as base64Encode } from "https://deno.land/std@0.208.0/encoding/base64.ts"
+import { encode } from "https://deno.land/std@0.208.0/encoding/base64.ts"
 
 export const corsHeaders = {
   'Access-Control-Allow-Origin': '*',
@@ -71,8 +71,7 @@ export const downloadAndConvertPDF = async (supabase: any, filePath: string) => 
   
   // Convert ArrayBuffer to Uint8Array for base64 encoding
   const uint8Array = new Uint8Array(await fileData.arrayBuffer())
-  // Use Deno's built-in base64 encoder with the correct import
-  const base64Pdf = base64Encode(uint8Array)
+  const base64Pdf = encode(uint8Array)
   
   console.log('PDF converted to base64, length:', base64Pdf.length)
   return base64Pdf
@@ -144,7 +143,7 @@ export const analyzeImageWithOpenAI = async (imageUrl: string, filename: string)
       'Content-Type': 'application/json',
     },
     body: JSON.stringify({
-      model: "gpt-4o",
+      model: "gpt-4-vision-preview",
       messages: [
         {
           role: "system",
@@ -198,7 +197,7 @@ export const updateDocumentContent = async (supabase: any, documentId: string, c
       metadata: {
         processed: true,
         processed_at: new Date().toISOString(),
-        model_used: "gpt-4o-mini",
+        model_used: "gpt-4-vision-preview",
         pages_processed: 1
       }
     })
