@@ -50,10 +50,15 @@ const sleep = (ms: number) => new Promise(resolve => setTimeout(resolve, ms))
 
 async function checkJobStatus(jobId: string, apiKey: string): Promise<string> {
   console.log('Checking job status for:', jobId)
-  const response = await fetch(`https://api.pdf.co/v1/job/check?jobid=${jobId}`, {
+  const response = await fetch(`https://api.pdf.co/v1/job/check`, {
+    method: 'POST',
     headers: {
-      'x-api-key': apiKey
-    }
+      'x-api-key': apiKey,
+      'Content-Type': 'application/json',
+    },
+    body: JSON.stringify({
+      jobid: jobId
+    })
   })
 
   if (!response.ok) {
@@ -78,10 +83,15 @@ async function checkJobStatus(jobId: string, apiKey: string): Promise<string> {
 
 async function getJobResult(jobId: string, apiKey: string): Promise<string> {
   console.log('Getting job result for:', jobId)
-  const response = await fetch(`https://api.pdf.co/v1/job/get?jobid=${jobId}`, {
+  const response = await fetch(`https://api.pdf.co/v1/job/get`, {
+    method: 'POST',
     headers: {
-      'x-api-key': apiKey
-    }
+      'x-api-key': apiKey,
+      'Content-Type': 'application/json',
+    },
+    body: JSON.stringify({
+      jobid: jobId
+    })
   })
 
   if (!response.ok) {
@@ -211,7 +221,7 @@ export const analyzeImageWithOpenAI = async (imageUrl: string, filename: string)
       'Content-Type': 'application/json',
     },
     body: JSON.stringify({
-      model: "gpt-4o",
+      model: "gpt-4-vision-preview",
       messages: [
         {
           role: "system",
@@ -263,7 +273,7 @@ export const updateDocumentContent = async (supabase: any, documentId: string, c
       metadata: {
         processed: true,
         processed_at: new Date().toISOString(),
-        model_used: "gpt-4o",
+        model_used: "gpt-4-vision-preview",
         pages_processed: 1
       }
     })
