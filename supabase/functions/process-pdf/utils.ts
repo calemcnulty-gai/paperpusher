@@ -3,25 +3,12 @@ import { encode } from "https://deno.land/std@0.208.0/encoding/base64.ts"
 import { createClient } from 'https://esm.sh/@supabase/supabase-js@2.39.3'
 import { ProductData } from './types.ts'
 
-export const corsHeaders = {
-  'Access-Control-Allow-Origin': '*',
-  'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type',
-}
+export { corsHeaders, initSupabaseClient } from './supabaseClient.ts'
+export { downloadAndConvertPDF, updateDocumentContent } from './documentProcessing.ts'
+export { storeProductImage } from './imageProcessing.ts'
+export { createProduct } from './productProcessing.ts'
 
-export const initSupabaseClient = () => {
-  const supabaseUrl = Deno.env.get('SUPABASE_URL')
-  const supabaseKey = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')
-  
-  console.log('Initializing Supabase client...')
-  console.log('Supabase URL present:', !!supabaseUrl)
-  console.log('Supabase key present:', !!supabaseKey)
-  
-  if (!supabaseUrl || !supabaseKey) {
-    throw new Error('Supabase configuration is incomplete')
-  }
-
-  return createClient(supabaseUrl, supabaseKey)
-}
+// Add any small utility functions here if needed
 
 export const downloadAndConvertPDF = async (supabase: any, filePath: string) => {
   console.log('Downloading PDF from storage bucket:', filePath)
@@ -59,10 +46,11 @@ export const createProduct = async (supabase: any, documentId: string, productDa
   }
 
   // If we have an image URL, store it in Supabase
-  let storedImageUrl = null
+  let storedImageUrl: string | null = null
   if (imageUrl) {
     try {
       storedImageUrl = await storeProductImage(supabase, imageUrl, productData.sku)
+      console.log('Image stored in Supabase:', storedImageUrl)
     } catch (error) {
       console.error('Failed to store product image:', error)
       // Continue without image if storage fails

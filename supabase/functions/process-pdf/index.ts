@@ -1,6 +1,7 @@
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts"
-import { corsHeaders } from './corsHeaders.ts'
-import { initSupabaseClient, downloadAndConvertPDF, updateDocumentContent, createProduct } from './utils.ts'
+import { corsHeaders, initSupabaseClient } from './supabaseClient.ts'
+import { downloadAndConvertPDF, updateDocumentContent } from './documentProcessing.ts'
+import { createProduct } from './productProcessing.ts'
 import { convertPDFToImage } from './pdfProcessing.ts'
 import { analyzeImageWithOpenAI } from './openaiProcessing.ts'
 
