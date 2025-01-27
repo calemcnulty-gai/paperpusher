@@ -8,61 +8,105 @@ const corsHeaders = {
 }
 
 serve(async (req) => {
+  console.log('=== PDF Processing Function Started ===')
+  console.log('Request method:', req.method)
+  
   // Handle CORS
   if (req.method === 'OPTIONS') {
+    console.log('Handling CORS preflight request')
     return new Response(null, { headers: corsHeaders })
   }
 
   try {
-    const { document_id } = await req.json()
+    // Parse request body
+    console.log('Parsing request body...')
+    const body = await req.json()
+    console.log('Request body:', JSON.stringify(body))
+    
+    const { document_id } = body
     
     if (!document_id) {
+      console.error('Error: Missing document_id in request')
       throw new Error('Document ID is required')
     }
 
-    console.log('Processing document:', document_id)
+    console.log('Processing document with ID:', document_id)
 
-    const supabase = createClient(
-      Deno.env.get('SUPABASE_URL')!,
-      Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')!
-    )
+    // Initialize Supabase client
+    console.log('Initializing Supabase client...')
+    const supabaseUrl = Deno.env.get('SUPABASE_URL')
+    const supabaseKey = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')
+    
+    if (!supabaseUrl || !supabaseKey) {
+      console.error('Error: Missing Supabase credentials')
+      throw new Error('Supabase configuration is incomplete')
+    }
+
+    const supabase = createClient(supabaseUrl, supabaseKey)
+    console.log('Supabase client initialized')
 
     // Get document details
+    console.log('Fetching document details from database...')
     const { data: document, error: docError } = await supabase
       .from('document_embeddings')
       .select('*')
       .eq('id', document_id)
       .single()
 
-    if (docError || !document) {
-      console.error('Document not found:', docError?.message)
-      throw new Error(`Document not found: ${docError?.message}`)
+    if (docError) {
+      console.error('Database error when fetching document:', docError)
+      throw docError
     }
 
-    console.log('Retrieved document:', document.filename)
+    if (!document) {
+      console.error('Document not found in database')
+      throw new Error('Document not found')
+    }
+
+    console.log('Retrieved document:', {
+      id: document.id,
+      filename: document.filename,
+      file_path: document.file_path
+    })
 
     // Get the PDF file from storage
+    console.log('Downloading PDF from storage...')
     const { data: fileData, error: fileError } = await supabase
       .storage
       .from('product_docs')
       .download(document.file_path)
 
-    if (fileError || !fileData) {
-      console.error('Failed to download file:', fileError?.message)
-      throw new Error(`Failed to download file: ${fileError?.message}`)
+    if (fileError) {
+      console.error('Storage error when downloading file:', fileError)
+      throw fileError
     }
 
-    console.log('Downloaded PDF file successfully')
+    if (!fileData) {
+      console.error('No file data received from storage')
+      throw new Error('File data is empty')
+    }
 
-    // Convert PDF to PNG using PDF.co API
+    console.log('Successfully downloaded PDF file')
+
+    // Convert PDF to base64
+    console.log('Converting PDF to base64...')
     const pdfData = await fileData.arrayBuffer()
     const base64Pdf = btoa(String.fromCharCode(...new Uint8Array(pdfData)))
+    console.log('PDF converted to base64')
 
-    console.log('Converting PDF to PNG...')
+    // Verify PDF.co API key
+    const pdfCoApiKey = Deno.env.get('PDF_CO_API_KEY')
+    if (!pdfCoApiKey) {
+      console.error('Error: Missing PDF.co API key')
+      throw new Error('PDF.co API key is not configured')
+    }
+
+    // Convert PDF to PNG using PDF.co API
+    console.log('Sending request to PDF.co API...')
     const pdfResponse = await fetch('https://api.pdf.co/v1/pdf/convert/to/png', {
       method: 'POST',
       headers: {
-        'x-api-key': Deno.env.get('PDF_CO_API_KEY')!,
+        'x-api-key': pdfCoApiKey,
         'Content-Type': 'application/json',
       },
       body: JSON.stringify({
@@ -74,27 +118,41 @@ serve(async (req) => {
 
     if (!pdfResponse.ok) {
       const errorText = await pdfResponse.text()
-      console.error('PDF.co API Error:', errorText)
+      console.error('PDF.co API Error:', {
+        status: pdfResponse.status,
+        statusText: pdfResponse.statusText,
+        error: errorText
+      })
       throw new Error(`PDF conversion failed: ${errorText}`)
     }
 
     const pdfResult = await pdfResponse.json()
-    console.log('PDF converted to image successfully')
+    console.log('PDF.co conversion successful:', {
+      urls: pdfResult.urls ? pdfResult.urls.length : 0
+    })
 
     if (!pdfResult.urls || !pdfResult.urls.length) {
+      console.error('No image URLs returned from PDF conversion')
       throw new Error('No image URLs returned from PDF conversion')
     }
 
+    // Verify OpenAI API key
+    const openAiApiKey = Deno.env.get('OPENAI_API_KEY')
+    if (!openAiApiKey) {
+      console.error('Error: Missing OpenAI API key')
+      throw new Error('OpenAI API key is not configured')
+    }
+
     // Use OpenAI to analyze the image
-    console.log('Sending image to OpenAI for analysis...')
+    console.log('Sending request to OpenAI API...')
     const openAIResponse = await fetch('https://api.openai.com/v1/chat/completions', {
       method: 'POST',
       headers: {
-        'Authorization': `Bearer ${Deno.env.get('OPENAI_API_KEY')}`,
+        'Authorization': `Bearer ${openAiApiKey}`,
         'Content-Type': 'application/json',
       },
       body: JSON.stringify({
-        model: "gpt-4o-mini",
+        model: "gpt-4-vision-preview",
         messages: [
           {
             role: "system",
@@ -113,13 +171,18 @@ serve(async (req) => {
               }
             ]
           }
-        ]
+        ],
+        max_tokens: 4096
       })
     })
 
     if (!openAIResponse.ok) {
       const errorText = await openAIResponse.text()
-      console.error('OpenAI API Error:', errorText)
+      console.error('OpenAI API Error:', {
+        status: openAIResponse.status,
+        statusText: openAIResponse.statusText,
+        error: errorText
+      })
       throw new Error(`OpenAI API error: ${errorText}`)
     }
 
@@ -127,6 +190,7 @@ serve(async (req) => {
     console.log('OpenAI Analysis completed successfully')
 
     // Update document with analysis results
+    console.log('Updating document with analysis results...')
     const { error: updateError } = await supabase
       .from('document_embeddings')
       .update({
@@ -134,15 +198,15 @@ serve(async (req) => {
         metadata: {
           processed: true,
           processed_at: new Date().toISOString(),
-          model_used: "gpt-4o-mini",
+          model_used: "gpt-4-vision-preview",
           pages_processed: 1
         }
       })
       .eq('id', document_id)
 
     if (updateError) {
-      console.error('Failed to update document:', updateError)
-      throw new Error(`Failed to update document: ${updateError.message}`)
+      console.error('Error updating document with analysis:', updateError)
+      throw updateError
     }
 
     console.log('Document processing completed successfully')
@@ -153,7 +217,7 @@ serve(async (req) => {
     )
 
   } catch (error) {
-    console.error('Error processing document:', error)
+    console.error('Error in process-pdf function:', error)
     return new Response(
       JSON.stringify({ success: false, error: error.message }),
       { headers: { ...corsHeaders, 'Content-Type': 'application/json' }, status: 500 }
