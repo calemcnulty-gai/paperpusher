@@ -1,5 +1,77 @@
 import { corsHeaders } from './corsHeaders.ts'
 
+const sleep = (ms: number) => new Promise(resolve => setTimeout(resolve, ms))
+
+async function checkJobStatus(jobId: string, apiKey: string): Promise<string> {
+  console.log('Checking job status for:', jobId)
+  const response = await fetch(`https://api.pdf.co/v1/job/check`, {
+    method: 'POST',
+    headers: {
+      'x-api-key': apiKey,
+      'Content-Type': 'application/json',
+    },
+    body: JSON.stringify({
+      jobid: jobId
+    })
+  })
+
+  if (!response.ok) {
+    const errorText = await response.text()
+    console.error('Job status check error:', {
+      status: response.status,
+      statusText: response.statusText,
+      error: errorText
+    })
+    throw new Error(`Job status check failed: ${errorText}`)
+  }
+
+  const result = await response.json()
+  console.log('Job status result:', result)
+  
+  if (result.status === 'error') {
+    throw new Error(`Job failed: ${result.message || 'Unknown error'}`)
+  }
+  
+  return result.status
+}
+
+async function getJobResult(jobId: string, apiKey: string): Promise<string> {
+  console.log('Getting job result for:', jobId)
+  const response = await fetch(`https://api.pdf.co/v1/job/get`, {
+    method: 'POST',
+    headers: {
+      'x-api-key': apiKey,
+      'Content-Type': 'application/json',
+    },
+    body: JSON.stringify({
+      jobid: jobId
+    })
+  })
+
+  if (!response.ok) {
+    const errorText = await response.text()
+    console.error('Job result error:', {
+      status: response.status,
+      statusText: response.statusText,
+      error: errorText
+    })
+    throw new Error(`Failed to get job result: ${errorText}`)
+  }
+
+  const result = await response.json()
+  console.log('Job result:', result)
+  
+  if (result.status === 'error') {
+    throw new Error(`Failed to get result: ${result.message}`)
+  }
+  
+  if (!result.url) {
+    throw new Error('No image URL returned in job result')
+  }
+
+  return result.url
+}
+
 export async function convertPDFToImage(pdfData: Uint8Array): Promise<string> {
   const pdfCoApiKey = Deno.env.get('PDF_CO_API_KEY')
   console.log('PDF.co API key present:', !!pdfCoApiKey)
@@ -13,7 +85,7 @@ export async function convertPDFToImage(pdfData: Uint8Array): Promise<string> {
   const blob = new Blob([pdfData], { type: 'application/pdf' })
   formData.append('file', blob, 'document.pdf')
 
-  // First, upload the file to PDF.co temporary storage
+  // First, upload the file to PDF.co
   console.log('Uploading PDF to PDF.co temporary storage...')
   const uploadResponse = await fetch('https://api.pdf.co/v1/file/upload', {
     method: 'POST',
@@ -36,47 +108,50 @@ export async function convertPDFToImage(pdfData: Uint8Array): Promise<string> {
   const uploadResult = await uploadResponse.json()
   console.log('PDF uploaded to PDF.co:', uploadResult)
 
-  // Convert PDF to PNG using the uploaded file URL
-  console.log('Starting PDF to PNG conversion...')
-  const convertResponse = await fetch('https://api.pdf.co/v1/pdf/convert/to/png', {
+  // Then convert the uploaded file to PNG asynchronously
+  console.log('Starting async PDF to PNG conversion...')
+  const pdfResponse = await fetch('https://api.pdf.co/v1/pdf/convert/to/png', {
     method: 'POST',
     headers: {
       'x-api-key': pdfCoApiKey,
-      'Content-Type': 'application/json'
+      'Content-Type': 'application/json',
     },
     body: JSON.stringify({
       url: uploadResult.url,
-      pages: "1-1", // Only convert first page
-      async: false  // Wait for the result
+      pages: "1-",  // Convert all pages
+      async: true   // Use async processing
     })
   })
 
-  if (!convertResponse.ok) {
-    const errorText = await convertResponse.text()
+  if (!pdfResponse.ok) {
+    const errorText = await pdfResponse.text()
     console.error('PDF.co conversion error:', {
-      status: convertResponse.status,
-      statusText: convertResponse.statusText,
+      status: pdfResponse.status,
+      statusText: pdfResponse.statusText,
       error: errorText
     })
     throw new Error(`PDF conversion failed: ${errorText}`)
   }
 
-  const conversionResult = await convertResponse.json()
-  console.log('PDF.co conversion result:', conversionResult)
+  const pdfResult = await pdfResponse.json()
+  console.log('Async conversion started:', pdfResult)
 
-  if (conversionResult.error) {
-    throw new Error(`PDF conversion failed: ${conversionResult.message}`)
+  if (!pdfResult.jobId) {
+    throw new Error('No jobId returned from PDF conversion')
   }
 
-  if (!conversionResult.url) {
-    throw new Error('No image URL in conversion result')
+  // Poll for job completion
+  let status: string
+  do {
+    await sleep(2000) // Wait 2 seconds between checks
+    status = await checkJobStatus(pdfResult.jobId, pdfCoApiKey)
+    console.log('Current job status:', status)
+  } while (status === 'working')
+
+  if (status !== 'success') {
+    throw new Error(`PDF conversion failed with status: ${status}`)
   }
 
-  // Verify we got a PNG URL back
-  console.log('Conversion successful, image URL:', conversionResult.url)
-  if (!conversionResult.url.toLowerCase().endsWith('.png')) {
-    console.warn('Warning: Converted file may not be PNG format:', conversionResult.url)
-  }
-
-  return conversionResult.url
+  // Get the final result
+  return await getJobResult(pdfResult.jobId, pdfCoApiKey)
 }
