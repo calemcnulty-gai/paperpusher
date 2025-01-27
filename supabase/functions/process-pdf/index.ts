@@ -48,20 +48,15 @@ serve(async (req) => {
     const typedArray = new Uint8Array(arrayBuffer)
 
     console.log('Loading PDF document...')
-    
-    // Configure PDF.js for server environment
-    if (!globalThis.pdfjsLib) {
-      globalThis.pdfjsLib = pdfjsLib
-    }
 
-    // Disable worker and configure for Node.js environment
-    pdfjsLib.GlobalWorkerOptions.workerSrc = ''
-    
+    // Configure PDF.js for server environment
     const loadingTask = pdfjsLib.getDocument({
       data: typedArray,
-      useWorkerFetch: false,
+      verbosity: 0,
+      useSystemFonts: true,
+      disableFontFace: true,
       isEvalSupported: false,
-      useSystemFonts: true
+      useWorkerFetch: false
     })
     
     const pdfDocument = await loadingTask.promise
