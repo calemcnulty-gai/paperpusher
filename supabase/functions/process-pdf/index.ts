@@ -44,9 +44,8 @@ serve(async (req) => {
     }
 
     // Convert PDF to base64
-    const base64File = await fileData.arrayBuffer().then(buffer => 
-      btoa(String.fromCharCode(...new Uint8Array(buffer)))
-    );
+    const buffer = await fileData.arrayBuffer();
+    const base64File = btoa(String.fromCharCode(...new Uint8Array(buffer)));
 
     console.log('File converted to base64, sending to OpenAI');
 
@@ -90,64 +89,27 @@ serve(async (req) => {
     const analysisResult = await openAIResponse.json();
     console.log('OpenAI Analysis Result:', analysisResult);
 
-    let extractedProducts = [];
-    try {
-      // Get the content from the OpenAI response
-      const content = analysisResult.choices[0].message.content;
-      // Try to parse if it's a string, otherwise use as is if it's already an object
-      extractedProducts = typeof content === 'string' ? JSON.parse(content) : content;
-    } catch (e) {
-      console.error('Failed to parse OpenAI response:', e);
-      extractedProducts = [];
-    }
-
-    // Create products from extracted information
-    const createdProducts = [];
-    for (const product of extractedProducts) {
-      try {
-        const { data: newProduct, error: productError } = await supabase
-          .from('products')
-          .insert({
-            name: product.name,
-            product_number: product.product_number,
-            color: product.color,
-            size: product.size,
-            document_id: document_id,
-            processing_status: 'completed',
-            extracted_metadata: product
-          })
-          .select()
-          .single();
-
-        if (productError) {
-          console.error('Error creating product:', productError);
-        } else {
-          console.log('Created product:', newProduct);
-          createdProducts.push(newProduct);
-        }
-      } catch (error) {
-        console.error('Error processing product:', error);
-      }
-    }
-
-    // Update document status
-    await supabase
+    // Update document status to indicate processing is complete
+    const { error: updateError } = await supabase
       .from('document_embeddings')
       .update({
-        content: JSON.stringify(extractedProducts),
+        content: JSON.stringify(analysisResult),
         metadata: {
           processed: true,
-          product_count: extractedProducts.length,
           processed_at: new Date().toISOString()
         }
       })
       .eq('id', document_id);
 
+    if (updateError) {
+      throw new Error(`Failed to update document status: ${updateError.message}`);
+    }
+
     return new Response(
       JSON.stringify({ 
         success: true, 
         message: 'Document processed successfully',
-        products: createdProducts
+        result: analysisResult
       }),
       { 
         headers: { 
