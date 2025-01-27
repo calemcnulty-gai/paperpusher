@@ -41,13 +41,42 @@ serve(async (req) => {
       }
     }
 
-    console.log('Parsing request body...')
     const { document_id } = await req.json()
-    console.log('Received document_id:', document_id)
+    console.log('Processing request for document_id:', document_id)
     
     if (!document_id) {
       console.error('Error: Missing document_id in request')
       throw new Error('Document ID is required')
+    }
+
+    // Initialize Supabase client first to verify the document exists
+    const supabase = initSupabaseClient()
+    console.log('Supabase client initialized')
+
+    // Verify document exists before adding to processing set
+    const { data: existingDoc } = await supabase
+      .from('document_embeddings')
+      .select('id, content')
+      .eq('id', document_id)
+      .single()
+
+    if (!existingDoc) {
+      console.error('Document not found:', document_id)
+      throw new Error('Document not found')
+    }
+
+    if (existingDoc.content) {
+      console.log('Document already processed:', document_id)
+      return new Response(
+        JSON.stringify({ 
+          success: true, 
+          message: 'Document already processed' 
+        }),
+        { 
+          headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+          status: 200 
+        }
+      )
     }
 
     if (processingDocuments.has(document_id)) {
@@ -67,9 +96,6 @@ serve(async (req) => {
     try {
       processingDocuments.add(document_id)
       console.log('Added document to processing set:', document_id)
-
-      const supabase = initSupabaseClient()
-      console.log('Supabase client initialized')
 
       const document = await getDocument(supabase, document_id)
       console.log('Document retrieved:', { 
