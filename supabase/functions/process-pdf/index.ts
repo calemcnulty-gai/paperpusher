@@ -48,10 +48,11 @@ serve(async (req) => {
 
     console.log('Downloaded PDF file successfully')
 
-    // Convert PDF to PNG using a PDF to PNG API
+    // Convert PDF to PNG using PDF.co API
     const pdfData = await fileData.arrayBuffer()
     const base64Pdf = btoa(String.fromCharCode(...new Uint8Array(pdfData)))
 
+    console.log('Converting PDF to PNG...')
     const pdfResponse = await fetch('https://api.pdf.co/v1/pdf/convert/to/png', {
       method: 'POST',
       headers: {
@@ -60,19 +61,26 @@ serve(async (req) => {
       },
       body: JSON.stringify({
         file: base64Pdf,
-        pages: "1-",  // Convert all pages
+        pages: "1",  // Convert only first page to avoid memory issues
         async: false
       })
     })
 
     if (!pdfResponse.ok) {
-      throw new Error(`PDF conversion failed: ${await pdfResponse.text()}`)
+      const errorText = await pdfResponse.text()
+      console.error('PDF.co API Error:', errorText)
+      throw new Error(`PDF conversion failed: ${errorText}`)
     }
 
     const pdfResult = await pdfResponse.json()
-    console.log('PDF converted to images successfully')
+    console.log('PDF converted to image successfully')
 
-    // Use OpenAI to analyze the images
+    if (!pdfResult.urls || !pdfResult.urls.length) {
+      throw new Error('No image URLs returned from PDF conversion')
+    }
+
+    // Use OpenAI to analyze the image
+    console.log('Sending image to OpenAI for analysis...')
     const openAIResponse = await fetch('https://api.openai.com/v1/chat/completions', {
       method: 'POST',
       headers: {
@@ -80,7 +88,7 @@ serve(async (req) => {
         'Content-Type': 'application/json',
       },
       body: JSON.stringify({
-        model: "gpt-4o-mini",
+        model: "gpt-4o",
         messages: [
           {
             role: "system",
@@ -95,9 +103,7 @@ serve(async (req) => {
               },
               {
                 type: "image_url",
-                image_url: {
-                  url: pdfResult.urls[0]  // Use the first page for initial analysis
-                }
+                image_url: pdfResult.urls[0]
               }
             ]
           }
@@ -122,8 +128,8 @@ serve(async (req) => {
         metadata: {
           processed: true,
           processed_at: new Date().toISOString(),
-          model_used: "gpt-4o-mini",
-          total_pages: pdfResult.urls.length
+          model_used: "gpt-4o",
+          pages_processed: 1
         }
       })
       .eq('id', document_id)
