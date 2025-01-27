@@ -5,16 +5,18 @@ import { getDocument } from 'npm:pdfjs-dist@3.11.174'
 const corsHeaders = {
   'Access-Control-Allow-Origin': '*',
   'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type',
+  'Access-Control-Allow-Methods': 'POST, OPTIONS',
+  'Access-Control-Max-Age': '86400',
 }
 
 serve(async (req) => {
+  console.log('Received request:', req.method, req.url)
+
   // Handle CORS preflight requests
   if (req.method === 'OPTIONS') {
+    console.log('Handling CORS preflight request')
     return new Response(null, { 
-      headers: {
-        ...corsHeaders,
-        'Access-Control-Allow-Methods': 'POST, OPTIONS',
-      }
+      headers: corsHeaders
     })
   }
 
@@ -120,6 +122,8 @@ serve(async (req) => {
       throw new Error(`Error updating document: ${updateError.message}`)
     }
 
+    console.log('Processing completed successfully')
+
     return new Response(
       JSON.stringify({ 
         success: true,
@@ -128,7 +132,7 @@ serve(async (req) => {
       }),
       { 
         headers: { 
-          ...corsHeaders, 
+          ...corsHeaders,
           'Content-Type': 'application/json'
         } 
       }
@@ -141,7 +145,7 @@ serve(async (req) => {
       { 
         status: 500, 
         headers: { 
-          ...corsHeaders, 
+          ...corsHeaders,
           'Content-Type': 'application/json'
         } 
       }
@@ -150,7 +154,7 @@ serve(async (req) => {
 })
 
 async function extractProductInfo(text: string) {
-  console.log('Extracting product info from text:', text)
+  console.log('Extracting product info from text')
   
   // Initialize default values
   const productInfo = {
