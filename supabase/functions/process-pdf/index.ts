@@ -1,6 +1,6 @@
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts"
 import { createClient } from 'https://esm.sh/@supabase/supabase-js@2.38.4'
-import { parse } from "https://deno.land/x/pdf@v0.2.0/mod.ts"
+import { parsePdf } from "https://deno.land/x/pdfparser@v0.0.3/mod.ts"
 
 const corsHeaders = {
   'Access-Control-Allow-Origin': '*',
@@ -52,15 +52,14 @@ serve(async (req) => {
 
     console.log('PDF downloaded, starting text extraction...')
     
-    // Convert Blob to ArrayBuffer and then to Uint8Array
+    // Convert Blob to ArrayBuffer
     const arrayBuffer = await fileData.arrayBuffer()
-    const uint8Array = new Uint8Array(arrayBuffer)
     
     console.log('Parsing PDF content...')
-    const pdfData = await parse(uint8Array)
+    const pdfData = await parsePdf(new Uint8Array(arrayBuffer))
     
     console.log('PDF parsed successfully')
-    const fullText = pdfData.text
+    const fullText = pdfData.pages.map(page => page.text).join('\n')
 
     console.log('Text extracted, parsing product information...')
     
