@@ -22,34 +22,6 @@ export const initSupabaseClient = () => {
   return createClient(supabaseUrl, supabaseKey)
 }
 
-export const getDocument = async (supabase: any, documentId: string) => {
-  console.log('Fetching document details from database for ID:', documentId)
-  const { data: document, error: docError } = await supabase
-    .from('document_embeddings')
-    .select('*')
-    .eq('id', documentId)
-    .single()
-
-  if (docError) {
-    console.error('Database error when fetching document:', docError)
-    throw docError
-  }
-
-  if (!document) {
-    console.error('Document not found in database')
-    throw new Error('Document not found')
-  }
-
-  console.log('Retrieved document:', {
-    id: document.id,
-    filename: document.filename,
-    file_path: document.file_path,
-    created_at: document.created_at
-  })
-
-  return document
-}
-
 export const downloadAndConvertPDF = async (supabase: any, filePath: string) => {
   console.log('Downloading PDF from storage bucket:', filePath)
   const { data: fileData, error: fileError } = await supabase
@@ -85,7 +57,34 @@ export const convertPDFToImage = async (base64Pdf: string) => {
     throw new Error('PDF.co API key is not configured')
   }
 
-  console.log('Sending request to PDF.co API...')
+  // First, upload the file to PDF.co
+  console.log('Uploading PDF to PDF.co temporary storage...')
+  const uploadResponse = await fetch('https://api.pdf.co/v1/file/upload', {
+    method: 'POST',
+    headers: {
+      'x-api-key': pdfCoApiKey,
+      'Content-Type': 'application/json',
+    },
+    body: JSON.stringify({
+      file: base64Pdf
+    })
+  })
+
+  if (!uploadResponse.ok) {
+    const errorText = await uploadResponse.text()
+    console.error('PDF.co upload error:', {
+      status: uploadResponse.status,
+      statusText: uploadResponse.statusText,
+      error: errorText
+    })
+    throw new Error(`PDF upload failed: ${errorText}`)
+  }
+
+  const uploadResult = await uploadResponse.json()
+  console.log('PDF uploaded to PDF.co:', uploadResult)
+
+  // Then convert the uploaded file to PNG
+  console.log('Converting uploaded PDF to PNG...')
   const pdfResponse = await fetch('https://api.pdf.co/v1/pdf/convert/to/png', {
     method: 'POST',
     headers: {
@@ -93,19 +92,15 @@ export const convertPDFToImage = async (base64Pdf: string) => {
       'Content-Type': 'application/json',
     },
     body: JSON.stringify({
-      file: base64Pdf,
+      url: uploadResult.url,
       pages: "1",
       async: false
     })
   })
 
-  console.log('PDF.co response status:', pdfResponse.status)
-  const responseHeaders = Object.fromEntries(pdfResponse.headers.entries())
-  console.log('PDF.co response headers:', responseHeaders)
-
   if (!pdfResponse.ok) {
     const errorText = await pdfResponse.text()
-    console.error('PDF.co API Error:', {
+    console.error('PDF.co conversion error:', {
       status: pdfResponse.status,
       statusText: pdfResponse.statusText,
       error: errorText
@@ -168,10 +163,6 @@ export const analyzeImageWithOpenAI = async (imageUrl: string, filename: string)
       max_tokens: 4096
     })
   })
-
-  console.log('OpenAI response status:', openAIResponse.status)
-  const responseHeaders = Object.fromEntries(openAIResponse.headers.entries())
-  console.log('OpenAI response headers:', responseHeaders)
 
   if (!openAIResponse.ok) {
     const errorText = await openAIResponse.text()
