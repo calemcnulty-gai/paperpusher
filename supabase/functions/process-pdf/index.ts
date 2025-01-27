@@ -1,6 +1,6 @@
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts"
 import { createClient } from 'https://esm.sh/@supabase/supabase-js@2.38.4'
-import * as pdfjsLib from 'https://cdn.jsdelivr.net/npm/pdfjs-dist@3.11.174/build/pdf.min.mjs'
+import * as pdfjsLib from 'npm:pdfjs-dist@3.11.174'
 
 const corsHeaders = {
   'Access-Control-Allow-Origin': '*',
@@ -72,7 +72,6 @@ serve(async (req) => {
     let currentProduct: any = {}
     
     for (const line of lines) {
-      // Example parsing logic - adjust based on your PDF structure
       if (line.toLowerCase().includes('sku:')) {
         if (Object.keys(currentProduct).length > 0) {
           products.push(currentProduct)
