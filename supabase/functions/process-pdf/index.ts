@@ -1,6 +1,6 @@
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts"
 import { createClient } from 'https://esm.sh/@supabase/supabase-js@2.38.4'
-import * as pdfjsLib from 'npm:pdfjs-dist@3.11.174'
+import * as pdfjsLib from 'npm:pdfjs-dist@3.11.174/legacy/build/pdf.js'
 
 const corsHeaders = {
   'Access-Control-Allow-Origin': '*',
@@ -47,11 +47,14 @@ serve(async (req) => {
     const arrayBuffer = await fileData.arrayBuffer()
     const typedArray = new Uint8Array(arrayBuffer)
 
-    // Initialize the PDF.js worker
-    pdfjsLib.GlobalWorkerOptions.workerSrc = `npm:pdfjs-dist@3.11.174/build/pdf.worker.min.js`;
+    // Set up the worker source
+    const pdfjs = pdfjsLib
+    if (!globalThis.window) {
+      globalThis.window = {} as any
+    }
 
     console.log('Loading PDF document...')
-    const loadingTask = pdfjsLib.getDocument({ data: typedArray })
+    const loadingTask = pdfjs.getDocument({ data: typedArray })
     const pdfDocument = await loadingTask.promise
     
     console.log('PDF document loaded. Number of pages:', pdfDocument.numPages)
