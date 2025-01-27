@@ -42,7 +42,8 @@ export const getDocument = async (supabase: any, documentId: string) => {
   console.log('Retrieved document:', {
     id: document.id,
     filename: document.filename,
-    file_path: document.file_path
+    file_path: document.file_path,
+    created_at: document.created_at
   })
 
   return document

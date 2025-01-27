@@ -77,8 +77,19 @@ serve(async (req) => {
       const supabase = initSupabaseClient()
       console.log('Supabase client initialized')
 
+      // Get the most recently created document if no specific ID is provided
       const document = await getDocument(supabase, document_id)
-      console.log('Document retrieved:', { id: document.id, filename: document.filename })
+      console.log('Document retrieved:', { 
+        id: document.id, 
+        filename: document.filename,
+        file_path: document.file_path,
+        created_at: document.created_at 
+      })
+
+      // Verify it's a PDF file
+      if (!document.file_path.toLowerCase().endsWith('.pdf')) {
+        throw new Error('Invalid file type: Only PDF files can be processed')
+      }
 
       const base64Pdf = await downloadAndConvertPDF(supabase, document.file_path)
       console.log('PDF downloaded and converted to base64')
