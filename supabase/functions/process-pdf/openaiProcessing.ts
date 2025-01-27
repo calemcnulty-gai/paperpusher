@@ -132,15 +132,26 @@ Remember:
   // Parse the JSON content with robust error handling
   try {
     const content = analysisResult.choices[0].message.content || ''
+    console.log('\nRaw content to parse:', content)
     
-    // Try to isolate the JSON object if GPT occasionally wraps or adds text
-    const jsonMatch = content.match(/\{[\s\S]*?\}(?=\s*$)/)
-    if (!jsonMatch) {
-      console.error('No JSON object found in response')
-      throw new Error('No JSON object found in response')
+    // First try to extract JSON from markdown code blocks
+    const codeBlockMatch = content.match(/```(?:json)?\n([\s\S]*?)\n```/)
+    let jsonStr = ''
+    
+    if (codeBlockMatch && codeBlockMatch[1]) {
+      console.log('Found JSON in code block')
+      jsonStr = codeBlockMatch[1].trim()
+    } else {
+      // Fallback to looking for just the JSON object
+      console.log('No code block found, looking for raw JSON object')
+      const jsonMatch = content.match(/\{[\s\S]*?\}(?=\s*$)/)
+      if (!jsonMatch) {
+        console.error('No JSON object found in response')
+        throw new Error('No JSON object found in response')
+      }
+      jsonStr = jsonMatch[0].trim()
     }
     
-    const jsonStr = jsonMatch[0].trim()
     console.log('\nExtracted JSON string:')
     console.log('='.repeat(80))
     console.log(jsonStr)

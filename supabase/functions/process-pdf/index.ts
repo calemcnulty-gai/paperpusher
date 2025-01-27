@@ -101,11 +101,18 @@ serve(async (req) => {
         const productData = await analyzeImageWithOpenAI(imageUrl, `${doc.filename} - Page ${index + 1}`)
         allAnalyses.push(productData)
         
-        // If the product data has required fields, create a product
-        if (productData.name && productData.sku) {
-          console.log(`Creating product from page ${index + 1}`)
+        // Only create products that have both name and SKU
+        if (productData.name && productData.sku && productData.name.trim() !== '' && productData.sku.trim() !== '') {
+          console.log(`Creating product from page ${index + 1} - Name: ${productData.name}, SKU: ${productData.sku}`)
           const product = await createProduct(supabase, doc.id, productData, imageUrl)
           products.push(product)
+        } else {
+          console.log(`Skipping product creation for page ${index + 1} - Missing required fields:`, {
+            hasName: !!productData.name && productData.name.trim() !== '',
+            hasSku: !!productData.sku && productData.sku.trim() !== '',
+            name: productData.name,
+            sku: productData.sku
+          })
         }
       }
 
