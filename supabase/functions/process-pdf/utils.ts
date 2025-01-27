@@ -80,18 +80,43 @@ async function checkJobStatus(jobId: string, apiKey: string): Promise<{status: s
 
   let urls: string[] = []
   if (result.url) {
-    try {
-      // The URL might be a JSON string containing an array of URLs
-      const parsedUrls = JSON.parse(result.url)
-      if (Array.isArray(parsedUrls)) {
-        urls = parsedUrls
+    // If the URL ends with .json, we need to fetch and parse it
+    if (result.url.toLowerCase().endsWith('.json')) {
+      console.log('Got JSON URL, fetching actual image URLs...')
+      const jsonResponse = await fetch(result.url)
+      if (!jsonResponse.ok) {
+        throw new Error(`Failed to fetch JSON result: ${await jsonResponse.text()}`)
+      }
+      const jsonResult = await jsonResponse.json()
+      if (Array.isArray(jsonResult)) {
+        urls = jsonResult
       } else {
+        throw new Error('JSON response was not an array of URLs')
+      }
+    } else {
+      // Handle non-JSON URLs as before
+      try {
+        const parsedUrls = JSON.parse(result.url)
+        if (Array.isArray(parsedUrls)) {
+          urls = parsedUrls
+        } else {
+          urls = [result.url]
+        }
+      } catch (e) {
         urls = [result.url]
       }
-    } catch (e) {
-      // If parsing fails, treat it as a single URL
-      urls = [result.url]
     }
+  }
+  
+  // Validate that all URLs have valid image extensions
+  const validExtensions = ['.png', '.jpg', '.jpeg', '.gif', '.webp']
+  urls = urls.filter(url => {
+    const lowercaseUrl = url.toLowerCase()
+    return validExtensions.some(ext => lowercaseUrl.endsWith(ext))
+  })
+
+  if (urls.length === 0) {
+    throw new Error('No valid image URLs found in response')
   }
   
   return {
