@@ -1,6 +1,7 @@
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts"
 import { createClient } from 'https://esm.sh/@supabase/supabase-js@2.38.4'
 import "https://deno.land/x/xhr@0.1.0/mod.ts"
+import { extract } from 'https://deno.land/x/pdf_extract@v0.3.0/mod.ts'
 
 const corsHeaders = {
   'Access-Control-Allow-Origin': '*',
@@ -43,15 +44,68 @@ serve(async (req) => {
       throw new Error(`Error downloading file: ${downloadError.message}`)
     }
 
-    // For now, we'll just store the file size as content since PDF parsing requires additional setup
-    const content = `Document size: ${fileData.size} bytes`
-    console.log('Generated content:', content)
+    // Convert Blob to ArrayBuffer
+    const arrayBuffer = await fileData.arrayBuffer()
 
-    // Update document with content
+    // Extract text content from PDF
+    console.log('Extracting text from PDF...')
+    const pdfContent = await extract(new Uint8Array(arrayBuffer))
+    console.log('Extracted content:', pdfContent.substring(0, 200) + '...')
+
+    // Parse content for product information
+    // This is a basic example - you might want to enhance this based on your PDF structure
+    const lines = pdfContent.split('\n').filter(line => line.trim().length > 0)
+    
+    // Extract potential product information
+    const products = []
+    let currentProduct = {}
+    
+    for (const line of lines) {
+      // Example parsing logic - adjust based on your PDF structure
+      if (line.includes('SKU:')) {
+        if (Object.keys(currentProduct).length > 0) {
+          products.push(currentProduct)
+          currentProduct = {}
+        }
+        currentProduct.sku = line.split('SKU:')[1].trim()
+      }
+      if (line.includes('Name:')) {
+        currentProduct.name = line.split('Name:')[1].trim()
+      }
+      if (line.includes('Brand:')) {
+        currentProduct.brand = line.split('Brand:')[1].trim()
+      }
+      if (line.includes('Price:')) {
+        const priceStr = line.split('Price:')[1].trim()
+        currentProduct.price = parseFloat(priceStr.replace(/[^0-9.]/g, ''))
+      }
+      // Add more parsing logic as needed
+    }
+
+    // Add the last product if exists
+    if (Object.keys(currentProduct).length > 0) {
+      products.push(currentProduct)
+    }
+
+    console.log('Extracted products:', products)
+
+    // Insert products into database
+    if (products.length > 0) {
+      const { error: insertError } = await supabase
+        .from('products')
+        .insert(products)
+
+      if (insertError) {
+        throw new Error(`Error inserting products: ${insertError.message}`)
+      }
+      console.log(`Successfully inserted ${products.length} products`)
+    }
+
+    // Update document with extracted content
     const { error: updateError } = await supabase
       .from('document_embeddings')
       .update({
-        content: content,
+        content: pdfContent,
         updated_at: new Date().toISOString(),
       })
       .eq('id', document_id)
@@ -61,7 +115,10 @@ serve(async (req) => {
     }
 
     return new Response(
-      JSON.stringify({ success: true }),
+      JSON.stringify({ 
+        success: true,
+        productsExtracted: products.length
+      }),
       { headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
     )
 
