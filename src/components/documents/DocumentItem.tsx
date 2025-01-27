@@ -32,21 +32,37 @@ export const DocumentItem = ({
       return
     }
 
-    console.log('Retrying processing for document:', id)
+    console.log('Starting processing for document:', id)
     onProcessingStart(id)
     
     try {
-      const { error, data } = await supabase.functions.invoke('process-pdf', {
+      // First check if document is already processed
+      const { data: doc } = await supabase
+        .from('document_embeddings')
+        .select('content')
+        .eq('id', id)
+        .single()
+
+      if (doc?.content) {
+        console.log('Document already processed:', id)
+        toast({
+          title: "Already processed",
+          description: "This document has already been processed.",
+          variant: "default"
+        })
+        return
+      }
+
+      const { error: processError, data: processData } = await supabase.functions.invoke('process-pdf', {
         body: { document_id: id }
       })
 
-      if (error) {
-        console.error('Retry processing error:', error)
-        throw error
+      if (processError) {
+        console.error('Processing error:', processError)
+        throw processError
       }
 
-      // Check for 409 status in the response
-      if (data?.error === 'Document is already being processed') {
+      if (processData?.error === 'Document is already being processed') {
         console.log('Document is already being processed:', id)
         toast({
           title: "Processing in progress",
@@ -56,15 +72,16 @@ export const DocumentItem = ({
         return
       }
 
-      console.log('Retry processing triggered successfully')
-      await queryClient.invalidateQueries({ queryKey: ['documents'] })
+      console.log('Processing triggered successfully')
+      // Only invalidate the specific document instead of the whole list
+      await queryClient.invalidateQueries({ queryKey: ['documents', id] })
 
       toast({
         title: "Processing started",
         description: "The document is being processed. This may take a few moments."
       })
     } catch (error) {
-      console.error('Error in retry processing:', error)
+      console.error('Error in processing:', error)
       toast({
         title: "Processing failed",
         description: error instanceof Error ? error.message : "There was an error processing the document. Please try again.",
@@ -72,7 +89,7 @@ export const DocumentItem = ({
       })
     } finally {
       onProcessingEnd(id)
-      console.log('Retry processing completed for:', id)
+      console.log('Processing completed for:', id)
     }
   }
 
