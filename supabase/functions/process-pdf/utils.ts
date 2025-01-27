@@ -1,6 +1,7 @@
 import "https://deno.land/x/xhr@0.1.0/mod.ts"
 import { encode } from "https://deno.land/std@0.208.0/encoding/base64.ts"
 import { createClient } from 'https://esm.sh/@supabase/supabase-js@2.39.3'
+import { ProductData } from './types.ts'
 
 export const corsHeaders = {
   'Access-Control-Allow-Origin': '*',
@@ -46,7 +47,7 @@ export const downloadAndConvertPDF = async (supabase: any, filePath: string) => 
   return uint8Array
 }
 
-export const createProduct = async (supabase: any, documentId: string, productData: any, imageUrl?: string) => {
+export const createProduct = async (supabase: any, documentId: string, productData: ProductData, imageUrl?: string) => {
   console.log('\n=== Creating Product ===')
   console.log('Document ID:', documentId)
   console.log('Product Data:', JSON.stringify(productData, null, 2))

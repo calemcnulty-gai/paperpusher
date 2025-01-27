@@ -1,4 +1,6 @@
-export async function analyzeImageWithOpenAI(imageUrl: string, filename: string) {
+import { OpenAIResponse, ProductData } from './types.ts'
+
+export async function analyzeImageWithOpenAI(imageUrl: string, filename: string): Promise<ProductData> {
   const openAiApiKey = Deno.env.get('OPENAI_API_KEY')
   console.log('\n=== Starting OpenAI Analysis ===')
   console.log('Processing:', filename)
@@ -172,7 +174,7 @@ Remember:
       if (key in schema) {
         // Convert prices to numbers if they're strings
         if ((key === 'wholesale_price' || key === 'retail_price') && typeof value === 'string') {
-          result[key] = parseFloat(value.replace(/[^0-9.-]+/g, '')) || null
+          result[key] = parseFloat(value.replace(/[^0-9.-]+/g, '')) || 0
         } else {
           result[key] = value
         }
@@ -180,14 +182,6 @@ Remember:
         // Put unknown fields in extracted_metadata
         result.extracted_metadata[key] = value
       }
-    }
-
-    // If we only have a price field in extracted_metadata, use it as retail_price
-    if (result.extracted_metadata.price && !result.retail_price) {
-      const price = typeof result.extracted_metadata.price === 'string' 
-        ? parseFloat(result.extracted_metadata.price.replace(/[^0-9.-]+/g, ''))
-        : result.extracted_metadata.price
-      result.retail_price = price || null
     }
     
     console.log('\nFinal parsed product data:')
