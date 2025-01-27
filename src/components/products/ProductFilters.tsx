@@ -17,16 +17,22 @@ export function ProductFilters() {
     (state) => state.productFilters
   )
 
-  const { data: suppliers } = useQuery({
-    queryKey: ['suppliers'],
+  const { data: products } = useQuery({
+    queryKey: ['products-for-brands'],
     queryFn: async () => {
       const { data, error } = await supabase
-        .from('profiles')
-        .select('id, full_name')
-        .eq('role', 'supplier')
+        .from('products')
+        .select('brand')
+        .not('brand', 'is', null)
       
       if (error) throw error
-      return data
+
+      // Get unique brands
+      const uniqueBrands = Array.from(new Set(data.map(p => p.brand)))
+        .filter((brand): brand is string => brand !== null)
+        .sort()
+      
+      return uniqueBrands
     }
   })
 
@@ -45,13 +51,13 @@ export function ProductFilters() {
           onValueChange={(value) => dispatch(setSelectedSupplier(value === 'all' ? null : value))}
         >
           <SelectTrigger className="w-[180px]">
-            <SelectValue placeholder="Select supplier" />
+            <SelectValue placeholder="Select brand" />
           </SelectTrigger>
           <SelectContent>
-            <SelectItem value="all">All suppliers</SelectItem>
-            {suppliers?.map((supplier) => (
-              <SelectItem key={supplier.id} value={supplier.id}>
-                {supplier.full_name}
+            <SelectItem value="all">All brands</SelectItem>
+            {products?.map((brand) => (
+              <SelectItem key={brand} value={brand}>
+                {brand}
               </SelectItem>
             ))}
           </SelectContent>
