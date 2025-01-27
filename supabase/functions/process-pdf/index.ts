@@ -33,6 +33,8 @@ serve(async (req) => {
       throw new Error(`Document not found: ${docError?.message}`);
     }
 
+    console.log('Retrieved document:', document.filename);
+
     // Get the PDF file from storage
     const { data: fileData, error: fileError } = await supabase
       .storage
@@ -43,9 +45,16 @@ serve(async (req) => {
       throw new Error(`Failed to download file: ${fileError?.message}`);
     }
 
-    // Convert PDF to base64
-    const buffer = await fileData.arrayBuffer();
-    const base64File = btoa(String.fromCharCode(...new Uint8Array(buffer)));
+    console.log('Downloaded PDF file successfully');
+
+    // Convert PDF to base64 more efficiently
+    const arrayBuffer = await fileData.arrayBuffer();
+    const uint8Array = new Uint8Array(arrayBuffer);
+    const chunks = [];
+    for (let i = 0; i < uint8Array.length; i += 1024) {
+      chunks.push(String.fromCharCode(...uint8Array.slice(i, i + 1024)));
+    }
+    const base64File = btoa(chunks.join(''));
 
     console.log('File converted to base64, sending to OpenAI');
 
@@ -61,14 +70,14 @@ serve(async (req) => {
         messages: [
           {
             role: "system",
-            content: "You are a product catalog analyzer. Extract product information from the provided document."
+            content: "Extract product information from the provided document in a clear, structured format."
           },
           {
             role: "user",
             content: [
               {
                 type: "text",
-                text: "Analyze this product catalog PDF and extract the following information in JSON format: product names, product numbers, colors, sizes, and any other relevant product details. Format the response as a JSON array of products."
+                text: "Please analyze this product document and extract key information like product names, numbers, specifications, and any other relevant details."
               },
               {
                 type: "image_url",
@@ -87,13 +96,13 @@ serve(async (req) => {
     }
 
     const analysisResult = await openAIResponse.json();
-    console.log('OpenAI Analysis Result:', analysisResult);
+    console.log('OpenAI Analysis completed successfully');
 
-    // Update document status to indicate processing is complete
+    // Update document with analysis results
     const { error: updateError } = await supabase
       .from('document_embeddings')
       .update({
-        content: JSON.stringify(analysisResult),
+        content: analysisResult.choices[0].message.content,
         metadata: {
           processed: true,
           processed_at: new Date().toISOString()
@@ -102,14 +111,15 @@ serve(async (req) => {
       .eq('id', document_id);
 
     if (updateError) {
-      throw new Error(`Failed to update document status: ${updateError.message}`);
+      throw new Error(`Failed to update document: ${updateError.message}`);
     }
+
+    console.log('Document processing completed successfully');
 
     return new Response(
       JSON.stringify({ 
         success: true, 
-        message: 'Document processed successfully',
-        result: analysisResult
+        message: 'Document processed successfully'
       }),
       { 
         headers: { 
