@@ -1,7 +1,7 @@
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts"
 import { createClient } from 'https://esm.sh/@supabase/supabase-js@2.38.4'
 import "https://deno.land/x/xhr@0.1.0/mod.ts"
-import { PdfReader } from "https://deno.land/x/pdf2text@0.1.1/mod.ts"
+import * as pdfjs from "https://cdn.jsdelivr.net/npm/pdfjs-dist@3.11.174/build/pdf.min.js"
 
 const corsHeaders = {
   'Access-Control-Allow-Origin': '*',
@@ -46,39 +46,51 @@ serve(async (req) => {
 
     // Convert Blob to ArrayBuffer
     const arrayBuffer = await fileData.arrayBuffer()
+    const typedArray = new Uint8Array(arrayBuffer)
 
-    // Extract text content from PDF
-    console.log('Extracting text from PDF...')
-    const reader = new PdfReader()
-    const pdfContent = await reader.readPdf(new Uint8Array(arrayBuffer))
-    console.log('Extracted content:', pdfContent.substring(0, 200) + '...')
+    console.log('Loading PDF document...')
+    const loadingTask = pdfjs.getDocument({ data: typedArray })
+    const pdfDocument = await loadingTask.promise
+    
+    console.log('PDF document loaded. Number of pages:', pdfDocument.numPages)
+    
+    let fullText = ''
+    
+    // Extract text from all pages
+    for (let i = 1; i <= pdfDocument.numPages; i++) {
+      const page = await pdfDocument.getPage(i)
+      const textContent = await page.getTextContent()
+      const pageText = textContent.items.map((item: any) => item.str).join(' ')
+      fullText += pageText + '\n'
+    }
+
+    console.log('Extracted text sample:', fullText.substring(0, 200) + '...')
 
     // Parse content for product information
-    // This is a basic example - you might want to enhance this based on your PDF structure
-    const lines = pdfContent.split('\n').filter(line => line.trim().length > 0)
-    
-    // Extract potential product information
+    // This is a basic example - enhance based on your PDF structure
     const products = []
-    let currentProduct = {}
+    const lines = fullText.split('\n').filter(line => line.trim().length > 0)
+    
+    let currentProduct: any = {}
     
     for (const line of lines) {
       // Example parsing logic - adjust based on your PDF structure
-      if (line.includes('SKU:')) {
+      if (line.toLowerCase().includes('sku:')) {
         if (Object.keys(currentProduct).length > 0) {
           products.push(currentProduct)
           currentProduct = {}
         }
-        currentProduct.sku = line.split('SKU:')[1].trim()
+        currentProduct.sku = line.split('SKU:')[1]?.trim()
       }
-      if (line.includes('Name:')) {
-        currentProduct.name = line.split('Name:')[1].trim()
+      if (line.toLowerCase().includes('name:')) {
+        currentProduct.name = line.split('Name:')[1]?.trim()
       }
-      if (line.includes('Brand:')) {
-        currentProduct.brand = line.split('Brand:')[1].trim()
+      if (line.toLowerCase().includes('brand:')) {
+        currentProduct.brand = line.split('Brand:')[1]?.trim()
       }
-      if (line.includes('Price:')) {
-        const priceStr = line.split('Price:')[1].trim()
-        currentProduct.price = parseFloat(priceStr.replace(/[^0-9.]/g, ''))
+      if (line.toLowerCase().includes('price:')) {
+        const priceStr = line.split('Price:')[1]?.trim()
+        currentProduct.price = parseFloat(priceStr?.replace(/[^0-9.]/g, ''))
       }
       // Add more parsing logic as needed
     }
@@ -90,11 +102,14 @@ serve(async (req) => {
 
     console.log('Extracted products:', products)
 
-    // Insert products into database
+    // Insert products into database if any were found
     if (products.length > 0) {
       const { error: insertError } = await supabase
         .from('products')
-        .insert(products)
+        .insert(products.map(product => ({
+          ...product,
+          supplier_id: null // Set this based on your business logic
+        })))
 
       if (insertError) {
         throw new Error(`Error inserting products: ${insertError.message}`)
@@ -106,7 +121,7 @@ serve(async (req) => {
     const { error: updateError } = await supabase
       .from('document_embeddings')
       .update({
-        content: pdfContent,
+        content: fullText,
         updated_at: new Date().toISOString(),
       })
       .eq('id', document_id)
