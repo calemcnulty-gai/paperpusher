@@ -40,16 +40,13 @@ export const downloadAndConvertPDF = async (supabase: any, filePath: string) => 
   }
 
   console.log('Successfully downloaded PDF file')
-  console.log('Converting PDF to base64...')
   
+  // Convert to Uint8Array for upload
   const uint8Array = new Uint8Array(await fileData.arrayBuffer())
-  const base64Pdf = encode(uint8Array)
-  
-  console.log('PDF converted to base64, length:', base64Pdf.length)
-  return base64Pdf
+  return uint8Array
 }
 
-export const convertPDFToImage = async (base64Pdf: string) => {
+export const convertPDFToImage = async (pdfData: Uint8Array) => {
   const pdfCoApiKey = Deno.env.get('PDF_CO_API_KEY')
   console.log('PDF.co API key present:', !!pdfCoApiKey)
   
@@ -57,17 +54,19 @@ export const convertPDFToImage = async (base64Pdf: string) => {
     throw new Error('PDF.co API key is not configured')
   }
 
+  // Create form data for file upload
+  const formData = new FormData()
+  const blob = new Blob([pdfData], { type: 'application/pdf' })
+  formData.append('file', blob, 'document.pdf')
+
   // First, upload the file to PDF.co
   console.log('Uploading PDF to PDF.co temporary storage...')
   const uploadResponse = await fetch('https://api.pdf.co/v1/file/upload', {
     method: 'POST',
     headers: {
-      'x-api-key': pdfCoApiKey,
-      'Content-Type': 'application/json',
+      'x-api-key': pdfCoApiKey
     },
-    body: JSON.stringify({
-      file: base64Pdf
-    })
+    body: formData
   })
 
   if (!uploadResponse.ok) {
