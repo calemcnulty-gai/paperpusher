@@ -1,12 +1,55 @@
 import { OpenAIResponse, ProductData } from './types.ts'
 
+// Helper function to get color code
+function getColorCode(color: string): string {
+  if (!color) return ''
+  const colorMap: { [key: string]: string } = {
+    'black': 'BLK',
+    'blue': 'BLU',
+    'brown': 'BRN',
+    'grey': 'GRY',
+    'gray': 'GRY',
+    'green': 'GRN',
+    'navy': 'NAV',
+    'orange': 'ORG',
+    'pink': 'PNK',
+    'purple': 'PRP',
+    'red': 'RED',
+    'white': 'WHT',
+    'yellow': 'YLW',
+    'beige': 'BEI',
+    'tan': 'TAN',
+    'khaki': 'KHK',
+    'kaki': 'KHK',
+    'silver': 'SLV',
+    'gold': 'GLD',
+    'multi': 'MLT'
+  }
+  
+  const normalizedColor = color.toLowerCase().trim()
+  // Try exact match first
+  if (normalizedColor in colorMap) {
+    return colorMap[normalizedColor]
+  }
+  
+  // Try to find partial match
+  for (const [key, code] of Object.entries(colorMap)) {
+    if (normalizedColor.includes(key)) {
+      return code
+    }
+  }
+  
+  // If no match found, take first 3 letters of color
+  return normalizedColor.slice(0, 3).toUpperCase()
+}
+
 // Helper function to generate a SKU from a name
 function generateSkuFromName(name: string): string {
   // Remove special characters and spaces, convert to uppercase
   const cleanName = name.replace(/[^a-zA-Z0-9]/g, '').toUpperCase()
   
-  // Take first 10 characters (or all if less than 10)
-  const namePrefix = cleanName.slice(0, 10)
+  // Take first 12 characters (or all if less than 12)
+  const namePrefix = cleanName.slice(0, 12)
   
   // Generate random 4-digit number
   const randomNum = Math.floor(Math.random() * 9000) + 1000
@@ -58,15 +101,12 @@ CRITICAL INSTRUCTIONS:
    - Both should be numbers only, no currency symbols
    - If only one price is found, use it as wholesale_price
 7. Arrays and nested objects are allowed in specifications and extracted_metadata.
-8. SKU Generation Rules:
-   - If a SKU/product ID is clearly visible in the image, use that
-   - If no SKU is found but you find a name/title:
-     a. Convert the name to uppercase
-     b. Remove special characters and spaces
-     c. Take the first 10 characters
-     d. Append a random 4-digit number
-   - Example: "Blue Suede Shoes" -> "BLUESUEDES1234"
-   - The SKU must be unique and should reflect the product name when possible`
+8. SKU Rules:
+   - Look for existing product codes, SKUs, or article numbers in the image
+   - SKUs are often found near product details, prices, or in headers
+   - Only generate a SKU if you cannot find one in the image
+   - Generated SKUs should be based on visible product information
+   - SKUs must be unique per product variant`
 
   console.log('\nSystem Prompt:')
   console.log('='.repeat(80))
@@ -85,14 +125,13 @@ Remember:
 - Extract both wholesale and retail prices if available
 - If only one price is found, use it as wholesale_price
 - For SKU:
-  1. Use any SKU/product ID visible in the image
-  2. If no SKU found but name exists:
-     - Convert name to uppercase
-     - Remove special chars and spaces
-     - Take first 10 chars
-     - Add random 4 digits
-     - Example: "Red Running Shoes" -> "REDRUNNING5678"
-  3. SKU field must not be null or empty`
+  1. Find any existing product codes, SKUs, or article numbers in the image
+  2. Look near product details, prices, or in headers
+  3. Only if no SKU is found:
+     - Use product name or model number as base
+     - Remove special characters
+     - Keep it simple and readable
+  4. SKU field must not be null or empty`
 
   console.log('\nUser Prompt:')
   console.log('='.repeat(80))
