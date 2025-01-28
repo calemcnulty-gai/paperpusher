@@ -35,13 +35,13 @@ const productSchema = z.object({
   color: z.string().optional(),
   material: z.string().optional(),
   wholesale_price: z.string()
-    .transform(val => val ? Number(val) : null)
+    .transform(val => val ? parseFloat(val) : null)
     .optional(),
   retail_price: z.string()
-    .transform(val => val ? Number(val) : null)
+    .transform(val => val ? parseFloat(val) : null)
     .optional(),
   stock_quantity: z.string()
-    .transform(val => val ? Number(val) : null)
+    .transform(val => val ? parseInt(val, 10) : null)
     .optional(),
   description: z.string().optional(),
   season: z.string().optional(),
@@ -77,6 +77,7 @@ export function CreateProductModal() {
 
   const onSubmit = async (data: ProductFormValues) => {
     try {
+      console.log('Submitting product data:', { ...data, supplier_id: user?.id })
       const { error } = await supabase
         .from("products")
         .insert({
