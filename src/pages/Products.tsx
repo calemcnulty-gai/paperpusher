@@ -4,7 +4,6 @@ import { DataTable } from "@/components/ui/data-table"
 import { productColumns } from "@/components/products/ProductColumns"
 import { ProductFilters } from "@/components/products/ProductFilters"
 import { CreateProductModal } from "@/components/products/CreateProductModal"
-import type { Product } from "@/types/products"
 import { useAppDispatch, useAppSelector } from "@/store"
 import { setPage, setPageSize } from "@/store/productFiltersSlice"
 import { 
@@ -147,18 +146,21 @@ export default function Products() {
   }
 
   return (
-    <div className="container mx-auto py-8 space-y-6">
-      <div className="flex justify-between items-center">
-        <h1 className="text-3xl font-bold">Products</h1>
-        {isPrincipal && <CreateProductModal />}
+    <div className="container space-y-8 py-8">
+      <div className="px-2">
+        <h1 className="text-3xl font-bold mb-8">Products</h1>
+        
+        <ProductFilters>
+          {isPrincipal && <CreateProductModal />}
+        </ProductFilters>
       </div>
-      
-      <ProductFilters />
 
-      <DataTable 
-        columns={productColumns} 
-        data={data?.data || []} 
-      />
+      <div className="px-2">
+        <DataTable 
+          columns={productColumns} 
+          data={data?.data || []} 
+        />
+      </div>
 
       {totalPages > 1 && (
         <div className="flex justify-center mt-4">
