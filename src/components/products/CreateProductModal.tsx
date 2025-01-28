@@ -34,9 +34,15 @@ const productSchema = z.object({
   size: z.string().optional(),
   color: z.string().optional(),
   material: z.string().optional(),
-  wholesale_price: z.string().transform(val => Number(val) || null).optional(),
-  retail_price: z.string().transform(val => Number(val) || null).optional(),
-  stock_quantity: z.string().transform(val => Number(val) || null).optional(),
+  wholesale_price: z.string()
+    .transform(val => val ? Number(val) : null)
+    .optional(),
+  retail_price: z.string()
+    .transform(val => val ? Number(val) : null)
+    .optional(),
+  stock_quantity: z.string()
+    .transform(val => val ? Number(val) : null)
+    .optional(),
   description: z.string().optional(),
   season: z.string().optional(),
   product_number: z.string().optional(),
@@ -73,7 +79,10 @@ export function CreateProductModal() {
     try {
       const { error } = await supabase
         .from("products")
-        .insert([{ ...data, supplier_id: user?.id }])
+        .insert({
+          ...data,
+          supplier_id: user?.id,
+        })
 
       if (error) throw error
 
