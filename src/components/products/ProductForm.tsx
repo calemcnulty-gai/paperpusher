@@ -11,6 +11,13 @@ import { BasicInfoFields } from "./form/BasicInfoFields"
 import { DetailsFields } from "./form/DetailsFields"
 import { PricingFields } from "./form/PricingFields"
 
+// Helper function to transform string to number
+const stringToNumber = (val: string | null | undefined) => {
+  if (!val) return null;
+  const num = parseFloat(val);
+  return isNaN(num) ? null : num;
+}
+
 const productSchema = z.object({
   name: z.string().min(1, "Name is required"),
   sku: z.string().optional(),
@@ -18,23 +25,19 @@ const productSchema = z.object({
   color: z.string().optional(),
   material: z.string().optional(),
   wholesale_price: z.string()
-    .transform(val => {
-      if (!val) return null;
-      const num = parseFloat(val);
-      return isNaN(num) ? null : num;
-    })
-    .nullable(),
+    .transform(stringToNumber)
+    .pipe(z.number().nullable()),
   retail_price: z.string()
-    .transform(val => {
-      if (!val) return null;
-      const num = parseFloat(val);
-      return isNaN(num) ? null : num;
-    })
-    .nullable(),
+    .transform(stringToNumber)
+    .pipe(z.number().nullable()),
   season: z.string().optional(),
 })
 
-export type ProductFormValues = z.infer<typeof productSchema>
+// Define the input type (what the form accepts)
+export type ProductFormInput = z.input<typeof productSchema>
+
+// Define the output type (after transformation)
+export type ProductFormOutput = z.output<typeof productSchema>
 
 interface ProductFormProps {
   onSuccess: () => void
@@ -45,7 +48,7 @@ export function ProductForm({ onSuccess, userId }: ProductFormProps) {
   const { toast } = useToast()
   const queryClient = useQueryClient()
   
-  const form = useForm<ProductFormValues>({
+  const form = useForm<ProductFormInput>({
     resolver: zodResolver(productSchema),
     defaultValues: {
       name: "",
@@ -59,21 +62,23 @@ export function ProductForm({ onSuccess, userId }: ProductFormProps) {
     },
   })
 
-  const onSubmit = async (data: ProductFormValues) => {
+  const onSubmit = async (data: ProductFormInput) => {
     try {
-      console.log('Submitting product data:', { ...data, supplier_id: userId })
+      // Transform the data using the schema
+      const transformedData = productSchema.parse(data)
+      console.log('Submitting product data:', { ...transformedData, supplier_id: userId })
       
       const { error } = await supabase
         .from("products")
         .insert({
-          name: data.name,
-          sku: data.sku,
-          brand: data.brand,
-          color: data.color,
-          material: data.material,
-          wholesale_price: data.wholesale_price,
-          retail_price: data.retail_price,
-          season: data.season,
+          name: transformedData.name,
+          sku: transformedData.sku,
+          brand: transformedData.brand,
+          color: transformedData.color,
+          material: transformedData.material,
+          wholesale_price: transformedData.wholesale_price,
+          retail_price: transformedData.retail_price,
+          season: transformedData.season,
           supplier_id: userId,
         })
 
