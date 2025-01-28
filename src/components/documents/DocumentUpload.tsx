@@ -72,22 +72,30 @@ export const DocumentUpload = () => {
 
       console.log('Document record created:', docData)
 
-      // Then trigger processing with the file path
-      console.log('Triggering processing with file path:', filePath)
-      const { error: processError, data: processData } = await supabase.functions
-        .invoke('process-pdf', {
-          body: { file_path: filePath }
-        })
+      // Trigger processing in the background
+      supabase.functions.invoke('process-pdf', {
+        body: { file_path: filePath }
+      }).then(({ error }) => {
+        if (error) {
+          console.error('Background processing error:', error)
+          // Update document status to failed
+          supabase
+            .from('document_embeddings')
+            .update({
+              processing_status: 'failed',
+              processing_error: error.message
+            })
+            .eq('id', docData.id)
+            .then(() => {
+              queryClient.invalidateQueries({ queryKey: ['documents'] })
+            })
+        }
+      })
 
-      if (processError) {
-        console.error('Processing function error:', processError)
-        throw new Error(`Failed to process document: ${processError.message}`)
-      }
-
-      console.log('Processing response:', processData)
+      // Return success immediately
       toast({
         title: "Document uploaded",
-        description: "The document has been uploaded and is being processed. You can track the progress below."
+        description: "The document has been uploaded and processing has started. You can track the progress below."
       })
 
       // Invalidate queries to refresh the document list
