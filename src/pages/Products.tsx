@@ -3,6 +3,7 @@ import { supabase } from "@/integrations/supabase/client"
 import { DataTable } from "@/components/ui/data-table"
 import { productColumns } from "@/components/products/ProductColumns"
 import { ProductFilters } from "@/components/products/ProductFilters"
+import { CreateProductModal } from "@/components/products/CreateProductModal"
 import type { Product } from "@/types/products"
 import { useAppDispatch, useAppSelector } from "@/store"
 import { setPage, setPageSize } from "@/store/productFiltersSlice"
@@ -18,13 +19,34 @@ import {
   PaginationEllipsis,
 } from "@/components/ui/pagination"
 import { useToast } from "@/components/ui/use-toast"
+import { useAuth } from "@/hooks/useAuth"
 
 export default function Products() {
   const dispatch = useAppDispatch()
   const { toast } = useToast()
+  const { user } = useAuth()
   const { selectedSupplier, selectedSeason, page, pageSize } = useAppSelector(
     (state) => state.productFilters
   )
+
+  // Query to check if user is a principal
+  const { data: userProfile } = useQuery({
+    queryKey: ['profile', user?.id],
+    queryFn: async () => {
+      if (!user?.id) return null
+      const { data, error } = await supabase
+        .from('profiles')
+        .select('role')
+        .eq('id', user.id)
+        .single()
+      
+      if (error) throw error
+      return data
+    },
+    enabled: !!user?.id
+  })
+
+  const isPrincipal = userProfile?.role === 'principal'
 
   const { data, isLoading } = useQuery({
     queryKey: ['products', selectedSupplier, selectedSeason, page, pageSize],
@@ -126,7 +148,10 @@ export default function Products() {
 
   return (
     <div className="container mx-auto py-8 space-y-6">
-      <h1 className="text-3xl font-bold">Products</h1>
+      <div className="flex justify-between items-center">
+        <h1 className="text-3xl font-bold">Products</h1>
+        {isPrincipal && <CreateProductModal />}
+      </div>
       
       <ProductFilters />
 
