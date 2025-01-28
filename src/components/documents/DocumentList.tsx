@@ -32,8 +32,16 @@ export const DocumentList = () => {
         throw error
       }
       
-      console.log('Documents fetched successfully:', data?.length || 0, 'documents')
-      return data as DocumentEmbedding[]
+      // Post-process the data to fix status
+      const processedData = data?.map(doc => ({
+        ...doc,
+        // If we have content but status isn't completed, it means it was processed
+        // before we added status tracking - mark it as completed
+        processing_status: doc.content ? 'completed' : doc.processing_status
+      }))
+      
+      console.log('Documents fetched successfully:', processedData?.length || 0, 'documents')
+      return processedData as DocumentEmbedding[]
     },
     // Safely check if any documents are processing
     refetchInterval: (data) => {
