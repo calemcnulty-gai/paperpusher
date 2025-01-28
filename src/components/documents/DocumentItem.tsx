@@ -41,32 +41,45 @@ export const DocumentItem = ({
     console.log('Starting processing for document:', id)
     
     try {
-      console.log('Invoking process-pdf function with file path:', file_path)
-      const { error: processError, data: processData } = await supabase.functions.invoke('process-pdf', {
-        body: { file_path: file_path }
+      // Update status to pending immediately
+      await supabase
+        .from('document_embeddings')
+        .update({
+          processing_status: 'pending',
+          processing_error: null,
+          pages_processed: 0,
+          total_pages: 0
+        })
+        .eq('id', id)
+
+      // Refresh UI
+      queryClient.invalidateQueries({ queryKey: ['documents'] })
+      
+      // Trigger processing in background
+      supabase.functions.invoke('process-pdf', {
+        body: { file_path }
+      }).then(({ error }) => {
+        if (error) {
+          console.error('Background processing error:', error)
+          // Update document status to failed
+          supabase
+            .from('document_embeddings')
+            .update({
+              processing_status: 'failed',
+              processing_error: error.message
+            })
+            .eq('id', id)
+            .then(() => {
+              queryClient.invalidateQueries({ queryKey: ['documents'] })
+            })
+        }
       })
 
-      if (processError) {
-        console.error('Processing error:', processError)
-        throw processError
-      }
-
-      console.log('Processing response:', processData)
-      if (processData?.error === 'Document is already being processed') {
-        console.log('Document is already being processed:', id)
-        toast({
-          title: "Processing in progress",
-          description: "This document is already being processed. Please wait.",
-          variant: "default"
-        })
-        return
-      }
-
-      console.log('Processing triggered successfully')
       toast({
         title: "Processing started",
-        description: "The document is being processed. This may take a few moments."
+        description: "The document processing has been restarted. You can track the progress here."
       })
+
     } catch (error) {
       console.error('Error in processing:', error)
       toast({
