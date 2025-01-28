@@ -43,16 +43,16 @@ CRITICAL INSTRUCTIONS:
    - Product pages: Will have shoe images with specific details and prices
 7. Brand Handling:
    - Document filename "${filename}" likely contains either:
-     * The full brand name (e.g., if filename is "alias_catalog.pdf")
-     * An abbreviation of the brand (e.g., if filename is "als_cat.pdf")
+     * The full brand name
+     * An abbreviation of the brand
    - Strongly prefer any brand name or abbreviation that appears in "${filename}"
    - Brand is also shown prominently on cover/intro pages
-   - Brand name should be extracted exactly as shown (e.g., "a.li.ás")
-   - Do not confuse material types (e.g., "Bio Suede") for brand names
-   - Do not confuse product names (e.g., "Asher") for brand names
+   - Brand name should be extracted exactly as shown
+   - Do not confuse material types for brand names
+   - Do not confuse product names for brand names
 8. Product Details:
-   - Name: The model/style name of the shoe (e.g., "Asher", "Barefoot")
-   - Material: Type of material used (e.g., "Bio Suede", "Burel Wool")
+   - Name: The model/style name of the shoe
+   - Material: Type of material used
    - SKU: ONLY use product codes visible in the image (e.g., "2034 014")
    - NEVER generate random SKUs - if no SKU is visible, set to null
    - Prices must be numbers only, no currency symbols
@@ -61,10 +61,7 @@ CRITICAL INSTRUCTIONS:
    - Focus on capturing the exact brand name
    - Store any brand taglines/info in extracted_metadata`
 
-  console.log('\nSystem Prompt:')
-  console.log('='.repeat(80))
-  console.log(systemPrompt)
-  console.log('='.repeat(80))
+  console.log('System Prompt: ' + systemPrompt)
 
   // Log the user prompt
   const userPrompt = `Analyze this catalog page and return ONLY a JSON object matching this schema:
@@ -74,8 +71,6 @@ Remember:
 - First determine if this is a cover/intro page or product page
 - Document filename "${filename}" likely contains:
   * Either the full brand name or an abbreviation
-  * Example: if filename is "alias_catalog.pdf" -> brand is "a.li.ás"
-  * Example: if filename is "als_cat.pdf" -> brand is "a.li.ás"
 - Cover/intro pages:
   * Will show brand name/logo prominently
   * Set name, sku, prices to null
@@ -84,7 +79,7 @@ Remember:
   * Store brand details in extracted_metadata
 - Product pages:
   * Must have shoe image with details
-  * Name is the model/style name (e.g., "Asher")
+  * Name is the model/style name
   * Material goes in material field, not name or brand
   * SKU must be a visible product code - NEVER generate random SKUs
   * If no SKU is visible in the image, set it to null
@@ -95,10 +90,7 @@ Remember:
   * Every field must be present
   * Use null for missing values`
 
-  console.log('\nUser Prompt:')
-  console.log('='.repeat(80))
-  console.log(userPrompt)
-  console.log('='.repeat(80))
+  console.log('\nUser Prompt: ' + userPrompt)
   
   const requestPayload = {
     model: "gpt-4o",
@@ -129,10 +121,7 @@ Remember:
     frequency_penalty: 0
   }
   
-  console.log('\nFull Request Payload:')
-  console.log('='.repeat(80))
-  console.log(JSON.stringify(requestPayload, null, 2))
-  console.log('='.repeat(80))
+  console.log('Full OpenAI Request Payload: ' + JSON.stringify(requestPayload, null, 2))
   
   const maxRetries = 3
   const retryDelay = 2000 // 2 seconds
@@ -178,12 +167,9 @@ Remember:
       }
 
       const analysisResult = await openAIResponse.json()
-      console.log('\nOpenAI Response:')
-      console.log('='.repeat(80))
+      console.log('OpenAI Response: ' + JSON.stringify(analysisResult, null, 2))
       console.log('Status:', openAIResponse.status)
-      console.log('Headers:', Object.fromEntries(openAIResponse.headers))
       console.log('Raw content:', analysisResult.choices[0].message.content)
-      console.log('='.repeat(80))
 
       // Parse the JSON content with robust error handling
       try {
@@ -208,10 +194,7 @@ Remember:
           jsonStr = jsonMatch[0].trim()
         }
         
-        console.log('\nExtracted JSON string:')
-        console.log('='.repeat(80))
-        console.log(jsonStr)
-        console.log('='.repeat(80))
+        console.log('\nExtracted JSON string: ' + jsonStr)
         
         let productData
         try {
@@ -251,11 +234,7 @@ Remember:
           }
         }
         
-        console.log('\nFinal parsed product data:')
-        console.log('='.repeat(80))
-        console.log(JSON.stringify(result, null, 2))
-        console.log('='.repeat(80))
-        console.log('=== End OpenAI Analysis ===\n')
+        console.log('Final parsed product data: ' + JSON.stringify(result, null, 2))
         
         return result
       } catch (error) {

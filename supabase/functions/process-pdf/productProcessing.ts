@@ -7,11 +7,6 @@ export const createProduct = async (supabase: any, documentId: string, productDa
   console.log('Product Data:', JSON.stringify(productData, null, 2))
   console.log('Source Image URL:', imageUrl)
 
-  // Ensure SKU is present
-  if (!productData.sku) {
-    throw new Error('SKU is required')
-  }
-
   // If we have an image URL, store it in Supabase
   let storedImageUrl: string | null = null
   if (imageUrl) {
