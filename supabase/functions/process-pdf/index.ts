@@ -94,6 +94,7 @@ serve(async (req) => {
       // Analyze each page and create products
       const products = []
       const allAnalyses = []
+      let catalogBrand = null // Track brand across pages
       
       for (let index = 0; index < imageUrls.length; index++) {
         console.log(`Analyzing page ${index + 1}/${imageUrls.length}`)
@@ -101,9 +102,21 @@ serve(async (req) => {
         const productData = await analyzeImageWithOpenAI(imageUrl, `${doc.filename} - Page ${index + 1}`)
         allAnalyses.push(productData)
         
+        // Track brand information if found
+        if (productData.brand && !catalogBrand) {
+          console.log(`Found catalog brand on page ${index + 1}:`, productData.brand)
+          catalogBrand = productData.brand
+        }
+        
         // Only create products that have both name and SKU
         if (productData.name && productData.sku && productData.name.trim() !== '' && productData.sku.trim() !== '') {
-          console.log(`Creating product from page ${index + 1} - Name: ${productData.name}, SKU: ${productData.sku}`)
+          // Apply catalog brand if product has no brand
+          if (catalogBrand && (!productData.brand || productData.brand.trim() === '')) {
+            console.log(`Applying catalog brand "${catalogBrand}" to product:`, productData.name)
+            productData.brand = catalogBrand
+          }
+          
+          console.log(`Creating product from page ${index + 1} - Name: ${productData.name}, SKU: ${productData.sku}, Brand: ${productData.brand}`)
           const product = await createProduct(supabase, doc.id, productData, imageUrl)
           products.push(product)
         } else {
@@ -111,7 +124,8 @@ serve(async (req) => {
             hasName: !!productData.name && productData.name.trim() !== '',
             hasSku: !!productData.sku && productData.sku.trim() !== '',
             name: productData.name,
-            sku: productData.sku
+            sku: productData.sku,
+            brand: productData.brand || catalogBrand || null
           })
         }
       }
