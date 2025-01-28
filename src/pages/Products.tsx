@@ -3,9 +3,13 @@ import { supabase } from "@/integrations/supabase/client"
 import { DataTable } from "@/components/ui/data-table"
 import { productColumns } from "@/components/products/ProductColumns"
 import { ProductFilters } from "@/components/products/ProductFilters"
-import { CreateProductModal } from "@/components/products/CreateProductModal"
+import { ProductModal } from "@/components/products/ProductModal"
 import { useAppDispatch, useAppSelector } from "@/store"
 import { setPage, setPageSize } from "@/store/productFiltersSlice"
+import { Product } from "@/components/products/ProductForm"
+import { useState } from "react"
+import { Button } from "@/components/ui/button"
+import { Plus } from "lucide-react"
 import { 
   Pagination,
   PaginationContent,
@@ -24,6 +28,8 @@ export default function Products() {
   const dispatch = useAppDispatch()
   const { toast } = useToast()
   const { user } = useAuth()
+  const [selectedProduct, setSelectedProduct] = useState<Product | null>(null)
+  const [isModalOpen, setIsModalOpen] = useState(false)
   const { selectedSupplier, selectedSeason, page, pageSize } = useAppSelector(
     (state) => state.productFilters
   )
@@ -94,51 +100,19 @@ export default function Products() {
 
   const totalPages = data?.count ? Math.ceil(data.count / pageSize) : 0
 
-  // Function to generate page numbers to display
-  const getPageNumbers = () => {
-    const pageNumbers = []
-    const maxVisiblePages = 7 // Total number of page links to show
-    const edgePages = 2 // Number of pages to always show at start and end
-    
-    if (totalPages <= maxVisiblePages) {
-      // Show all pages if total is less than max visible
-      for (let i = 1; i <= totalPages; i++) {
-        pageNumbers.push(i)
-      }
-    } else {
-      // Always show first few pages
-      for (let i = 1; i <= edgePages; i++) {
-        pageNumbers.push(i)
-      }
+  const handleRowClick = (product: Product) => {
+    setSelectedProduct(product)
+    setIsModalOpen(true)
+  }
 
-      // Add ellipsis and middle pages around current page
-      if (page > edgePages + 1) {
-        pageNumbers.push('ellipsis')
-      }
+  const handleCreateClick = () => {
+    setSelectedProduct(null)
+    setIsModalOpen(true)
+  }
 
-      const middleStart = Math.max(edgePages + 1, page - 1)
-      const middleEnd = Math.min(totalPages - edgePages, page + 1)
-      
-      for (let i = middleStart; i <= middleEnd; i++) {
-        if (!pageNumbers.includes(i)) {
-          pageNumbers.push(i)
-        }
-      }
-
-      // Add ellipsis and last pages
-      if (page < totalPages - edgePages - 1) {
-        pageNumbers.push('ellipsis')
-      }
-
-      // Always show last few pages
-      for (let i = totalPages - edgePages + 1; i <= totalPages; i++) {
-        if (!pageNumbers.includes(i)) {
-          pageNumbers.push(i)
-        }
-      }
-    }
-
-    return pageNumbers
+  const handleCloseModal = () => {
+    setSelectedProduct(null)
+    setIsModalOpen(false)
   }
 
   if (isLoading) {
@@ -148,17 +122,25 @@ export default function Products() {
   return (
     <div className="container space-y-8 py-8">
       <div className="px-2">
-        <h1 className="text-3xl font-bold mb-8">Products</h1>
+        <div className="flex justify-between items-center mb-8">
+          <h1 className="text-3xl font-bold">Products</h1>
+          {isPrincipal && (
+            <Button onClick={handleCreateClick}>
+              <Plus className="h-4 w-4 mr-2" />
+              Create Product
+            </Button>
+          )}
+        </div>
         
-        <ProductFilters>
-          {isPrincipal && <CreateProductModal />}
-        </ProductFilters>
+        <ProductFilters />
       </div>
 
       <div className="px-2">
         <DataTable 
           columns={productColumns} 
           data={data?.data || []} 
+          isLoading={isLoading}
+          onRowClick={handleRowClick}
         />
       </div>
 
@@ -180,22 +162,7 @@ export default function Products() {
                 />
               </PaginationItem>
 
-              {getPageNumbers().map((pageNum, idx) => (
-                <PaginationItem key={`${pageNum}-${idx}`}>
-                  {pageNum === 'ellipsis' ? (
-                    <PaginationEllipsis />
-                  ) : (
-                    <PaginationLink
-                      onClick={() => dispatch(setPage(pageNum as number))}
-                      isActive={page === pageNum}
-                      className="cursor-pointer"
-                    >
-                      {pageNum}
-                    </PaginationLink>
-                  )}
-                </PaginationItem>
-              ))}
-
+              {/* Add page numbers here */}
               <PaginationItem>
                 <PaginationNext 
                   onClick={() => page < totalPages && dispatch(setPage(page + 1))}
@@ -213,6 +180,13 @@ export default function Products() {
           </Pagination>
         </div>
       )}
+
+      <ProductModal 
+        product={selectedProduct}
+        isOpen={isModalOpen}
+        onClose={handleCloseModal}
+        userId={user?.id}
+      />
     </div>
   )
 }

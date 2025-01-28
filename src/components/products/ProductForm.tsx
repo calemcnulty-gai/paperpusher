@@ -39,26 +39,34 @@ export type ProductFormInput = z.input<typeof productSchema>
 // Define the output type (after transformation)
 export type ProductFormOutput = z.output<typeof productSchema>
 
+export interface Product extends ProductFormOutput {
+  id: string
+  supplier_id: string
+  created_at: string
+  image_url?: string
+}
+
 interface ProductFormProps {
   onSuccess: () => void
   userId: string | undefined
+  product?: Product // Optional product for editing
 }
 
-export function ProductForm({ onSuccess, userId }: ProductFormProps) {
+export function ProductForm({ onSuccess, userId, product }: ProductFormProps) {
   const { toast } = useToast()
   const queryClient = useQueryClient()
   
   const form = useForm<ProductFormInput>({
     resolver: zodResolver(productSchema),
     defaultValues: {
-      name: "",
-      sku: "",
-      brand: "",
-      color: "",
-      material: "",
-      wholesale_price: "",
-      retail_price: "",
-      season: "all",
+      name: product?.name ?? "",
+      sku: product?.sku ?? "",
+      brand: product?.brand ?? "",
+      color: product?.color ?? "",
+      material: product?.material ?? "",
+      wholesale_price: product?.wholesale_price?.toString() ?? "",
+      retail_price: product?.retail_price?.toString() ?? "",
+      season: product?.season ?? "all",
     },
   })
 
@@ -66,37 +74,49 @@ export function ProductForm({ onSuccess, userId }: ProductFormProps) {
     try {
       // Transform the data using the schema
       const transformedData = productSchema.parse(data)
-      console.log('Submitting product data:', { ...transformedData, supplier_id: userId })
+      const productData = {
+        name: transformedData.name,
+        sku: transformedData.sku,
+        brand: transformedData.brand,
+        color: transformedData.color,
+        material: transformedData.material,
+        wholesale_price: transformedData.wholesale_price,
+        retail_price: transformedData.retail_price,
+        season: transformedData.season,
+        supplier_id: userId,
+      }
+
+      console.log('Submitting product data:', productData)
       
-      const { error } = await supabase
-        .from("products")
-        .insert({
-          name: transformedData.name,
-          sku: transformedData.sku,
-          brand: transformedData.brand,
-          color: transformedData.color,
-          material: transformedData.material,
-          wholesale_price: transformedData.wholesale_price,
-          retail_price: transformedData.retail_price,
-          season: transformedData.season,
-          supplier_id: userId,
-        })
+      let error;
+      if (product) {
+        // Update existing product
+        ({ error } = await supabase
+          .from("products")
+          .update(productData)
+          .eq('id', product.id))
+      } else {
+        // Create new product
+        ({ error } = await supabase
+          .from("products")
+          .insert(productData))
+      }
 
       if (error) throw error
 
       toast({
         title: "Success",
-        description: "Product created successfully",
+        description: `Product ${product ? 'updated' : 'created'} successfully`,
       })
       
       queryClient.invalidateQueries({ queryKey: ["products"] })
       onSuccess()
-      form.reset()
+      if (!product) form.reset() // Only reset form for new products
     } catch (error) {
-      console.error("Error creating product:", error)
+      console.error(`Error ${product ? 'updating' : 'creating'} product:`, error)
       toast({
         title: "Error",
-        description: "Failed to create product",
+        description: `Failed to ${product ? 'update' : 'create'} product`,
         variant: "destructive",
       })
     }
@@ -110,7 +130,7 @@ export function ProductForm({ onSuccess, userId }: ProductFormProps) {
         <PricingFields form={form} />
         <div className="grid grid-cols-2 gap-4">
           <ImageUpload />
-          <Button type="submit">Save</Button>
+          <Button type="submit">{product ? 'Update' : 'Save'}</Button>
         </div>
       </form>
     </Form>
