@@ -1,4 +1,4 @@
 [build]
 entry = "index.ts"
 command = ""
-hook = "" 
+hook = ""
