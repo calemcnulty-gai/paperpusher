@@ -6,43 +6,19 @@ import { Upload, Loader2 } from "lucide-react"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { useQueryClient } from "@tanstack/react-query"
 
-// Separate function to handle the background processing
-const startProcessing = async (docId: string, filePath: string) => {
+// Separate function to request processing
+const requestProcessing = async (filePath: string) => {
   try {
-    // Update to processing status when starting
-    await supabase
-      .from('document_embeddings')
-      .update({
-        processing_status: 'processing',
-        processing_started_at: new Date().toISOString()
-      })
-      .eq('id', docId)
-
     const { error } = await supabase.functions.invoke('process-pdf', {
       body: { file_path: filePath }
     })
     
     if (error) {
-      console.error('Processing error:', error)
-      await supabase
-        .from('document_embeddings')
-        .update({
-          processing_status: 'failed',
-          processing_error: error.message,
-          processing_completed_at: new Date().toISOString()
-        })
-        .eq('id', docId)
+      throw error
     }
   } catch (error) {
-    console.error('Error in background processing:', error)
-    await supabase
-      .from('document_embeddings')
-      .update({
-        processing_status: 'failed',
-        processing_error: error instanceof Error ? error.message : 'Unknown error',
-        processing_completed_at: new Date().toISOString()
-      })
-      .eq('id', docId)
+    console.error('Error requesting processing:', error)
+    throw error
   }
 }
 
@@ -107,19 +83,17 @@ export const DocumentUpload = () => {
         throw new Error(`Failed to create document record: ${dbError.message}`)
       }
 
-      // 3. Return control to UI immediately
+      // 3. Request processing
+      await requestProcessing(filePath)
+
+      // 4. Return control to UI immediately
       toast({
         title: "Document uploaded",
         description: "Processing will begin shortly. You can track the progress below."
       })
 
-      // 4. Refresh document list
+      // 5. Refresh document list
       queryClient.invalidateQueries({ queryKey: ['documents'] })
-
-      // 5. Start processing in background
-      setTimeout(() => {
-        startProcessing(doc.id, filePath)
-      }, 0)
 
     } catch (error) {
       console.error('Error in upload process:', error)
