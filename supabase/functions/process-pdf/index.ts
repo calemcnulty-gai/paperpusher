@@ -155,11 +155,7 @@ serve(async (req) => {
         
         console.log(`Creating product from page ${index + 1} - Name: ${productData.name}, SKU: ${productData.sku}, Brand: ${productData.brand}`)
         const product = await createProduct(supabase, doc.id, productData, imageUrl)
-        if (product) {
-          products.push(product)
-        } else {
-          console.log(`Skipped duplicate product with SKU "${productData.sku}" from page ${index + 1}`)
-        }
+        products.push(product)
       }
 
       // Combine all analyses into one document

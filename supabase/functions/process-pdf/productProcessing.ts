@@ -44,35 +44,20 @@ export const createProduct = async (supabase: any, documentId: string, productDa
     image_url: storedImageUrl
   }
 
-  try {
-    console.log('Attempting to insert product:', JSON.stringify(productInsert, null, 2))
-    const { data: product, error } = await supabase
-      .from('products')
-      .insert(productInsert)
-      .select()
-      .single()
+  console.log('Inserting product:', JSON.stringify(productInsert, null, 2))
+  const { data: product, error } = await supabase
+    .from('products')
+    .insert(productInsert)
+    .select()
+    .single()
 
-    if (error) {
-      // Check if this is a unique constraint violation on SKU
-      if (error.code === '23505' && error.message.includes('products_sku_key')) {
-        console.log(`Product with SKU "${productData.sku}" already exists, skipping...`)
-        // Return null to indicate product was skipped
-        return null
-      }
-      // For any other error, throw it
-      console.error('Error creating product:', error)
-      throw error
-    }
-
-    console.log('Product created successfully:', product.id)
-    console.log('=== End Product Creation ===\n')
-    return product
-  } catch (error) {
-    // Handle any other unexpected errors
-    if (error.code === '23505' && error.message.includes('products_sku_key')) {
-      console.log(`Product with SKU "${productData.sku}" already exists, skipping...`)
-      return null
-    }
+  if (error) {
+    console.error('Error creating product:', error)
     throw error
   }
+
+  console.log('Product created successfully:', product.id)
+  console.log('=== End Product Creation ===\n')
+
+  return product
 } 
