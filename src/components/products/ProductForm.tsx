@@ -23,10 +23,10 @@ const productSchema = z.object({
   color: z.string().optional(),
   material: z.string().optional(),
   wholesale_price: z.string()
-    .transform(val => val ? Number(val) : null)
+    .transform(val => val ? parseFloat(val) : null)
     .optional(),
   retail_price: z.string()
-    .transform(val => val ? Number(val) : null)
+    .transform(val => val ? parseFloat(val) : null)
     .optional(),
   season: z.string().optional(),
 })
@@ -66,8 +66,8 @@ export function ProductForm({ onSuccess, userId }: ProductFormProps) {
           ...data,
           supplier_id: userId,
           name: data.name,
-          wholesale_price: data.wholesale_price ? Number(data.wholesale_price) : null,
-          retail_price: data.retail_price ? Number(data.retail_price) : null,
+          wholesale_price: data.wholesale_price,
+          retail_price: data.retail_price,
         })
 
       if (error) throw error
