@@ -30,7 +30,6 @@ const productSchema = z.object({
   name: z.string().min(1, "Name is required"),
   sku: z.string().optional(),
   brand: z.string().optional(),
-  category: z.string().optional(),
   color: z.string().optional(),
   material: z.string().optional(),
   wholesale_price: z.string()
@@ -56,7 +55,6 @@ export function CreateProductModal() {
       name: "",
       sku: "",
       brand: "",
-      category: "shoes",
       color: "",
       material: "",
       wholesale_price: "",
@@ -69,16 +67,15 @@ export function CreateProductModal() {
     try {
       console.log('Submitting product data:', { ...data, supplier_id: user?.id })
       
-      const transformedData = {
-        ...data,
-        supplier_id: user?.id,
-        wholesale_price: data.wholesale_price ? Number(data.wholesale_price) : null,
-        retail_price: data.retail_price ? Number(data.retail_price) : null,
-      }
-
       const { error } = await supabase
         .from("products")
-        .insert(transformedData)
+        .insert({
+          ...data,
+          supplier_id: user?.id,
+          name: data.name,
+          wholesale_price: data.wholesale_price ? Number(data.wholesale_price) : null,
+          retail_price: data.retail_price ? Number(data.retail_price) : null,
+        })
 
       if (error) throw error
 
@@ -161,19 +158,6 @@ export function CreateProductModal() {
               />
               <FormField
                 control={form.control}
-                name="category"
-                render={({ field }) => (
-                  <FormItem>
-                    <FormLabel>Category</FormLabel>
-                    <FormControl>
-                      <Input {...field} />
-                    </FormControl>
-                    <FormMessage />
-                  </FormItem>
-                )}
-              />
-              <FormField
-                control={form.control}
                 name="season"
                 render={({ field }) => (
                   <FormItem>
@@ -185,8 +169,6 @@ export function CreateProductModal() {
                   </FormItem>
                 )}
               />
-            </div>
-            <div className="grid grid-cols-3 gap-4">
               <FormField
                 control={form.control}
                 name="color"
@@ -200,6 +182,8 @@ export function CreateProductModal() {
                   </FormItem>
                 )}
               />
+            </div>
+            <div className="grid grid-cols-3 gap-4">
               <FormField
                 control={form.control}
                 name="material"
@@ -226,8 +210,6 @@ export function CreateProductModal() {
                   </FormItem>
                 )}
               />
-            </div>
-            <div className="grid grid-cols-3 gap-4">
               <FormField
                 control={form.control}
                 name="retail_price"
