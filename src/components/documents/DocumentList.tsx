@@ -33,15 +33,21 @@ export const DocumentList = () => {
       }
       
       console.log('Documents fetched successfully:', data?.length || 0, 'documents')
-      return data as unknown as DocumentEmbedding[]
+      return data as DocumentEmbedding[]
     },
-    // Refresh every 5 seconds while documents are processing
+    // Safely check if any documents are processing
     refetchInterval: (data) => {
-      if (!data) return false
+      if (!data || !Array.isArray(data)) {
+        console.log('No documents data available for refetch check')
+        return false
+      }
+      
       const hasProcessingDocs = data.some(doc => 
         doc.processing_status === 'processing' || 
         doc.processing_status === 'pending'
       )
+      
+      console.log('Documents processing status:', hasProcessingDocs ? 'Processing' : 'Idle')
       return hasProcessingDocs ? 5000 : false
     }
   })
@@ -63,13 +69,13 @@ export const DocumentList = () => {
           <div className="flex items-center justify-center p-4">
             <Loader2 className="h-6 w-6 animate-spin" />
           </div>
-        ) : documents?.length === 0 ? (
+        ) : !documents || documents.length === 0 ? (
           <p className="text-muted-foreground text-center py-4">
             No documents uploaded yet
           </p>
         ) : (
           <div className="space-y-4">
-            {documents?.map((doc) => (
+            {documents.map((doc) => (
               <DocumentItem
                 key={doc.id}
                 {...doc}

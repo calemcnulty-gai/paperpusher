@@ -89,7 +89,7 @@ export type Database = {
           retail_price: number | null
           season: string | null
           size: string | null
-          sku: string
+          sku: string | null
           specifications: Json | null
           stock_quantity: number | null
           supplier_id: string | null
@@ -113,7 +113,7 @@ export type Database = {
           retail_price?: number | null
           season?: string | null
           size?: string | null
-          sku: string
+          sku?: string | null
           specifications?: Json | null
           stock_quantity?: number | null
           supplier_id?: string | null
@@ -137,7 +137,7 @@ export type Database = {
           retail_price?: number | null
           season?: string | null
           size?: string | null
-          sku?: string
+          sku?: string | null
           specifications?: Json | null
           stock_quantity?: number | null
           supplier_id?: string | null
