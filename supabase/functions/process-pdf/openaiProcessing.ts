@@ -1,5 +1,19 @@
 import { OpenAIResponse, ProductData } from './types.ts'
 
+// Helper function to generate a SKU from a name
+function generateSkuFromName(name: string): string {
+  // Remove special characters and spaces, convert to uppercase
+  const cleanName = name.replace(/[^a-zA-Z0-9]/g, '').toUpperCase()
+  
+  // Take first 10 characters (or all if less than 10)
+  const namePrefix = cleanName.slice(0, 10)
+  
+  // Generate random 4-digit number
+  const randomNum = Math.floor(Math.random() * 9000) + 1000
+  
+  return `${namePrefix}${randomNum}`
+}
+
 export async function analyzeImageWithOpenAI(imageUrl: string, filename: string): Promise<ProductData> {
   const openAiApiKey = Deno.env.get('OPENAI_API_KEY')
   console.log('\n=== Starting OpenAI Analysis ===')
@@ -43,7 +57,16 @@ CRITICAL INSTRUCTIONS:
    - retail_price is the suggested selling price to customers
    - Both should be numbers only, no currency symbols
    - If only one price is found, use it as wholesale_price
-7. Arrays and nested objects are allowed in specifications and extracted_metadata.`
+7. Arrays and nested objects are allowed in specifications and extracted_metadata.
+8. SKU Generation Rules:
+   - If a SKU/product ID is clearly visible in the image, use that
+   - If no SKU is found but you find a name/title:
+     a. Convert the name to uppercase
+     b. Remove special characters and spaces
+     c. Take the first 10 characters
+     d. Append a random 4-digit number
+   - Example: "Blue Suede Shoes" -> "BLUESUEDES1234"
+   - The SKU must be unique and should reflect the product name when possible`
 
   console.log('\nSystem Prompt:')
   console.log('='.repeat(80))
@@ -60,7 +83,16 @@ Remember:
 - Every field must be present
 - Use null for missing values
 - Extract both wholesale and retail prices if available
-- If only one price is found, use it as wholesale_price`
+- If only one price is found, use it as wholesale_price
+- For SKU:
+  1. Use any SKU/product ID visible in the image
+  2. If no SKU found but name exists:
+     - Convert name to uppercase
+     - Remove special chars and spaces
+     - Take first 10 chars
+     - Add random 4 digits
+     - Example: "Red Running Shoes" -> "REDRUNNING5678"
+  3. SKU field must not be null or empty`
 
   console.log('\nUser Prompt:')
   console.log('='.repeat(80))
@@ -192,6 +224,19 @@ Remember:
       } else {
         // Put unknown fields in extracted_metadata
         result.extracted_metadata[key] = value
+      }
+    }
+    
+    // Ensure we have a valid SKU
+    if (!result.sku || result.sku.trim() === '') {
+      if (result.name && result.name.trim() !== '') {
+        console.log('No SKU found, generating from name:', result.name)
+        result.sku = generateSkuFromName(result.name)
+        console.log('Generated SKU:', result.sku)
+      } else {
+        console.log('No name or SKU found, generating random SKU')
+        result.sku = generateSkuFromName('PRODUCT' + Date.now())
+        console.log('Generated random SKU:', result.sku)
       }
     }
     
