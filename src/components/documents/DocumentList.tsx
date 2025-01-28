@@ -1,4 +1,3 @@
-import { useState } from "react"
 import { useQuery } from "@tanstack/react-query"
 import { supabase } from "@/integrations/supabase/client"
 import { Loader2, AlertCircle } from "lucide-react"
@@ -34,27 +33,18 @@ export const DocumentList = () => {
       }
       
       console.log('Documents fetched successfully:', data?.length || 0, 'documents')
-      return data as DocumentEmbedding[]
+      return data as unknown as DocumentEmbedding[]
     },
     // Refresh every 5 seconds while documents are processing
     refetchInterval: (data) => {
-      const hasProcessingDocs = data?.some(doc => 
+      if (!data) return false
+      const hasProcessingDocs = data.some(doc => 
         doc.processing_status === 'processing' || 
         doc.processing_status === 'pending'
       )
       return hasProcessingDocs ? 5000 : false
     }
   })
-
-  const [processingDocIds, setProcessingDocIds] = useState<string[]>([])
-
-  const handleProcessingStart = (id: string) => {
-    setProcessingDocIds(prev => [...prev, id])
-  }
-
-  const handleProcessingEnd = (id: string) => {
-    setProcessingDocIds(prev => prev.filter(docId => docId !== id))
-  }
 
   return (
     <Card>
@@ -83,9 +73,6 @@ export const DocumentList = () => {
               <DocumentItem
                 key={doc.id}
                 {...doc}
-                isProcessing={processingDocIds.includes(doc.id)}
-                onProcessingStart={handleProcessingStart}
-                onProcessingEnd={handleProcessingEnd}
               />
             ))}
           </div>
