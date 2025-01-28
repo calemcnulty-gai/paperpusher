@@ -18,12 +18,18 @@ const productSchema = z.object({
   color: z.string().optional(),
   material: z.string().optional(),
   wholesale_price: z.string()
-    .transform(val => val ? parseFloat(val) : null)
-    .optional()
+    .transform(val => {
+      if (!val) return null;
+      const num = parseFloat(val);
+      return isNaN(num) ? null : num;
+    })
     .nullable(),
   retail_price: z.string()
-    .transform(val => val ? parseFloat(val) : null)
-    .optional()
+    .transform(val => {
+      if (!val) return null;
+      const num = parseFloat(val);
+      return isNaN(num) ? null : num;
+    })
     .nullable(),
   season: z.string().optional(),
 })
@@ -60,7 +66,14 @@ export function ProductForm({ onSuccess, userId }: ProductFormProps) {
       const { error } = await supabase
         .from("products")
         .insert({
-          ...data,
+          name: data.name,
+          sku: data.sku,
+          brand: data.brand,
+          color: data.color,
+          material: data.material,
+          wholesale_price: data.wholesale_price,
+          retail_price: data.retail_price,
+          season: data.season,
           supplier_id: userId,
         })
 
