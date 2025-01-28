@@ -6,6 +6,35 @@ import { useQueryClient } from "@tanstack/react-query"
 import { Progress } from "@/components/ui/progress"
 import { Alert, AlertDescription } from "@/components/ui/alert"
 
+// Separate function to handle the background processing
+const startProcessing = async (docId: string, filePath: string) => {
+  try {
+    const { error } = await supabase.functions.invoke('process-pdf', {
+      body: { file_path: filePath }
+    })
+    
+    if (error) {
+      console.error('Processing error:', error)
+      await supabase
+        .from('document_embeddings')
+        .update({
+          processing_status: 'failed',
+          processing_error: error.message
+        })
+        .eq('id', docId)
+    }
+  } catch (error) {
+    console.error('Error in background processing:', error)
+    await supabase
+      .from('document_embeddings')
+      .update({
+        processing_status: 'failed',
+        processing_error: error instanceof Error ? error.message : 'Unknown error'
+      })
+      .eq('id', docId)
+  }
+}
+
 interface DocumentItemProps {
   id: string
   filename: string
@@ -38,10 +67,8 @@ export const DocumentItem = ({
       return
     }
 
-    console.log('Starting processing for document:', id)
-    
     try {
-      // Update status to pending immediately
+      // 1. Update status to pending
       await supabase
         .from('document_embeddings')
         .update({
@@ -52,36 +79,22 @@ export const DocumentItem = ({
         })
         .eq('id', id)
 
-      // Refresh UI
-      queryClient.invalidateQueries({ queryKey: ['documents'] })
-      
-      // Trigger processing in background
-      supabase.functions.invoke('process-pdf', {
-        body: { file_path }
-      }).then(({ error }) => {
-        if (error) {
-          console.error('Background processing error:', error)
-          // Update document status to failed
-          supabase
-            .from('document_embeddings')
-            .update({
-              processing_status: 'failed',
-              processing_error: error.message
-            })
-            .eq('id', id)
-            .then(() => {
-              queryClient.invalidateQueries({ queryKey: ['documents'] })
-            })
-        }
-      })
-
+      // 2. Return control to UI immediately
       toast({
         title: "Processing started",
-        description: "The document processing has been restarted. You can track the progress here."
+        description: "Processing will begin shortly. You can track the progress here."
       })
 
+      // 3. Refresh document list
+      queryClient.invalidateQueries({ queryKey: ['documents'] })
+
+      // 4. Start processing in background
+      setTimeout(() => {
+        startProcessing(id, file_path)
+      }, 0)
+
     } catch (error) {
-      console.error('Error in processing:', error)
+      console.error('Error initiating processing:', error)
       toast({
         title: "Processing failed",
         description: error instanceof Error ? error.message : "There was an error processing the document. Please try again.",

@@ -6,6 +6,35 @@ import { Upload, Loader2 } from "lucide-react"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { useQueryClient } from "@tanstack/react-query"
 
+// Separate function to handle the background processing
+const startProcessing = async (docId: string, filePath: string) => {
+  try {
+    const { error } = await supabase.functions.invoke('process-pdf', {
+      body: { file_path: filePath }
+    })
+    
+    if (error) {
+      console.error('Processing error:', error)
+      await supabase
+        .from('document_embeddings')
+        .update({
+          processing_status: 'failed',
+          processing_error: error.message
+        })
+        .eq('id', docId)
+    }
+  } catch (error) {
+    console.error('Error in background processing:', error)
+    await supabase
+      .from('document_embeddings')
+      .update({
+        processing_status: 'failed',
+        processing_error: error instanceof Error ? error.message : 'Unknown error'
+      })
+      .eq('id', docId)
+  }
+}
+
 export const DocumentUpload = () => {
   const [isUploading, setIsUploading] = useState(false)
   const { toast } = useToast()
@@ -37,6 +66,7 @@ export const DocumentUpload = () => {
     setIsUploading(true)
     
     try {
+      // 1. Upload file to storage
       const fileExt = file.name.split('.').pop()
       const filePath = `${crypto.randomUUID()}.${fileExt}`
       
@@ -46,14 +76,11 @@ export const DocumentUpload = () => {
         .upload(filePath, file)
 
       if (uploadError) {
-        console.error('Storage upload error:', uploadError)
         throw new Error(`Failed to upload file: ${uploadError.message}`)
       }
 
-      console.log('File uploaded successfully to storage')
-
-      // Create the document record with initial processing status
-      const { data: docData, error: dbError } = await supabase
+      // 2. Create database record
+      const { data: doc, error: dbError } = await supabase
         .from('document_embeddings')
         .insert({
           filename: file.name,
@@ -66,40 +93,22 @@ export const DocumentUpload = () => {
         .single()
 
       if (dbError) {
-        console.error('Database insert error:', dbError)
         throw new Error(`Failed to create document record: ${dbError.message}`)
       }
 
-      console.log('Document record created:', docData)
-
-      // Trigger processing in the background
-      supabase.functions.invoke('process-pdf', {
-        body: { file_path: filePath }
-      }).then(({ error }) => {
-        if (error) {
-          console.error('Background processing error:', error)
-          // Update document status to failed
-          supabase
-            .from('document_embeddings')
-            .update({
-              processing_status: 'failed',
-              processing_error: error.message
-            })
-            .eq('id', docData.id)
-            .then(() => {
-              queryClient.invalidateQueries({ queryKey: ['documents'] })
-            })
-        }
-      })
-
-      // Return success immediately
+      // 3. Return control to UI immediately
       toast({
         title: "Document uploaded",
-        description: "The document has been uploaded and processing has started. You can track the progress below."
+        description: "Processing will begin shortly. You can track the progress below."
       })
 
-      // Invalidate queries to refresh the document list
-      await queryClient.invalidateQueries({ queryKey: ['documents'] })
+      // 4. Refresh document list
+      queryClient.invalidateQueries({ queryKey: ['documents'] })
+
+      // 5. Start processing in background
+      setTimeout(() => {
+        startProcessing(doc.id, filePath)
+      }, 0)
 
     } catch (error) {
       console.error('Error in upload process:', error)
@@ -109,14 +118,12 @@ export const DocumentUpload = () => {
         variant: "destructive"
       })
 
-      // Reset the file input
       const fileInput = document.getElementById('file-upload') as HTMLInputElement
       if (fileInput) {
         fileInput.value = ''
       }
     } finally {
       setIsUploading(false)
-      console.log('Upload process completed')
     }
   }
 
