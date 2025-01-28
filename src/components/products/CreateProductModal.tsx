@@ -2,7 +2,7 @@ import { useState } from "react"
 import { useForm } from "react-hook-form"
 import { zodResolver } from "@hookform/resolvers/zod"
 import { z } from "zod"
-import { Plus } from "lucide-react"
+import { Plus, Upload } from "lucide-react"
 import { useQueryClient } from "@tanstack/react-query"
 import { supabase } from "@/integrations/supabase/client"
 import { Button } from "@/components/ui/button"
@@ -45,6 +45,8 @@ type ProductFormValues = z.infer<typeof productSchema>
 
 export function CreateProductModal() {
   const [open, setOpen] = useState(false)
+  const [uploading, setUploading] = useState(false)
+  const [imageUrl, setImageUrl] = useState<string | null>(null)
   const { user } = useAuth()
   const { toast } = useToast()
   const queryClient = useQueryClient()
@@ -63,16 +65,56 @@ export function CreateProductModal() {
     },
   })
 
+  const handleImageUpload = async (event: React.ChangeEvent<HTMLInputElement>) => {
+    try {
+      if (!event.target.files || event.target.files.length === 0) {
+        throw new Error('You must select an image to upload.')
+      }
+
+      const file = event.target.files[0]
+      const fileExt = file.name.split('.').pop()
+      const filePath = `${crypto.randomUUID()}.${fileExt}`
+
+      setUploading(true)
+
+      const { error: uploadError } = await supabase.storage
+        .from('product_images')
+        .upload(filePath, file)
+
+      if (uploadError) {
+        throw uploadError
+      }
+
+      const { data: { publicUrl } } = supabase.storage
+        .from('product_images')
+        .getPublicUrl(filePath)
+
+      setImageUrl(publicUrl)
+      toast({
+        title: "Success",
+        description: "Image uploaded successfully",
+      })
+    } catch (error) {
+      toast({
+        title: "Error",
+        description: "Error uploading image",
+        variant: "destructive",
+      })
+    } finally {
+      setUploading(false)
+    }
+  }
+
   const onSubmit = async (data: ProductFormValues) => {
     try {
-      console.log('Submitting product data:', { ...data, supplier_id: user?.id })
+      console.log('Submitting product data:', { ...data, supplier_id: user?.id, image_url: imageUrl })
       
       const { error } = await supabase
         .from("products")
         .insert({
           ...data,
           supplier_id: user?.id,
-          name: data.name,
+          image_url: imageUrl,
           wholesale_price: data.wholesale_price ? Number(data.wholesale_price) : null,
           retail_price: data.retail_price ? Number(data.retail_price) : null,
         })
@@ -86,6 +128,7 @@ export function CreateProductModal() {
       
       queryClient.invalidateQueries({ queryKey: ["products"] })
       setOpen(false)
+      setImageUrl(null)
       form.reset()
     } catch (error) {
       console.error("Error creating product:", error)
@@ -224,9 +267,24 @@ export function CreateProductModal() {
                 )}
               />
             </div>
-            <Button type="submit" className="w-full">
-              Create Product
-            </Button>
+            <div className="flex gap-4">
+              <Button type="button" variant="outline" className="w-32" disabled={uploading}>
+                <label className="cursor-pointer flex items-center">
+                  <Upload className="mr-2 h-4 w-4" />
+                  Add Image
+                  <input
+                    type="file"
+                    className="hidden"
+                    accept="image/*"
+                    onChange={handleImageUpload}
+                    disabled={uploading}
+                  />
+                </label>
+              </Button>
+              <Button type="submit" className="flex-1">
+                Save
+              </Button>
+            </div>
           </form>
         </Form>
       </DialogContent>
