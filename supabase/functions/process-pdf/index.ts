@@ -95,6 +95,7 @@ serve(async (req) => {
       const products = []
       const allAnalyses = []
       let catalogBrand = null // Track brand across pages
+      const seenSkus = new Map() // Track SKUs and their count for duplicate handling
       
       for (let index = 0; index < imageUrls.length; index++) {
         console.log(`Analyzing page ${index + 1}/${imageUrls.length}`)
@@ -137,6 +138,19 @@ serve(async (req) => {
             console.log(`Overriding with catalog brand "${catalogBrand}"`)
             productData.brand = catalogBrand
           }
+        }
+
+        // Handle duplicate SKUs
+        if (productData.sku) {
+          const originalSku = productData.sku
+          const count = seenSkus.get(originalSku) || 0
+          if (count > 0) {
+            // This is a duplicate SKU, append -REVIEW-{count}
+            productData.sku = `${originalSku}-REVIEW-${count}`
+            console.log(`Found duplicate SKU "${originalSku}", using "${productData.sku}" instead`)
+          }
+          // Increment the count for this SKU
+          seenSkus.set(originalSku, count + 1)
         }
         
         console.log(`Creating product from page ${index + 1} - Name: ${productData.name}, SKU: ${productData.sku}, Brand: ${productData.brand}`)
