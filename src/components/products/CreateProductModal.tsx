@@ -31,7 +31,6 @@ const productSchema = z.object({
   sku: z.string().optional(),
   brand: z.string().optional(),
   category: z.string().optional(),
-  size: z.string().optional(),
   color: z.string().optional(),
   material: z.string().optional(),
   wholesale_price: z.string()
@@ -40,12 +39,7 @@ const productSchema = z.object({
   retail_price: z.string()
     .transform(val => val ? Number(val) : null)
     .optional(),
-  stock_quantity: z.string()
-    .transform(val => val ? Number(val) : null)
-    .optional(),
-  description: z.string().optional(),
   season: z.string().optional(),
-  product_number: z.string().optional(),
 })
 
 type ProductFormValues = z.infer<typeof productSchema>
@@ -63,15 +57,11 @@ export function CreateProductModal() {
       sku: "",
       brand: "",
       category: "shoes",
-      size: "",
       color: "",
       material: "",
       wholesale_price: "",
       retail_price: "",
-      stock_quantity: "",
-      description: "",
       season: "all",
-      product_number: "",
     },
   })
 
@@ -79,13 +69,11 @@ export function CreateProductModal() {
     try {
       console.log('Submitting product data:', { ...data, supplier_id: user?.id })
       
-      // Transform the data to match the expected types
       const transformedData = {
         ...data,
         supplier_id: user?.id,
         wholesale_price: data.wholesale_price ? Number(data.wholesale_price) : null,
         retail_price: data.retail_price ? Number(data.retail_price) : null,
-        stock_quantity: data.stock_quantity ? Number(data.stock_quantity) : null,
       }
 
       const { error } = await supabase
@@ -120,7 +108,7 @@ export function CreateProductModal() {
           Add Product
         </Button>
       </DialogTrigger>
-      <DialogContent className="sm:max-w-[425px]">
+      <DialogContent className="sm:max-w-[700px]">
         <DialogHeader>
           <DialogTitle>Create New Product</DialogTitle>
           <DialogDescription>
@@ -129,33 +117,35 @@ export function CreateProductModal() {
         </DialogHeader>
         <Form {...form}>
           <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4">
-            <FormField
-              control={form.control}
-              name="name"
-              render={({ field }) => (
-                <FormItem>
-                  <FormLabel>Name*</FormLabel>
-                  <FormControl>
-                    <Input {...field} />
-                  </FormControl>
-                  <FormMessage />
-                </FormItem>
-              )}
-            />
-            <FormField
-              control={form.control}
-              name="sku"
-              render={({ field }) => (
-                <FormItem>
-                  <FormLabel>SKU</FormLabel>
-                  <FormControl>
-                    <Input {...field} />
-                  </FormControl>
-                  <FormMessage />
-                </FormItem>
-              )}
-            />
             <div className="grid grid-cols-2 gap-4">
+              <FormField
+                control={form.control}
+                name="name"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>Name*</FormLabel>
+                    <FormControl>
+                      <Input {...field} />
+                    </FormControl>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+              <FormField
+                control={form.control}
+                name="sku"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>SKU</FormLabel>
+                    <FormControl>
+                      <Input {...field} />
+                    </FormControl>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+            </div>
+            <div className="grid grid-cols-3 gap-4">
               <FormField
                 control={form.control}
                 name="brand"
@@ -182,14 +172,12 @@ export function CreateProductModal() {
                   </FormItem>
                 )}
               />
-            </div>
-            <div className="grid grid-cols-3 gap-4">
               <FormField
                 control={form.control}
-                name="size"
+                name="season"
                 render={({ field }) => (
                   <FormItem>
-                    <FormLabel>Size</FormLabel>
+                    <FormLabel>Season</FormLabel>
                     <FormControl>
                       <Input {...field} />
                     </FormControl>
@@ -197,6 +185,8 @@ export function CreateProductModal() {
                   </FormItem>
                 )}
               />
+            </div>
+            <div className="grid grid-cols-3 gap-4">
               <FormField
                 control={form.control}
                 name="color"
@@ -223,8 +213,6 @@ export function CreateProductModal() {
                   </FormItem>
                 )}
               />
-            </div>
-            <div className="grid grid-cols-2 gap-4">
               <FormField
                 control={form.control}
                 name="wholesale_price"
@@ -238,6 +226,8 @@ export function CreateProductModal() {
                   </FormItem>
                 )}
               />
+            </div>
+            <div className="grid grid-cols-3 gap-4">
               <FormField
                 control={form.control}
                 name="retail_price"
@@ -246,60 +236,6 @@ export function CreateProductModal() {
                     <FormLabel>Retail Price</FormLabel>
                     <FormControl>
                       <Input type="number" step="0.01" {...field} />
-                    </FormControl>
-                    <FormMessage />
-                  </FormItem>
-                )}
-              />
-            </div>
-            <FormField
-              control={form.control}
-              name="stock_quantity"
-              render={({ field }) => (
-                <FormItem>
-                  <FormLabel>Stock Quantity</FormLabel>
-                  <FormControl>
-                    <Input type="number" {...field} />
-                  </FormControl>
-                  <FormMessage />
-                </FormItem>
-              )}
-            />
-            <FormField
-              control={form.control}
-              name="description"
-              render={({ field }) => (
-                <FormItem>
-                  <FormLabel>Description</FormLabel>
-                  <FormControl>
-                    <Input {...field} />
-                  </FormControl>
-                  <FormMessage />
-                </FormItem>
-              )}
-            />
-            <div className="grid grid-cols-2 gap-4">
-              <FormField
-                control={form.control}
-                name="season"
-                render={({ field }) => (
-                  <FormItem>
-                    <FormLabel>Season</FormLabel>
-                    <FormControl>
-                      <Input {...field} />
-                    </FormControl>
-                    <FormMessage />
-                  </FormItem>
-                )}
-              />
-              <FormField
-                control={form.control}
-                name="product_number"
-                render={({ field }) => (
-                  <FormItem>
-                    <FormLabel>Product Number</FormLabel>
-                    <FormControl>
-                      <Input {...field} />
                     </FormControl>
                     <FormMessage />
                   </FormItem>
