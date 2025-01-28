@@ -1,20 +1,15 @@
 import { useForm } from "react-hook-form"
 import { zodResolver } from "@hookform/resolvers/zod"
 import { z } from "zod"
-import {
-  Form,
-  FormControl,
-  FormField,
-  FormItem,
-  FormLabel,
-  FormMessage,
-} from "@/components/ui/form"
-import { Input } from "@/components/ui/input"
+import { Form } from "@/components/ui/form"
 import { Button } from "@/components/ui/button"
 import { ImageUpload } from "./ImageUpload"
 import { useToast } from "@/components/ui/use-toast"
 import { useQueryClient } from "@tanstack/react-query"
 import { supabase } from "@/integrations/supabase/client"
+import { BasicInfoFields } from "./form/BasicInfoFields"
+import { DetailsFields } from "./form/DetailsFields"
+import { PricingFields } from "./form/PricingFields"
 
 const productSchema = z.object({
   name: z.string().min(1, "Name is required"),
@@ -24,10 +19,12 @@ const productSchema = z.object({
   material: z.string().optional(),
   wholesale_price: z.string()
     .transform(val => val ? parseFloat(val) : null)
-    .optional(),
+    .optional()
+    .nullable(),
   retail_price: z.string()
     .transform(val => val ? parseFloat(val) : null)
-    .optional(),
+    .optional()
+    .nullable(),
   season: z.string().optional(),
 })
 
@@ -65,9 +62,6 @@ export function ProductForm({ onSuccess, userId }: ProductFormProps) {
         .insert({
           ...data,
           supplier_id: userId,
-          name: data.name,
-          wholesale_price: data.wholesale_price,
-          retail_price: data.retail_price,
         })
 
       if (error) throw error
@@ -93,121 +87,12 @@ export function ProductForm({ onSuccess, userId }: ProductFormProps) {
   return (
     <Form {...form}>
       <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4">
-        <div className="grid grid-cols-2 gap-4">
-          <FormField
-            control={form.control}
-            name="name"
-            render={({ field }) => (
-              <FormItem>
-                <FormLabel>Name*</FormLabel>
-                <FormControl>
-                  <Input {...field} />
-                </FormControl>
-                <FormMessage />
-              </FormItem>
-            )}
-          />
-          <FormField
-            control={form.control}
-            name="sku"
-            render={({ field }) => (
-              <FormItem>
-                <FormLabel>SKU</FormLabel>
-                <FormControl>
-                  <Input {...field} />
-                </FormControl>
-                <FormMessage />
-              </FormItem>
-            )}
-          />
-        </div>
-        <div className="grid grid-cols-3 gap-4">
-          <FormField
-            control={form.control}
-            name="brand"
-            render={({ field }) => (
-              <FormItem>
-                <FormLabel>Brand</FormLabel>
-                <FormControl>
-                  <Input {...field} />
-                </FormControl>
-                <FormMessage />
-              </FormItem>
-            )}
-          />
-          <FormField
-            control={form.control}
-            name="season"
-            render={({ field }) => (
-              <FormItem>
-                <FormLabel>Season</FormLabel>
-                <FormControl>
-                  <Input {...field} />
-                </FormControl>
-                <FormMessage />
-              </FormItem>
-            )}
-          />
-          <FormField
-            control={form.control}
-            name="color"
-            render={({ field }) => (
-              <FormItem>
-                <FormLabel>Color</FormLabel>
-                <FormControl>
-                  <Input {...field} />
-                </FormControl>
-                <FormMessage />
-              </FormItem>
-            )}
-          />
-        </div>
-        <div className="grid grid-cols-3 gap-4">
-          <FormField
-            control={form.control}
-            name="material"
-            render={({ field }) => (
-              <FormItem>
-                <FormLabel>Material</FormLabel>
-                <FormControl>
-                  <Input {...field} />
-                </FormControl>
-                <FormMessage />
-              </FormItem>
-            )}
-          />
-          <FormField
-            control={form.control}
-            name="wholesale_price"
-            render={({ field }) => (
-              <FormItem>
-                <FormLabel>Wholesale Price</FormLabel>
-                <FormControl>
-                  <Input type="number" step="0.01" {...field} />
-                </FormControl>
-                <FormMessage />
-              </FormItem>
-            )}
-          />
-          <FormField
-            control={form.control}
-            name="retail_price"
-            render={({ field }) => (
-              <FormItem>
-                <FormLabel>Retail Price</FormLabel>
-                <FormControl>
-                  <Input type="number" step="0.01" {...field} />
-                </FormControl>
-                <FormMessage />
-              </FormItem>
-            )}
-          />
-        </div>
+        <BasicInfoFields form={form} />
+        <DetailsFields form={form} />
+        <PricingFields form={form} />
         <div className="grid grid-cols-2 gap-4">
           <ImageUpload />
-          <Button type="submit">
-            Save
-          </Button>
+          <Button type="submit">Save</Button>
         </div>
       </form>
     </Form>
