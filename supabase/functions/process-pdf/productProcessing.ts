@@ -7,9 +7,9 @@ export const createProduct = async (supabase: any, documentId: string, productDa
   console.log('Product Data:', JSON.stringify(productData, null, 2))
   console.log('Source Image URL:', imageUrl)
 
-  // Ensure required fields are present
-  if (!productData.name || !productData.sku) {
-    throw new Error('Product name and SKU are required')
+  // Ensure SKU is present
+  if (!productData.sku) {
+    throw new Error('SKU is required')
   }
 
   // If we have an image URL, store it in Supabase
@@ -44,20 +44,35 @@ export const createProduct = async (supabase: any, documentId: string, productDa
     image_url: storedImageUrl
   }
 
-  console.log('Inserting product:', JSON.stringify(productInsert, null, 2))
-  const { data: product, error } = await supabase
-    .from('products')
-    .insert(productInsert)
-    .select()
-    .single()
+  try {
+    console.log('Attempting to insert product:', JSON.stringify(productInsert, null, 2))
+    const { data: product, error } = await supabase
+      .from('products')
+      .insert(productInsert)
+      .select()
+      .single()
 
-  if (error) {
-    console.error('Error creating product:', error)
+    if (error) {
+      // Check if this is a unique constraint violation on SKU
+      if (error.code === '23505' && error.message.includes('products_sku_key')) {
+        console.log(`Product with SKU "${productData.sku}" already exists, skipping...`)
+        // Return null to indicate product was skipped
+        return null
+      }
+      // For any other error, throw it
+      console.error('Error creating product:', error)
+      throw error
+    }
+
+    console.log('Product created successfully:', product.id)
+    console.log('=== End Product Creation ===\n')
+    return product
+  } catch (error) {
+    // Handle any other unexpected errors
+    if (error.code === '23505' && error.message.includes('products_sku_key')) {
+      console.log(`Product with SKU "${productData.sku}" already exists, skipping...`)
+      return null
+    }
     throw error
   }
-
-  console.log('Product created successfully:', product.id)
-  console.log('=== End Product Creation ===\n')
-
-  return product
 } 
