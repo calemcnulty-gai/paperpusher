@@ -9,6 +9,15 @@ import { Alert, AlertDescription } from "@/components/ui/alert"
 // Separate function to handle the background processing
 const startProcessing = async (docId: string, filePath: string) => {
   try {
+    // Update to processing status when starting
+    await supabase
+      .from('document_embeddings')
+      .update({
+        processing_status: 'processing',
+        processing_started_at: new Date().toISOString()
+      })
+      .eq('id', docId)
+
     const { error } = await supabase.functions.invoke('process-pdf', {
       body: { file_path: filePath }
     })
@@ -19,7 +28,8 @@ const startProcessing = async (docId: string, filePath: string) => {
         .from('document_embeddings')
         .update({
           processing_status: 'failed',
-          processing_error: error.message
+          processing_error: error.message,
+          processing_completed_at: new Date().toISOString()
         })
         .eq('id', docId)
     }
@@ -29,7 +39,8 @@ const startProcessing = async (docId: string, filePath: string) => {
       .from('document_embeddings')
       .update({
         processing_status: 'failed',
-        processing_error: error instanceof Error ? error.message : 'Unknown error'
+        processing_error: error instanceof Error ? error.message : 'Unknown error',
+        processing_completed_at: new Date().toISOString()
       })
       .eq('id', docId)
   }
