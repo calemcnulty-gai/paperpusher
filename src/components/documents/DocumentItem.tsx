@@ -6,46 +6,6 @@ import { useQueryClient } from "@tanstack/react-query"
 import { Progress } from "@/components/ui/progress"
 import { Alert, AlertDescription } from "@/components/ui/alert"
 
-// Separate function to handle the background processing
-const startProcessing = async (docId: string, filePath: string) => {
-  try {
-    // Update to processing status when starting
-    await supabase
-      .from('document_embeddings')
-      .update({
-        processing_status: 'processing',
-        processing_started_at: new Date().toISOString()
-      })
-      .eq('id', docId)
-
-    const { error } = await supabase.functions.invoke('process-pdf', {
-      body: { file_path: filePath }
-    })
-    
-    if (error) {
-      console.error('Processing error:', error)
-      await supabase
-        .from('document_embeddings')
-        .update({
-          processing_status: 'failed',
-          processing_error: error.message,
-          processing_completed_at: new Date().toISOString()
-        })
-        .eq('id', docId)
-    }
-  } catch (error) {
-    console.error('Error in background processing:', error)
-    await supabase
-      .from('document_embeddings')
-      .update({
-        processing_status: 'failed',
-        processing_error: error instanceof Error ? error.message : 'Unknown error',
-        processing_completed_at: new Date().toISOString()
-      })
-      .eq('id', docId)
-  }
-}
-
 interface DocumentItemProps {
   id: string
   filename: string
@@ -79,6 +39,8 @@ export const DocumentItem = ({
     }
 
     try {
+      console.log('Starting document processing for:', id)
+      
       // 1. Update status to pending
       await supabase
         .from('document_embeddings')
@@ -90,19 +52,26 @@ export const DocumentItem = ({
         })
         .eq('id', id)
 
-      // 2. Return control to UI immediately
+      // 2. Call the edge function directly
+      const { error: functionError } = await supabase.functions.invoke('process-pdf-queue', {
+        body: { 
+          document_id: id,
+          action: 'UPDATE'
+        }
+      })
+
+      if (functionError) {
+        throw functionError
+      }
+
+      // 3. Show success toast
       toast({
         title: "Processing started",
         description: "Processing will begin shortly. You can track the progress here."
       })
 
-      // 3. Refresh document list
+      // 4. Refresh document list
       queryClient.invalidateQueries({ queryKey: ['documents'] })
-
-      // 4. Start processing in background
-      setTimeout(() => {
-        startProcessing(id, file_path)
-      }, 0)
 
     } catch (error) {
       console.error('Error initiating processing:', error)
@@ -111,6 +80,15 @@ export const DocumentItem = ({
         description: error instanceof Error ? error.message : "There was an error processing the document. Please try again.",
         variant: "destructive"
       })
+
+      // Update document status to failed
+      await supabase
+        .from('document_embeddings')
+        .update({
+          processing_status: 'failed',
+          processing_error: error instanceof Error ? error.message : 'Unknown error occurred'
+        })
+        .eq('id', id)
     }
   }
 
