@@ -104,14 +104,18 @@ serve(async (req) => {
         
         // Track brand information if found
         if (productData.brand) {
-          // If this page has no product details (name/sku null), it's likely a cover page
-          // so we trust its brand information more
-          if (!productData.name && !productData.sku) {
+          // A page is a cover/intro page if it has a brand but no product details
+          const isCoverPage = !productData.name && !productData.sku && 
+                            (!productData.wholesale_price || productData.wholesale_price === 0) &&
+                            (!productData.retail_price || productData.retail_price === 0)
+          
+          if (isCoverPage) {
             console.log(`Found brand "${productData.brand}" on cover page ${index + 1}`)
+            // Cover page brand takes precedence - always update
             catalogBrand = productData.brand
           } else if (!catalogBrand) {
-            // If we haven't found a brand from a cover page yet, use this one
-            console.log(`Found brand "${productData.brand}" on product page ${index + 1}`)
+            // Only use product page brand if we haven't found a cover page brand
+            console.log(`Found brand "${productData.brand}" on product page ${index + 1} (fallback)`)
             catalogBrand = productData.brand
           }
         }
@@ -123,9 +127,16 @@ serve(async (req) => {
         }
         
         // Apply catalog brand if product has no brand
-        if (catalogBrand && (!productData.brand || productData.brand.trim() === '')) {
-          console.log(`Applying catalog brand "${catalogBrand}" to product:`, productData.name)
-          productData.brand = catalogBrand
+        if (catalogBrand) {
+          if (!productData.brand || productData.brand.trim() === '') {
+            console.log(`Applying catalog brand "${catalogBrand}" to product with no brand:`, productData.name)
+            productData.brand = catalogBrand
+          } else if (productData.brand !== catalogBrand) {
+            console.log(`Warning: Product "${productData.name}" has different brand "${productData.brand}" than catalog brand "${catalogBrand}"`)
+            // Trust the cover page brand over product page brand
+            console.log(`Overriding with catalog brand "${catalogBrand}"`)
+            productData.brand = catalogBrand
+          }
         }
         
         console.log(`Creating product from page ${index + 1} - Name: ${productData.name}, SKU: ${productData.sku}, Brand: ${productData.brand}`)

@@ -1,62 +1,5 @@
 import { OpenAIResponse, ProductData } from './types.ts'
 
-// Helper function to get color code
-function getColorCode(color: string): string {
-  if (!color) return ''
-  const colorMap: { [key: string]: string } = {
-    'black': 'BLK',
-    'blue': 'BLU',
-    'brown': 'BRN',
-    'grey': 'GRY',
-    'gray': 'GRY',
-    'green': 'GRN',
-    'navy': 'NAV',
-    'orange': 'ORG',
-    'pink': 'PNK',
-    'purple': 'PRP',
-    'red': 'RED',
-    'white': 'WHT',
-    'yellow': 'YLW',
-    'beige': 'BEI',
-    'tan': 'TAN',
-    'khaki': 'KHK',
-    'kaki': 'KHK',
-    'silver': 'SLV',
-    'gold': 'GLD',
-    'multi': 'MLT'
-  }
-  
-  const normalizedColor = color.toLowerCase().trim()
-  // Try exact match first
-  if (normalizedColor in colorMap) {
-    return colorMap[normalizedColor]
-  }
-  
-  // Try to find partial match
-  for (const [key, code] of Object.entries(colorMap)) {
-    if (normalizedColor.includes(key)) {
-      return code
-    }
-  }
-  
-  // If no match found, take first 3 letters of color
-  return normalizedColor.slice(0, 3).toUpperCase()
-}
-
-// Helper function to generate a SKU from a name
-function generateSkuFromName(name: string): string {
-  // Remove special characters and spaces, convert to uppercase
-  const cleanName = name.replace(/[^a-zA-Z0-9]/g, '').toUpperCase()
-  
-  // Take first 12 characters (or all if less than 12)
-  const namePrefix = cleanName.slice(0, 12)
-  
-  // Generate random 4-digit number
-  const randomNum = Math.floor(Math.random() * 9000) + 1000
-  
-  return `${namePrefix}${randomNum}`
-}
-
 export async function analyzeImageWithOpenAI(imageUrl: string, filename: string): Promise<ProductData> {
   const openAiApiKey = Deno.env.get('OPENAI_API_KEY')
   console.log('\n=== Starting OpenAI Analysis ===')
@@ -96,22 +39,22 @@ CRITICAL INSTRUCTIONS:
 4. The JSON must be valid - all strings quoted, no trailing commas.
 5. Numbers should be plain numbers without currency symbols.
 6. Page Type Analysis:
-   - Cover/intro pages: Will have brand info but no specific products
-   - Product pages: Will always have shoe images and product details
-7. For Cover Pages:
-   - Set name, sku, and prices to null
-   - Focus on capturing the brand name accurately
-   - Store any additional brand info in extracted_metadata
-8. For Product Pages:
-   - Product must have visible shoe image to be considered valid
-   - Look for SKU/product code near product details
-   - Prices should be numbers only, no currency symbols
-   - If only one price found, use it as wholesale_price
-9. SKU Rules:
-   - Look for existing product codes or SKUs in the image
-   - SKUs are often found near product details or prices
-   - Only generate a SKU if you cannot find one in the image
-   - Generated SKUs should be based on visible product information`
+   - Cover/intro pages: Will have brand logo/name but no product prices
+   - Product pages: Will have shoe images with specific details and prices
+7. Brand Handling:
+   - Brand is typically shown prominently on cover/intro pages
+   - Brand name should be extracted exactly as shown (e.g., "a.li.ás")
+   - Do not confuse material types (e.g., "Bio Suede") for brand names
+   - Do not confuse product names (e.g., "Asher") for brand names
+8. Product Details:
+   - Name: The model/style name of the shoe (e.g., "Asher", "Barefoot")
+   - Material: Type of material used (e.g., "Bio Suede", "Burel Wool")
+   - SKU: Look for product codes near details (e.g., "2034 014")
+   - Prices must be numbers only, no currency symbols
+9. Cover Pages:
+   - Set name, sku, prices to null
+   - Focus on capturing the exact brand name
+   - Store any brand taglines/info in extracted_metadata`
 
   console.log('\nSystem Prompt:')
   console.log('='.repeat(80))
@@ -123,21 +66,23 @@ CRITICAL INSTRUCTIONS:
 ${JSON.stringify(schema, null, 2)}
 
 Remember:
-- First determine if this is a cover page or product page
-- Cover pages:
-  * Will have brand information but no specific products
+- First determine if this is a cover/intro page or product page
+- Cover/intro pages:
+  * Will show brand name/logo prominently
   * Set name, sku, prices to null
-  * Focus on capturing brand name and any brand details
+  * Capture exact brand name as shown
+  * Store brand details in extracted_metadata
 - Product pages:
-  * Must have visible shoe image to be valid
-  * Extract all product details (name, SKU, prices, etc.)
-  * Look for SKU/product code near product details
+  * Must have shoe image with details
+  * Name is the model/style name (e.g., "Asher")
+  * Material goes in material field, not name or brand
+  * Look for SKU/product code near details
+  * Extract prices as numbers only
 - For any page:
   * Return ONLY the JSON object
   * No additional text or formatting
   * Every field must be present
-  * Use null for missing values
-  * Numbers only for prices, no currency symbols`
+  * Use null for missing values`
 
   console.log('\nUser Prompt:')
   console.log('='.repeat(80))
@@ -292,19 +237,6 @@ Remember:
           } else {
             // Put unknown fields in extracted_metadata
             result.extracted_metadata[key] = value
-          }
-        }
-        
-        // Ensure we have a valid SKU
-        if (!result.sku || result.sku.trim() === '') {
-          if (result.name && result.name.trim() !== '') {
-            console.log('No SKU found, generating from name:', result.name)
-            result.sku = generateSkuFromName(result.name)
-            console.log('Generated SKU:', result.sku)
-          } else {
-            console.log('No name or SKU found, generating random SKU')
-            result.sku = generateSkuFromName('PRODUCT' + Date.now())
-            console.log('Generated random SKU:', result.sku)
           }
         }
         
