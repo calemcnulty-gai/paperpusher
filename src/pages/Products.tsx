@@ -13,6 +13,9 @@ import {
   PaginationLink,
   PaginationNext,
   PaginationPrevious,
+  PaginationFirst,
+  PaginationLast,
+  PaginationEllipsis,
 } from "@/components/ui/pagination"
 import { useToast } from "@/components/ui/use-toast"
 
@@ -46,16 +49,13 @@ export default function Products() {
         const { data, error, count } = await query.range(start, end)
         
         if (error) {
-          // Check if it's a range error
           if (error.code === 'PGRST103') {
-            // Reset to page 1
             dispatch(setPage(1))
             toast({
               title: "Pagination Error",
               description: "Returned to first page - no more results available",
               variant: "destructive",
             })
-            // Refetch first page
             const { data: firstPageData, count: firstPageCount } = await query.range(0, pageSize - 1)
             return { data: firstPageData, count: firstPageCount }
           }
@@ -72,6 +72,53 @@ export default function Products() {
   })
 
   const totalPages = data?.count ? Math.ceil(data.count / pageSize) : 0
+
+  // Function to generate page numbers to display
+  const getPageNumbers = () => {
+    const pageNumbers = []
+    const maxVisiblePages = 7 // Total number of page links to show
+    const edgePages = 2 // Number of pages to always show at start and end
+    
+    if (totalPages <= maxVisiblePages) {
+      // Show all pages if total is less than max visible
+      for (let i = 1; i <= totalPages; i++) {
+        pageNumbers.push(i)
+      }
+    } else {
+      // Always show first few pages
+      for (let i = 1; i <= edgePages; i++) {
+        pageNumbers.push(i)
+      }
+
+      // Add ellipsis and middle pages around current page
+      if (page > edgePages + 1) {
+        pageNumbers.push('ellipsis')
+      }
+
+      const middleStart = Math.max(edgePages + 1, page - 1)
+      const middleEnd = Math.min(totalPages - edgePages, page + 1)
+      
+      for (let i = middleStart; i <= middleEnd; i++) {
+        if (!pageNumbers.includes(i)) {
+          pageNumbers.push(i)
+        }
+      }
+
+      // Add ellipsis and last pages
+      if (page < totalPages - edgePages - 1) {
+        pageNumbers.push('ellipsis')
+      }
+
+      // Always show last few pages
+      for (let i = totalPages - edgePages + 1; i <= totalPages; i++) {
+        if (!pageNumbers.includes(i)) {
+          pageNumbers.push(i)
+        }
+      }
+    }
+
+    return pageNumbers
+  }
 
   if (isLoading) {
     return <div className="flex items-center justify-center h-full">Loading...</div>
@@ -93,27 +140,45 @@ export default function Products() {
           <Pagination>
             <PaginationContent>
               <PaginationItem>
+                <PaginationFirst
+                  onClick={() => dispatch(setPage(1))}
+                  className={page <= 1 ? "pointer-events-none opacity-50" : "cursor-pointer"}
+                />
+              </PaginationItem>
+              
+              <PaginationItem>
                 <PaginationPrevious 
                   onClick={() => page > 1 && dispatch(setPage(page - 1))}
                   className={page <= 1 ? "pointer-events-none opacity-50" : "cursor-pointer"}
                 />
               </PaginationItem>
-              
-              {[...Array(totalPages)].map((_, i) => (
-                <PaginationItem key={i + 1}>
-                  <PaginationLink
-                    onClick={() => dispatch(setPage(i + 1))}
-                    isActive={page === i + 1}
-                    className="cursor-pointer"
-                  >
-                    {i + 1}
-                  </PaginationLink>
+
+              {getPageNumbers().map((pageNum, idx) => (
+                <PaginationItem key={`${pageNum}-${idx}`}>
+                  {pageNum === 'ellipsis' ? (
+                    <PaginationEllipsis />
+                  ) : (
+                    <PaginationLink
+                      onClick={() => dispatch(setPage(pageNum as number))}
+                      isActive={page === pageNum}
+                      className="cursor-pointer"
+                    >
+                      {pageNum}
+                    </PaginationLink>
+                  )}
                 </PaginationItem>
               ))}
 
               <PaginationItem>
                 <PaginationNext 
                   onClick={() => page < totalPages && dispatch(setPage(page + 1))}
+                  className={page >= totalPages ? "pointer-events-none opacity-50" : "cursor-pointer"}
+                />
+              </PaginationItem>
+
+              <PaginationItem>
+                <PaginationLast
+                  onClick={() => dispatch(setPage(totalPages))}
                   className={page >= totalPages ? "pointer-events-none opacity-50" : "cursor-pointer"}
                 />
               </PaginationItem>
