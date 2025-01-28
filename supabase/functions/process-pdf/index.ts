@@ -122,7 +122,7 @@ serve(async (req) => {
         }
         
         // Skip product creation for pages without product details
-        if (!productData.name || !productData.sku || productData.name.trim() === '' || productData.sku.trim() === '') {
+        if (!productData.name && (!productData.sku || productData.name.trim() === ''|| productData.sku.trim() === '')) {
           console.log(`Skipping product creation for page ${index + 1} - appears to be a cover/info page`)
           continue
         }
