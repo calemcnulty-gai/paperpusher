@@ -172,123 +172,160 @@ Remember:
   console.log(JSON.stringify(requestPayload, null, 2))
   console.log('='.repeat(80))
   
-  console.log('\nSending request to OpenAI API...')
-  const openAIResponse = await fetch('https://api.openai.com/v1/chat/completions', {
-    method: 'POST',
-    headers: {
-      'Authorization': `Bearer ${openAiApiKey}`,
-      'Content-Type': 'application/json',
-    },
-    body: JSON.stringify(requestPayload)
-  })
+  const maxRetries = 3
+  const retryDelay = 2000 // 2 seconds
+  let lastError = null
 
-  if (!openAIResponse.ok) {
-    const errorText = await openAIResponse.text()
-    console.error('OpenAI API Error:', {
-      status: openAIResponse.status,
-      statusText: openAIResponse.statusText,
-      error: errorText
-    })
-    throw new Error(`OpenAI API error: ${errorText}`)
-  }
-
-  const analysisResult = await openAIResponse.json()
-  console.log('\nOpenAI Response:')
-  console.log('='.repeat(80))
-  console.log('Status:', openAIResponse.status)
-  console.log('Headers:', Object.fromEntries(openAIResponse.headers))
-  console.log('Raw content:', analysisResult.choices[0].message.content)
-  console.log('='.repeat(80))
-
-  // Parse the JSON content with robust error handling
-  try {
-    const content = analysisResult.choices[0].message.content || ''
-    console.log('\nRaw content to parse:', content)
-    
-    // First try to extract JSON from markdown code blocks
-    const codeBlockMatch = content.match(/```(?:json)?\n([\s\S]*?)\n```/)
-    let jsonStr = ''
-    
-    if (codeBlockMatch && codeBlockMatch[1]) {
-      console.log('Found JSON in code block')
-      jsonStr = codeBlockMatch[1].trim()
-    } else {
-      // Fallback to looking for just the JSON object
-      console.log('No code block found, looking for raw JSON object')
-      const jsonMatch = content.match(/\{[\s\S]*?\}(?=\s*$)/)
-      if (!jsonMatch) {
-        console.error('No JSON object found in response')
-        throw new Error('No JSON object found in response')
-      }
-      jsonStr = jsonMatch[0].trim()
-    }
-    
-    console.log('\nExtracted JSON string:')
-    console.log('='.repeat(80))
-    console.log(jsonStr)
-    console.log('='.repeat(80))
-    
-    let productData
+  for (let attempt = 1; attempt <= maxRetries; attempt++) {
     try {
-      productData = JSON.parse(jsonStr)
-    } catch (parseError) {
-      // If initial parse fails, try to clean the string
-      console.warn('Initial JSON parse failed, attempting to clean string')
-      const cleanStr = jsonStr
-        .replace(/[\u201C\u201D]/g, '"') // Replace smart quotes
-        .replace(/[\u2018\u2019]/g, "'") // Replace smart apostrophes
-        .replace(/\n/g, ' ')            // Remove newlines
-        .replace(/,\s*}/g, '}')         // Remove trailing commas
-        .replace(/,\s*]/g, ']')         // Remove trailing commas in arrays
-      
-      try {
-        productData = JSON.parse(cleanStr)
-      } catch (secondError) {
-        console.error('JSON parse error after cleaning:', secondError)
-        console.error('Failed JSON string:', cleanStr)
-        throw new Error('Failed to parse JSON response')
-      }
-    }
-    
-    // Validate against schema
-    const result = { ...schema }
-    for (const [key, value] of Object.entries(productData)) {
-      if (key in schema) {
-        // Convert prices to numbers if they're strings
-        if ((key === 'wholesale_price' || key === 'retail_price') && typeof value === 'string') {
-          result[key] = parseFloat(value.replace(/[^0-9.-]+/g, '')) || 0
-        } else {
-          result[key] = value
+      console.log(`\nAttempting OpenAI API call (attempt ${attempt}/${maxRetries})...`)
+      const openAIResponse = await fetch('https://api.openai.com/v1/chat/completions', {
+        method: 'POST',
+        headers: {
+          'Authorization': `Bearer ${openAiApiKey}`,
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify(requestPayload)
+      })
+
+      if (!openAIResponse.ok) {
+        const errorText = await openAIResponse.text()
+        console.error(`OpenAI API Error on attempt ${attempt}:`, {
+          status: openAIResponse.status,
+          statusText: openAIResponse.statusText,
+          error: errorText
+        })
+
+        // Check if this is a timeout or image URL error that might resolve with retry
+        const errorJson = JSON.parse(errorText)
+        if (
+          errorJson?.error?.code === 'invalid_image_url' ||
+          errorJson?.error?.message?.includes('Timeout') ||
+          openAIResponse.status === 429 || // Rate limit
+          (openAIResponse.status >= 500 && openAIResponse.status <= 599) // Server errors
+        ) {
+          lastError = new Error(errorJson?.error?.message || errorText)
+          if (attempt < maxRetries) {
+            const delay = retryDelay * attempt // Exponential backoff
+            console.log(`Waiting ${delay}ms before retry...`)
+            await new Promise(resolve => setTimeout(resolve, delay))
+            continue
+          }
         }
-      } else {
-        // Put unknown fields in extracted_metadata
-        result.extracted_metadata[key] = value
+        throw new Error(`OpenAI API error: ${errorText}`)
       }
-    }
-    
-    // Ensure we have a valid SKU
-    if (!result.sku || result.sku.trim() === '') {
-      if (result.name && result.name.trim() !== '') {
-        console.log('No SKU found, generating from name:', result.name)
-        result.sku = generateSkuFromName(result.name)
-        console.log('Generated SKU:', result.sku)
-      } else {
-        console.log('No name or SKU found, generating random SKU')
-        result.sku = generateSkuFromName('PRODUCT' + Date.now())
-        console.log('Generated random SKU:', result.sku)
+
+      const analysisResult = await openAIResponse.json()
+      console.log('\nOpenAI Response:')
+      console.log('='.repeat(80))
+      console.log('Status:', openAIResponse.status)
+      console.log('Headers:', Object.fromEntries(openAIResponse.headers))
+      console.log('Raw content:', analysisResult.choices[0].message.content)
+      console.log('='.repeat(80))
+
+      // Parse the JSON content with robust error handling
+      try {
+        const content = analysisResult.choices[0].message.content || ''
+        console.log('\nRaw content to parse:', content)
+        
+        // First try to extract JSON from markdown code blocks
+        const codeBlockMatch = content.match(/```(?:json)?\n([\s\S]*?)\n```/)
+        let jsonStr = ''
+        
+        if (codeBlockMatch && codeBlockMatch[1]) {
+          console.log('Found JSON in code block')
+          jsonStr = codeBlockMatch[1].trim()
+        } else {
+          // Fallback to looking for just the JSON object
+          console.log('No code block found, looking for raw JSON object')
+          const jsonMatch = content.match(/\{[\s\S]*?\}(?=\s*$)/)
+          if (!jsonMatch) {
+            console.error('No JSON object found in response')
+            throw new Error('No JSON object found in response')
+          }
+          jsonStr = jsonMatch[0].trim()
+        }
+        
+        console.log('\nExtracted JSON string:')
+        console.log('='.repeat(80))
+        console.log(jsonStr)
+        console.log('='.repeat(80))
+        
+        let productData
+        try {
+          productData = JSON.parse(jsonStr)
+        } catch (parseError) {
+          // If initial parse fails, try to clean the string
+          console.warn('Initial JSON parse failed, attempting to clean string')
+          const cleanStr = jsonStr
+            .replace(/[\u201C\u201D]/g, '"') // Replace smart quotes
+            .replace(/[\u2018\u2019]/g, "'") // Replace smart apostrophes
+            .replace(/\n/g, ' ')            // Remove newlines
+            .replace(/,\s*}/g, '}')         // Remove trailing commas
+            .replace(/,\s*]/g, ']')         // Remove trailing commas in arrays
+          
+          try {
+            productData = JSON.parse(cleanStr)
+          } catch (secondError) {
+            console.error('JSON parse error after cleaning:', secondError)
+            console.error('Failed JSON string:', cleanStr)
+            throw new Error('Failed to parse JSON response')
+          }
+        }
+        
+        // Validate against schema
+        const result = { ...schema }
+        for (const [key, value] of Object.entries(productData)) {
+          if (key in schema) {
+            // Convert prices to numbers if they're strings
+            if ((key === 'wholesale_price' || key === 'retail_price') && typeof value === 'string') {
+              result[key] = parseFloat(value.replace(/[^0-9.-]+/g, '')) || 0
+            } else {
+              result[key] = value
+            }
+          } else {
+            // Put unknown fields in extracted_metadata
+            result.extracted_metadata[key] = value
+          }
+        }
+        
+        // Ensure we have a valid SKU
+        if (!result.sku || result.sku.trim() === '') {
+          if (result.name && result.name.trim() !== '') {
+            console.log('No SKU found, generating from name:', result.name)
+            result.sku = generateSkuFromName(result.name)
+            console.log('Generated SKU:', result.sku)
+          } else {
+            console.log('No name or SKU found, generating random SKU')
+            result.sku = generateSkuFromName('PRODUCT' + Date.now())
+            console.log('Generated random SKU:', result.sku)
+          }
+        }
+        
+        console.log('\nFinal parsed product data:')
+        console.log('='.repeat(80))
+        console.log(JSON.stringify(result, null, 2))
+        console.log('='.repeat(80))
+        console.log('=== End OpenAI Analysis ===\n')
+        
+        return result
+      } catch (error) {
+        console.error('Failed to process OpenAI response:', error)
+        console.error('Full OpenAI response:', analysisResult)
+        throw new Error(`Failed to process product data: ${error.message}`)
       }
+    } catch (error) {
+      lastError = error
+      if (attempt < maxRetries) {
+        const delay = retryDelay * attempt // Exponential backoff
+        console.log(`Attempt ${attempt} failed, retrying in ${delay}ms...`)
+        await new Promise(resolve => setTimeout(resolve, delay))
+        continue
+      }
+      console.error('All OpenAI API attempts failed. Last error:', lastError)
+      throw error
     }
-    
-    console.log('\nFinal parsed product data:')
-    console.log('='.repeat(80))
-    console.log(JSON.stringify(result, null, 2))
-    console.log('='.repeat(80))
-    console.log('=== End OpenAI Analysis ===\n')
-    
-    return result
-  } catch (error) {
-    console.error('Failed to process OpenAI response:', error)
-    console.error('Full OpenAI response:', analysisResult)
-    throw new Error(`Failed to process product data: ${error.message}`)
   }
+
+  throw new Error('Unexpected end of OpenAI processing')
 }
