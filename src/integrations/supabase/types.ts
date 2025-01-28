@@ -18,7 +18,13 @@ export type Database = {
           filename: string
           id: string
           metadata: Json | null
+          pages_processed: number | null
+          processing_completed_at: string | null
+          processing_error: string | null
+          processing_started_at: string | null
+          processing_status: string
           product_id: string | null
+          total_pages: number | null
           updated_at: string
         }
         Insert: {
@@ -29,7 +35,13 @@ export type Database = {
           filename: string
           id?: string
           metadata?: Json | null
+          pages_processed?: number | null
+          processing_completed_at?: string | null
+          processing_error?: string | null
+          processing_started_at?: string | null
+          processing_status?: string
           product_id?: string | null
+          total_pages?: number | null
           updated_at?: string
         }
         Update: {
@@ -40,7 +52,13 @@ export type Database = {
           filename?: string
           id?: string
           metadata?: Json | null
+          pages_processed?: number | null
+          processing_completed_at?: string | null
+          processing_error?: string | null
+          processing_started_at?: string | null
+          processing_status?: string
           product_id?: string | null
+          total_pages?: number | null
           updated_at?: string
         }
         Relationships: [
