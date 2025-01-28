@@ -42,10 +42,10 @@ CRITICAL INSTRUCTIONS:
    - Cover/intro pages: Will have brand logo/name but no product prices
    - Product pages: Will have shoe images with specific details and prices
 7. Brand Handling:
-   - The document filename (${filename}) likely contains either:
-     * The full brand name (e.g., "alias_catalog.pdf")
-     * An abbreviation of the brand (e.g., "als_cat.pdf")
-   - Strongly prefer any brand name or abbreviation that appears in the filename
+   - Document filename "${filename}" likely contains either:
+     * The full brand name (e.g., if filename is "alias_catalog.pdf")
+     * An abbreviation of the brand (e.g., if filename is "als_cat.pdf")
+   - Strongly prefer any brand name or abbreviation that appears in "${filename}"
    - Brand is also shown prominently on cover/intro pages
    - Brand name should be extracted exactly as shown (e.g., "a.li.ás")
    - Do not confuse material types (e.g., "Bio Suede") for brand names
@@ -72,14 +72,15 @@ ${JSON.stringify(schema, null, 2)}
 
 Remember:
 - First determine if this is a cover/intro page or product page
-- The document filename (${filename}) likely contains:
+- Document filename "${filename}" likely contains:
   * Either the full brand name or an abbreviation
-  * Example: "alias_catalog.pdf" or "als_cat.pdf"
+  * Example: if filename is "alias_catalog.pdf" -> brand is "a.li.ás"
+  * Example: if filename is "als_cat.pdf" -> brand is "a.li.ás"
 - Cover/intro pages:
   * Will show brand name/logo prominently
   * Set name, sku, prices to null
   * Capture exact brand name as shown
-  * Strongly prefer any brand name or abbreviation found in the filename
+  * Strongly prefer any brand name or abbreviation found in "${filename}"
   * Store brand details in extracted_metadata
 - Product pages:
   * Must have shoe image with details
