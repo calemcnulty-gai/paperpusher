@@ -108,7 +108,7 @@ export function CreateProductModal() {
   return (
     <Dialog open={open} onOpenChange={setOpen}>
       <DialogTrigger asChild>
-        <Button className="mb-4">
+        <Button>
           <Plus className="mr-2 h-4 w-4" />
           Add Product
         </Button>
