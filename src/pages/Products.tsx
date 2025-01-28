@@ -146,17 +146,21 @@ export default function Products() {
   }
 
   return (
-    <div className="container mx-auto py-8 space-y-6">
-      <h1 className="text-3xl font-bold">Products</h1>
-      
-      <ProductFilters>
-        {isPrincipal && <CreateProductModal />}
-      </ProductFilters>
+    <div className="container space-y-8 py-8">
+      <div className="px-2">
+        <h1 className="text-3xl font-bold mb-8">Products</h1>
+        
+        <ProductFilters>
+          {isPrincipal && <CreateProductModal />}
+        </ProductFilters>
+      </div>
 
-      <DataTable 
-        columns={productColumns} 
-        data={data?.data || []} 
-      />
+      <div className="px-2">
+        <DataTable 
+          columns={productColumns} 
+          data={data?.data || []} 
+        />
+      </div>
 
       {totalPages > 1 && (
         <div className="flex justify-center mt-4">
