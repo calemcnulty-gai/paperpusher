@@ -49,7 +49,8 @@ CRITICAL INSTRUCTIONS:
 8. Product Details:
    - Name: The model/style name of the shoe (e.g., "Asher", "Barefoot")
    - Material: Type of material used (e.g., "Bio Suede", "Burel Wool")
-   - SKU: Look for product codes near details (e.g., "2034 014")
+   - SKU: ONLY use product codes visible in the image (e.g., "2034 014")
+   - NEVER generate random SKUs - if no SKU is visible, set to null
    - Prices must be numbers only, no currency symbols
 9. Cover Pages:
    - Set name, sku, prices to null
@@ -76,7 +77,8 @@ Remember:
   * Must have shoe image with details
   * Name is the model/style name (e.g., "Asher")
   * Material goes in material field, not name or brand
-  * Look for SKU/product code near details
+  * SKU must be a visible product code - NEVER generate random SKUs
+  * If no SKU is visible in the image, set it to null
   * Extract prices as numbers only
 - For any page:
   * Return ONLY the JSON object
