@@ -1,0 +1,1424 @@
+﻿"event_message","event_type","function_id","id","level","timestamp"
+"shutdown","Shutdown","644019f2-f172-4beb-97fc-8f5c0841e937","a06a4f0c-362c-4bcc-860a-a060999b5d5c","log","1738036343573092"
+"shutdown","Shutdown","644019f2-f172-4beb-97fc-8f5c0841e937","15e3c121-2c20-4037-96be-14b7218d90e9","log","1738036343101809"
+"Removed file from processing set: 0aac8590-f876-47d6-9822-5120025a3745.pdf
+","Log","644019f2-f172-4beb-97fc-8f5c0841e937","bfb29617-1f46-460d-b49c-81ce3c686f52","log","1738036233563521"
+"Document content updated successfully
+","Log","644019f2-f172-4beb-97fc-8f5c0841e937","7047b859-c1e1-4b20-abd6-3f5cb8f7cb51","log","1738036233563351"
+"=== End Document Update ===
+
+","Log","644019f2-f172-4beb-97fc-8f5c0841e937","aa9ec218-c70e-4588-a932-166cef4c32cf","log","1738036233563162"
+"Document successfully updated
+","Log","644019f2-f172-4beb-97fc-8f5c0841e937","d304f91a-bf59-4da6-a92a-9491410bcf2f","log","1738036233562919"
+"Update payload: {
+  "content": "=== Page 1 ===\n{\n  \"name\": \"barefoot\",\n  \"sku\": \"5887-25801-07LR\",\n  \"brand\": \"Relife\",\n  \"category\": \"shoes\",\n  \"size\": \"36-42\",\n  \"color\": \"Brown, Navy\",\n  \"material\": \"Leather Upper\",\n  \"wholesale_price\": 65,\n  \"retail_price\": 145,\n  \"product_number\": \"\",\n  \"description\": \"\",\n  \"specifications\": {\n    \"Soft Reflex System\": true,\n    \"Barefoot\": true,\n    \"Recycled PET Lining\": \"optional\",\n    \"Water Repellent Tex\": true,\n    \"Flexible and Lightweight\": true,\n    \"Width\": \"G\",\n    \"Height\": \"10 mm\"\n  },\n  \"season\": \"all\",\n  \"extracted_metadata\": {}\n}\n\n=== Page 2 ===\n{\n  \"name\": null,\n  \"sku\": \"5887-25801-05LR\",\n  \"brand\": \"Relife\",\n  \"category\": \"shoes\",\n  \"size\": \"36-42\",\n  \"color\": \"Grey, Dark Brown\",\n  \"material\": \"Leather Upper\",\n  \"wholesale_price\": 65,\n  \"retail_price\": 145,\n  \"product_number\": null,\n  \"description\": \"\",\n  \"specifications\": {\n    \"Soft Reflex System\": true,\n    \"Barefoot\": true,\n    \"Recycled PET Lining\": \"optional\",\n    \"Water Repellent Tex\": true,\n    \"Flexible and Lightweight\": true,\n    \"Width\": \"G\",\n    \"Height\": \"10 mm\"\n  },\n  \"season\": \"all\",\n  \"extracted_metadata\": {}\n}\n\n=== Page 3 ===\n{\n  \"name\": null,\n  \"sku\": \"5717-25804B-05LR\",\n  \"brand\": \"Relife\",\n  \"category\": \"shoes\",\n  \"size\": \"36-44\",\n  \"color\": \"Brown, Beige\",\n  \"material\": \"Leather parts with synthetic materials\",\n  \"wholesale_price\": 75,\n  \"retail_price\": 165,\n  \"product_number\": null,\n  \"description\": \"Soft Reflex System, Leather parts combined with high quality synthetic materials, Warm Lining, Water Repellent Tex, Flexible and Lightweight\",\n  \"specifications\": {\n    \"Width\": \"G\",\n    \"Height\": \"20 mm\"\n  },\n  \"season\": \"all\",\n  \"extracted_metadata\": {\n    \"features\": [\n      \"Warm Lining\",\n      \"Water Repellent\"\n    ]\n  }\n}\n\n=== Page 4 ===\n{\n  \"name\": null,\n  \"sku\": \"5717-22801B-10R\",\n  \"brand\": \"Relife\",\n  \"category\": \"shoes\",\n  \"size\": \"XL 36-44\",\n  \"color\": null,\n  \"material\": \"High Quality Synthetic Upper\",\n  \"wholesale_price\": 65,\n  \"retail_price\": 145,\n  \"product_number\": \"\",\n  \"description\": \"\",\n  \"specifications\": {\n    \"Soft Reflex System\": true,\n    \"Vegan\": true,\n    \"Warm Lining\": true,\n    \"Water Repellent Tex\": true,\n    \"Flexible and Lightweight\": true,\n    \"Width\": \"G\",\n    \"Height\": \"20 mm\"\n  },\n  \"season\": \"all\",\n  \"extracted_metadata\": {}\n}\n\n=== Page 5 ===\n{\n  \"name\": null,\n  \"sku\": \"5717-18802B-04R\",\n  \"brand\": \"Relife\",\n  \"category\": \"shoes\",\n  \"size\": \"36-42\",\n  \"color\": \"Brown, Black\",\n  \"material\": \"High Quality Synthetic Upper\",\n  \"wholesale_price\": 65,\n  \"retail_price\": 145,\n  \"product_number\": null,\n  \"description\": \"\",\n  \"specifications\": {\n    \"Soft Reflex System\": true,\n    \"Vegan\": true,\n    \"Warm Lining\": true,\n    \"Water Repellent Tex\": true,\n    \"Flexible and Lightweight\": true,\n    \"Width\": \"G\",\n    \"Height\": \"20 mm\"\n  },\n  \"season\": \"all\",\n  \"extracted_metadata\": {}\n}\n\n=== Page 6 ===\n{\n  \"name\": null,\n  \"sku\": \"5717-18802B-20R\",\n  \"brand\": \"Relife\",\n  \"category\": \"shoes\",\n  \"size\": \"36-42\",\n  \"color\": \"Black, Brown\",\n  \"material\": \"High Quality Synthetic Upper\",\n  \"wholesale_price\": 65,\n  \"retail_price\": 145,\n  \"product_number\": null,\n  \"description\": \"Soft Reflex System, Vegan, Warm Lining, Water Repellent Tex, Flexible and Lightweight\",\n  \"specifications\": {\n    \"Width\": \"G\",\n    \"Height\": \"20 mm\"\n  },\n  \"season\": \"all\",\n  \"extracted_metadata\": {\n    \"features\": [\n      \"Soft Reflex System\",\n      \"High Quality Synthetic Upper\",\n      \"Vegan\",\n      \"Warm Lining\",\n      \"Water Repellent Tex\",\n      \"Flexible and Lightweight\"\n    ]\n  }\n}\n\n=== Page 7 ===\n{\n  \"name\": null,\n  \"sku\": \"5887-24802B-08R\",\n  \"brand\": \"Relife\",\n  \"category\": \"shoes\",\n  \"size\": \"36-44\",\n  \"color\": \"Off White, Black\",\n  \"material\": \"High Quality Synthetic Upper\",\n  \"wholesale_price\": 65,\n  \"retail_price\": 145,\n  \"product_number\": null,\n  \"description\": \"Soft Reflex System, Vegan, Warm Lining, Water Repellent Tex, Flexible and Lightweight\",\n  \"specifications\": {\n    \"width\": \"G\",\n    \"height\": \"20 mm\",\n    \"lining\": \"Warm Lining\"\n  },\n  \"season\": \"all\",\n  \"extracted_metadata\": {\n    \"tagline\": \"Soft Reflex System\"\n  }\n}\n\n=== Page 8 ===\n{\n  \"name\": null,\n  \"sku\": \"5717-25805B-04LR\",\n  \"brand\": \"Relife\",\n  \"category\": \"shoes\",\n  \"size\": \"36-44\",\n  \"color\": \"Black\",\n  \"material\": \"Leather\",\n  \"wholesale_price\": 89,\n  \"retail_price\": 195,\n  \"product_number\": \"\",\n  \"description\": \"\",\n  \"specifications\": {\n    \"Soft Reflex System\": true,\n    \"Recycled PET Lining\": \"optional\",\n    \"Water Repellent Tex\": true,\n    \"Flexible and Lightweight\": true,\n    \"Width\": \"G\",\n    \"Height\": \"20 mm\"\n  },\n  \"season\": \"all\",\n  \"extracted_metadata\": {}\n}\n\n=== Page 9 ===\n{\n  \"name\": null,\n  \"sku\": \"5717-25805B-05LR\",\n  \"brand\": \"Relife\",\n  \"category\": \"shoes\",\n  \"size\": \"36-44\",\n  \"color\": \"Black\",\n  \"material\": \"Leather Upper\",\n  \"wholesale_price\": 89,\n  \"retail_price\": 195,\n  \"product_number\": \"\",\n  \"description\": \"Soft Reflex System, Leather Upper, Recycled PET Lining (optional), Water Repellent Tex, Flexible and Lightweight\",\n  \"specifications\": {\n    \"width\": \"G\",\n    \"height\": \"20 mm\",\n    \"size_range\": \"36-44\"\n  },\n  \"season\": \"all\",\n  \"extracted_metadata\": {}\n}\n\n=== Page 10 ===\n{\n  \"name\": null,\n  \"sku\": \"5887-23803B-12LR\",\n  \"brand\": \"Relife\",\n  \"category\": \"shoes\",\n  \"size\": \"36-44\",\n  \"color\": \"Black\",\n  \"material\": \"Leather Upper\",\n  \"wholesale_price\": 99,\n  \"retail_price\": 220,\n  \"product_number\": null,\n  \"description\": \"Soft Reflex System, Adjustable calf Width (38 – 43 cm.), Recycled PET Lining (optional), Water Repellent Tex, Flexible and Lightweight, Width: G, Height: 30 mm.\",\n  \"specifications\": {},\n  \"season\": \"all\",\n  \"extracted_metadata\": {}\n}\n\n=== Page 11 ===\n{\n  \"name\": null,\n  \"sku\": \"5717-22804B-12LR\",\n  \"brand\": \"Relife\",\n  \"category\": \"shoes\",\n  \"size\": \"36-42\",\n  \"color\": \"Khaki, Mokka\",\n  \"material\": \"Leather\",\n  \"wholesale_price\": 85,\n  \"retail_price\": 190,\n  \"product_number\": \"\",\n  \"description\": \"\",\n  \"specifications\": {\n    \"Soft Reflex System\": true,\n    \"Recycled PET Lining\": \"optional\",\n    \"Water Repellent Tex\": true,\n    \"Flexible and Lightweight\": true,\n    \"Width\": \"G\",\n    \"Height\": \"40 mm\"\n  },\n  \"season\": \"all\",\n  \"extracted_metadata\": {}\n}\n\n=== Page 12 ===\n{\n  \"name\": null,\n  \"sku\": \"5717-22804B-14LR\",\n  \"brand\": \"Relife\",\n  \"category\": \"shoes\",\n  \"size\": \"36-42\",\n  \"color\": \"Black\",\n  \"material\": \"Leather\",\n  \"wholesale_price\": 89,\n  \"retail_price\": 195,\n  \"product_number\": \"\",\n  \"description\": \"\",\n  \"specifications\": {\n    \"Soft Reflex System\": true,\n    \"Recycled PET Lining\": \"optional\",\n    \"Water Repellent Tex\": true,\n    \"Flexible and Lightweight\": true,\n    \"Width\": \"G\",\n    \"Height\": \"40 mm\"\n  },\n  \"season\": \"all\",\n  \"extracted_metadata\": {}\n}\n\n=== Page 13 ===\n{\n  \"name\": null,\n  \"sku\": null,\n  \"brand\": \"Relife\",\n  \"category\": \"shoes\",\n  \"size\": \"\",\n  \"color\": \"\",\n  \"material\": \"\",\n  \"wholesale_price\": 0,\n  \"retail_price\": 0,\n  \"product_number\": \"\",\n  \"description\": \"\",\n  \"specifications\": {},\n  \"season\": \"all\",\n  \"extracted_metadata\": {\n    \"page_type\": \"assortment\",\n    \"available_sizes\": {\n      \"women\": [\n        36,\n        37,\n        38,\n        39,\n        40,\n        41,\n        42,\n        43,\n        44\n      ],\n      \"men\": [\n        40,\n        41,\n        42,\n        43,\n        44\n      ]\n    },\n    \"product_codes\": [\n      \"RLFW01\",\n      \"RLFW02\",\n      \"RLFW03\",\n      \"RLFH01\",\n      \"RLFH02\",\n      \"RLFH03\"\n    ]\n  }\n}",
+  "metadata": {
+    "processed": true,
+    "processed_at": "2025-01-28T03:50:32.072Z",
+    "model_used": "gpt-4o",
+    "pages_processed": 13
+  }
+}
+","Log","644019f2-f172-4beb-97fc-8f5c0841e937","05b10652-65b3-4f9c-9b26-95d251a0aca9","log","1738036233562249"
+"Content preview: === Page 1 ===
+{
+  "name": "barefoot",
+  "sku": "5887-25801-07LR",
+  "brand": "Relife",
+  "category": "shoes",
+  "size": "36-42",
+  "color": "Brown, Navy",
+  "material": "Leather Upper",
+  "wholesale_price": 65,
+  "retail_price": 145,
+  "product_number": "",
+  "description": "",
+  "specifications": {
+    "Soft Reflex System": true,
+    "Barefoot": true,
+    "Recycled PET Lining": "optional",
+    "Water Repellent Tex": true,
+    "Flexible and Lightweight": true,
+    "Width": "G",
+    "Height": "1...
+","Log","644019f2-f172-4beb-97fc-8f5c0841e937","b6ca97ab-23f3-4e8e-a884-146b69d987d4","log","1738036233562037"
+"Content length: 7409
+","Log","644019f2-f172-4beb-97fc-8f5c0841e937","6c3e813e-5491-4635-83a9-f7b1e15eb63d","log","1738036233561879"
+"Pages processed: 13
+","Log","644019f2-f172-4beb-97fc-8f5c0841e937","78bbdbf2-55f8-4bde-8c35-fed3c7e4a31d","log","1738036233561708"
+"Document ID: d1615d86-256b-47f2-9f16-622cee673efe
+","Log","644019f2-f172-4beb-97fc-8f5c0841e937","1fe62366-3de2-48c7-8ddd-eb38386e6f79","log","1738036233561501"
+"
+=== Updating Document Content ===
+","Log","644019f2-f172-4beb-97fc-8f5c0841e937","eeea0c4b-7bf7-45d1-a86b-178b0786994c","log","1738036233561255"
+"Skipping product creation for page 13 - appears to be a cover/info page
+","Log","644019f2-f172-4beb-97fc-8f5c0841e937","bb1b01fb-4883-4d5a-9c8c-1b2244b4f65d","log","1738036233561005"
+"Found brand "Relife" on cover page 13
+","Log","644019f2-f172-4beb-97fc-8f5c0841e937","e0519022-ef20-44b5-911c-606a51600a65","log","1738036233560801"
+"Final parsed product data: {
+  "name": null,
+  "sku": null,
+  "brand": "Relife",
+  "category": "shoes",
+  "size": "",
+  "color": "",
+  "material": "",
+  "wholesale_price": 0,
+  "retail_price": 0,
+  "product_number": "",
+  "description": "",
+  "specifications": {},
+  "season": "all",
+  "extracted_metadata": {
+    "page_type": "assortment",
+    "available_sizes": {
+      "women": [
+        36,
+        37,
+        38,
+        39,
+        40,
+        41,
+        42,
+        43,
+        44
+      ],
+      "men": [
+        40,
+        41,
+        42,
+        43,
+        44
+      ]
+    },
+    "product_codes": [
+      "RLFW01",
+      "RLFW02",
+      "RLFW03",
+      "RLFH01",
+      "RLFH02",
+      "RLFH03"
+    ]
+  }
+}
+","Log","644019f2-f172-4beb-97fc-8f5c0841e937","f8f1f8a2-fa07-40c8-b9df-d9b37aa63c00","log","1738036233560585"
+"
+Extracted JSON string: {
+  "name": null,
+  "sku": null,
+  "brand": "Relife",
+  "category": "shoes",
+  "size": "",
+  "color": "",
+  "material": "",
+  "wholesale_price": 0,
+  "retail_price": 0,
+  "product_number": "",
+  "description": "",
+  "specifications": {},
+  "season": "all",
+  "extracted_metadata": {
+    "page_type": "assortment",
+    "available_sizes": {
+      "women": [36, 37, 38, 39, 40, 41, 42, 43, 44],
+      "men": [40, 41, 42, 43, 44]
+    },
+    "product_codes": ["RLFW01", "RLFW02", "RLFW03", "RLFH01", "RLFH02", "RLFH03"]
+  }
+}
+","Log","644019f2-f172-4beb-97fc-8f5c0841e937","8086d535-55c2-48bf-a3a5-ea8e18a0efca","log","1738036233560342"
+"No code block found, looking for raw JSON object
+","Log","644019f2-f172-4beb-97fc-8f5c0841e937","901be7d4-7cb4-494f-9984-2d0421167a1c","log","1738036233560082"
+"
+Raw content to parse: {
+  "name": null,
+  "sku": null,
+  "brand": "Relife",
+  "category": "shoes",
+  "size": "",
+  "color": "",
+  "material": "",
+  "wholesale_price": 0,
+  "retail_price": 0,
+  "product_number": "",
+  "description": "",
+  "specifications": {},
+  "season": "all",
+  "extracted_metadata": {
+    "page_type": "assortment",
+    "available_sizes": {
+      "women": [36, 37, 38, 39, 40, 41, 42, 43, 44],
+      "men": [40, 41, 42, 43, 44]
+    },
+    "product_codes": ["RLFW01", "RLFW02", "RLFW03", "RLFH01", "RLFH02", "RLFH03"]
+  }
+}
+","Log","644019f2-f172-4beb-97fc-8f5c0841e937","c1eeb6b6-b345-410d-b521-d749649c033f","log","1738036233559766"
+"Raw content: {
+  "name": null,
+  "sku": null,
+  "brand": "Relife",
+  "category": "shoes",
+  "size": "",
+  "color": "",
+  "material": "",
+  "wholesale_price": 0,
+  "retail_price": 0,
+  "product_number": "",
+  "description": "",
+  "specifications": {},
+  "season": "all",
+  "extracted_metadata": {
+    "page_type": "assortment",
+    "available_sizes": {
+      "women": [36, 37, 38, 39, 40, 41, 42, 43, 44],
+      "men": [40, 41, 42, 43, 44]
+    },
+    "product_codes": ["RLFW01", "RLFW02", "RLFW03", "RLFH01", "RLFH02", "RLFH03"]
+  }
+}
+","Log","644019f2-f172-4beb-97fc-8f5c0841e937","5e07df55-77f4-4402-ab8f-37140b8930c3","log","1738036233559566"
+"Status: 200
+","Log","644019f2-f172-4beb-97fc-8f5c0841e937","d0287acd-685a-48ac-8e01-2d48d0f99dfe","log","1738036233559335"
+"OpenAI Response: {
+  "id": "chatcmpl-AuWuI235p3lxhNukPNEJB5gr9Z624",
+  "object": "chat.completion",
+  "created": 1738036226,
+  "model": "gpt-4o-2024-08-06",
+  "choices": [
+    {
+      "index": 0,
+      "message": {
+        "role": "assistant",
+        "content": "{\n  \"name\": null,\n  \"sku\": null,\n  \"brand\": \"Relife\",\n  \"category\": \"shoes\",\n  \"size\": \"\",\n  \"color\": \"\",\n  \"material\": \"\",\n  \"wholesale_price\": 0,\n  \"retail_price\": 0,\n  \"product_number\": \"\",\n  \"description\": \"\",\n  \"specifications\": {},\n  \"season\": \"all\",\n  \"extracted_metadata\": {\n    \"page_type\": \"assortment\",\n    \"available_sizes\": {\n      \"women\": [36, 37, 38, 39, 40, 41, 42, 43, 44],\n      \"men\": [40, 41, 42, 43, 44]\n    },\n    \"product_codes\": [\"RLFW01\", \"RLFW02\", \"RLFW03\", \"RLFH01\", \"RLFH02\", \"RLFH03\"]\n  }\n}",
+        "refusal": null
+      },
+      "logprobs": null,
+      "finish_reason": "stop"
+    }
+  ],
+  "usage": {
+    "prompt_tokens": 1990,
+    "completion_tokens": 203,
+    "total_tokens": 2193,
+    "prompt_tokens_details": {
+      "cached_tokens": 0,
+      "audio_tokens": 0
+    },
+    "completion_tokens_details": {
+      "reasoning_tokens": 0,
+      "audio_tokens": 0,
+      "accepted_prediction_tokens": 0,
+      "rejected_prediction_tokens": 0
+    }
+  },
+  "service_tier": "default",
+  "system_fingerprint": "fp_4691090a87"
+}
+","Log","644019f2-f172-4beb-97fc-8f5c0841e937","8eaaa5b8-53b7-46f8-a505-a6ac773b0394","log","1738036233558940"
+"
+Attempting OpenAI API call (attempt 1/3)...
+","Log","644019f2-f172-4beb-97fc-8f5c0841e937","bcc9d2fa-312a-4579-a7b1-c9d8f0ffc237","log","1738036228559408"
+"Full OpenAI Request Payload: {
+  "model": "gpt-4o",
+  "messages": [
+    {
+      "role": "system",
+      "content": "You are a JSON generation assistant analyzing shoe catalog pages. You ONLY output valid JSON according to this exact schema:\n{\n  \"name\": \"\",\n  \"sku\": \"\",\n  \"brand\": \"\",\n  \"category\": \"shoes\",\n  \"size\": \"\",\n  \"color\": \"\",\n  \"material\": \"\",\n  \"wholesale_price\": 0,\n  \"retail_price\": 0,\n  \"product_number\": \"\",\n  \"description\": \"\",\n  \"specifications\": {},\n  \"season\": \"all\",\n  \"extracted_metadata\": {}\n}\n\nCRITICAL INSTRUCTIONS:\n1. Return ONLY the JSON object. No markdown, no code blocks, no explanations.\n2. Any text outside the JSON object is a mistake.\n3. If uncertain about a value, use null instead of omitting the field.\n4. The JSON must be valid - all strings quoted, no trailing commas.\n5. Numbers should be plain numbers without currency symbols.\n6. Page Type Analysis:\n   - Cover/intro pages: Will have brand logo/name but no product prices\n   - Product pages: Will have shoe images with specific details and prices\n7. Brand Handling:\n   - Document filename \"(FERRA) Premium_Women Shoes_Relife_AutumnWinter_2025.pdf - Page 13\" likely contains either:\n     * The full brand name\n     * An abbreviation of the brand\n   - Strongly prefer any brand name or abbreviation that appears in \"(FERRA) Premium_Women Shoes_Relife_AutumnWinter_2025.pdf - Page 13\"\n   - Brand is also shown prominently on cover/intro pages\n   - Brand name should be extracted exactly as shown\n   - Do not confuse material types for brand names\n   - Do not confuse product names for brand names\n8. Product Details:\n   - Name: The model/style name of the shoe\n   - Material: Type of material used\n   - SKU: ONLY use product codes visible in the image (e.g., \"2034 014\")\n   - NEVER generate random SKUs - if no SKU is visible, set to null\n   - Prices must be numbers only, no currency symbols\n9. Cover Pages:\n   - Set name, sku, prices to null\n   - Focus on capturing the exact brand name\n   - Store any brand taglines/info in extracted_metadata"
+    },
+    {
+      "role": "user",
+      "content": [
+        {
+          "type": "text",
+          "text": "Analyze this catalog page and return ONLY a JSON object matching this schema:\n{\n  \"name\": \"\",\n  \"sku\": \"\",\n  \"brand\": \"\",\n  \"category\": \"shoes\",\n  \"size\": \"\",\n  \"color\": \"\",\n  \"material\": \"\",\n  \"wholesale_price\": 0,\n  \"retail_price\": 0,\n  \"product_number\": \"\",\n  \"description\": \"\",\n  \"specifications\": {},\n  \"season\": \"all\",\n  \"extracted_metadata\": {}\n}\n\nRemember:\n- First determine if this is a cover/intro page or product page\n- Document filename \"(FERRA) Premium_Women Shoes_Relife_AutumnWinter_2025.pdf - Page 13\" likely contains:\n  * Either the full brand name or an abbreviation\n- Cover/intro pages:\n  * Will show brand name/logo prominently\n  * Set name, sku, prices to null\n  * Capture exact brand name as shown\n  * Strongly prefer any brand name or abbreviation found in \"(FERRA) Premium_Women Shoes_Relife_AutumnWinter_2025.pdf - Page 13\"\n  * Store brand details in extracted_metadata\n- Product pages:\n  * Must have shoe image with details\n  * Name is the model/style name\n  * Material goes in material field, not name or brand\n  * SKU must be a visible product code - NEVER generate random SKUs\n  * If no SKU is visible in the image, set it to null\n  * Extract prices as numbers only\n- For any page:\n  * Return ONLY the JSON object\n  * No additional text or formatting\n  * Every field must be present\n  * Use null for missing values"
+        },
+        {
+          "type": "image_url",
+          "image_url": {
+            "url": "https://pdf-temp-files.s3.us-west-2.amazonaws.com/30S0E08XEOSZESUIDDFPU4L5XV8CQ5SA/file.png?X-Amz-Expires=3600&X-Amz-Algorithm=AWS4-HMAC-SHA256&X-Amz-Credential=AKIAIZJDPLX6D7EHVCKA/20250128/us-west-2/s3/aws4_request&X-Amz-Date=20250128T034906Z&X-Amz-SignedHeaders=host&X-Amz-Signature=ccd9a61a75e6926de93dd20b30498b8dcfe296d8ac58d87d169237d7b29f28f7"
+          }
+        }
+      ]
+    }
+  ],
+  "max_tokens": 4096,
+  "temperature": 0,
+  "presence_penalty": 0,
+  "frequency_penalty": 0
+}
+","Log","644019f2-f172-4beb-97fc-8f5c0841e937","7504e910-5522-4a54-a577-4dbfdb10d9bd","log","1738036228559246"
+"
+User Prompt: Analyze this catalog page and return ONLY a JSON object matching this schema:
+{
+  "name": "",
+  "sku": "",
+  "brand": "",
+  "category": "shoes",
+  "size": "",
+  "color": "",
+  "material": "",
+  "wholesale_price": 0,
+  "retail_price": 0,
+  "product_number": "",
+  "description": "",
+  "specifications": {},
+  "season": "all",
+  "extracted_metadata": {}
+}
+
+Remember:
+- First determine if this is a cover/intro page or product page
+- Document filename "(FERRA) Premium_Women Shoes_Relife_AutumnWinter_2025.pdf - Page 13" likely contains:
+  * Either the full brand name or an abbreviation
+- Cover/intro pages:
+  * Will show brand name/logo prominently
+  * Set name, sku, prices to null
+  * Capture exact brand name as shown
+  * Strongly prefer any brand name or abbreviation found in "(FERRA) Premium_Women Shoes_Relife_AutumnWinter_2025.pdf - Page 13"
+  * Store brand details in extracted_metadata
+- Product pages:
+  * Must have shoe image with details
+  * Name is the model/style name
+  * Material goes in material field, not name or brand
+  * SKU must be a visible product code - NEVER generate random SKUs
+  * If no SKU is visible in the image, set it to null
+  * Extract prices as numbers only
+- For any page:
+  * Return ONLY the JSON object
+  * No additional text or formatting
+  * Every field must be present
+  * Use null for missing values
+","Log","644019f2-f172-4beb-97fc-8f5c0841e937","4be2cc43-2176-4ed7-9d58-8dc7855ed851","log","1738036228559067"
+"System Prompt: You are a JSON generation assistant analyzing shoe catalog pages. You ONLY output valid JSON according to this exact schema:
+{
+  "name": "",
+  "sku": "",
+  "brand": "",
+  "category": "shoes",
+  "size": "",
+  "color": "",
+  "material": "",
+  "wholesale_price": 0,
+  "retail_price": 0,
+  "product_number": "",
+  "description": "",
+  "specifications": {},
+  "season": "all",
+  "extracted_metadata": {}
+}
+
+CRITICAL INSTRUCTIONS:
+1. Return ONLY the JSON object. No markdown, no code blocks, no explanations.
+2. Any text outside the JSON object is a mistake.
+3. If uncertain about a value, use null instead of omitting the field.
+4. The JSON must be valid - all strings quoted, no trailing commas.
+5. Numbers should be plain numbers without currency symbols.
+6. Page Type Analysis:
+   - Cover/intro pages: Will have brand logo/name but no product prices
+   - Product pages: Will have shoe images with specific details and prices
+7. Brand Handling:
+   - Document filename "(FERRA) Premium_Women Shoes_Relife_AutumnWinter_2025.pdf - Page 13" likely contains either:
+     * The full brand name
+     * An abbreviation of the brand
+   - Strongly prefer any brand name or abbreviation that appears in "(FERRA) Premium_Women Shoes_Relife_AutumnWinter_2025.pdf - Page 13"
+   - Brand is also shown prominently on cover/intro pages
+   - Brand name should be extracted exactly as shown
+   - Do not confuse material types for brand names
+   - Do not confuse product names for brand names
+8. Product Details:
+   - Name: The model/style name of the shoe
+   - Material: Type of material used
+   - SKU: ONLY use product codes visible in the image (e.g., "2034 014")
+   - NEVER generate random SKUs - if no SKU is visible, set to null
+   - Prices must be numbers only, no currency symbols
+9. Cover Pages:
+   - Set name, sku, prices to null
+   - Focus on capturing the exact brand name
+   - Store any brand taglines/info in extracted_metadata
+","Log","644019f2-f172-4beb-97fc-8f5c0841e937","2f9c8ada-3596-441f-89c6-49b570401e89","log","1738036228558883"
+"OpenAI API key present: true
+","Log","644019f2-f172-4beb-97fc-8f5c0841e937","6a81af00-5009-4f8b-98be-281b8148143b","log","1738036228558740"
+"Image URL: https://pdf-temp-files.s3.us-west-2.amazonaws.com/30S0E08XEOSZESUIDDFPU4L5XV8CQ5SA/file.png?X-Amz-Expires=3600&X-Amz-Algorithm=AWS4-HMAC-SHA256&X-Amz-Credential=AKIAIZJDPLX6D7EHVCKA/20250128/us-west-2/s3/aws4_request&X-Amz-Date=20250128T034906Z&X-Amz-SignedHeaders=host&X-Amz-Signature=ccd9a61a75e6926de93dd20b30498b8dcfe296d8ac58d87d169237d7b29f28f7
+","Log","644019f2-f172-4beb-97fc-8f5c0841e937","d1fd0720-9e3c-49cc-aacf-5d84c213b53d","log","1738036228558582"
+"Processing: (FERRA) Premium_Women Shoes_Relife_AutumnWinter_2025.pdf - Page 13
+","Log","644019f2-f172-4beb-97fc-8f5c0841e937","db22b80f-d932-4bf8-af60-e2f9edfd0d5b","log","1738036228558409"
+"
+=== Starting OpenAI Analysis ===
+","Log","644019f2-f172-4beb-97fc-8f5c0841e937","b2ab30d8-79e9-4bf5-8823-6f0fc0fd56c7","log","1738036228558271"
+"Analyzing page 13/13
+","Log","644019f2-f172-4beb-97fc-8f5c0841e937","fd9a6f7f-4a54-4cbf-8a98-856fa3f0c840","log","1738036228558117"
+"Skipping product creation for page 12 - appears to be a cover/info page
+","Log","644019f2-f172-4beb-97fc-8f5c0841e937","005fc813-46be-43ba-8908-73022ef24393","log","1738036228557939"
+"Final parsed product data: {
+  "name": null,
+  "sku": "5717-22804B-14LR",
+  "brand": "Relife",
+  "category": "shoes",
+  "size": "36-42",
+  "color": "Black",
+  "material": "Leather",
+  "wholesale_price": 89,
+  "retail_price": 195,
+  "product_number": "",
+  "description": "",
+  "specifications": {
+    "Soft Reflex System": true,
+    "Recycled PET Lining": "optional",
+    "Water Repellent Tex": true,
+    "Flexible and Lightweight": true,
+    "Width": "G",
+    "Height": "40 mm"
+  },
+  "season": "all",
+  "extracted_metadata": {}
+}
+","Log","644019f2-f172-4beb-97fc-8f5c0841e937","8c712d2c-5775-4644-b3e0-a15be070e489","log","1738036228557733"
+"
+Extracted JSON string: {
+  "name": null,
+  "sku": "5717-22804B-14LR",
+  "brand": "Relife",
+  "category": "shoes",
+  "size": "36-42",
+  "color": "Black",
+  "material": "Leather",
+  "wholesale_price": 89,
+  "retail_price": 195,
+  "product_number": "",
+  "description": "",
+  "specifications": {
+    "Soft Reflex System": true,
+    "Recycled PET Lining": "optional",
+    "Water Repellent Tex": true,
+    "Flexible and Lightweight": true,
+    "Width": "G",
+    "Height": "40 mm"
+  },
+  "season": "all",
+  "extracted_metadata": {}
+}
+","Log","644019f2-f172-4beb-97fc-8f5c0841e937","1163adc9-0895-48b7-a04e-5bcf62e87f00","log","1738036228557502"
+"No code block found, looking for raw JSON object
+","Log","644019f2-f172-4beb-97fc-8f5c0841e937","557506bb-5f0e-4fb3-a8cc-12125638dcd7","log","1738036228557277"
+"
+Raw content to parse: {
+  "name": null,
+  "sku": "5717-22804B-14LR",
+  "brand": "Relife",
+  "category": "shoes",
+  "size": "36-42",
+  "color": "Black",
+  "material": "Leather",
+  "wholesale_price": 89,
+  "retail_price": 195,
+  "product_number": "",
+  "description": "",
+  "specifications": {
+    "Soft Reflex System": true,
+    "Recycled PET Lining": "optional",
+    "Water Repellent Tex": true,
+    "Flexible and Lightweight": true,
+    "Width": "G",
+    "Height": "40 mm"
+  },
+  "season": "all",
+  "extracted_metadata": {}
+}
+","Log","644019f2-f172-4beb-97fc-8f5c0841e937","61921f0a-a41a-438b-a9e2-3db4a12ea51d","log","1738036228557040"
+"Raw content: {
+  "name": null,
+  "sku": "5717-22804B-14LR",
+  "brand": "Relife",
+  "category": "shoes",
+  "size": "36-42",
+  "color": "Black",
+  "material": "Leather",
+  "wholesale_price": 89,
+  "retail_price": 195,
+  "product_number": "",
+  "description": "",
+  "specifications": {
+    "Soft Reflex System": true,
+    "Recycled PET Lining": "optional",
+    "Water Repellent Tex": true,
+    "Flexible and Lightweight": true,
+    "Width": "G",
+    "Height": "40 mm"
+  },
+  "season": "all",
+  "extracted_metadata": {}
+}
+","Log","644019f2-f172-4beb-97fc-8f5c0841e937","a024d5bb-3f4f-4ed5-8e07-e89ef3ad1313","log","1738036228556781"
+"Status: 200
+","Log","644019f2-f172-4beb-97fc-8f5c0841e937","a374bfb9-7338-4631-b7ea-f73939e3758e","log","1738036228556528"
+"OpenAI Response: {
+  "id": "chatcmpl-AuWuEH2IrFyrBeGUnruJf7w7vGKrr",
+  "object": "chat.completion",
+  "created": 1738036222,
+  "model": "gpt-4o-2024-08-06",
+  "choices": [
+    {
+      "index": 0,
+      "message": {
+        "role": "assistant",
+        "content": "{\n  \"name\": null,\n  \"sku\": \"5717-22804B-14LR\",\n  \"brand\": \"Relife\",\n  \"category\": \"shoes\",\n  \"size\": \"36-42\",\n  \"color\": \"Black\",\n  \"material\": \"Leather\",\n  \"wholesale_price\": 89,\n  \"retail_price\": 195,\n  \"product_number\": \"\",\n  \"description\": \"\",\n  \"specifications\": {\n    \"Soft Reflex System\": true,\n    \"Recycled PET Lining\": \"optional\",\n    \"Water Repellent Tex\": true,\n    \"Flexible and Lightweight\": true,\n    \"Width\": \"G\",\n    \"Height\": \"40 mm\"\n  },\n  \"season\": \"all\",\n  \"extracted_metadata\": {}\n}",
+        "refusal": null
+      },
+      "logprobs": null,
+      "finish_reason": "stop"
+    }
+  ],
+  "usage": {
+    "prompt_tokens": 1990,
+    "completion_tokens": 165,
+    "total_tokens": 2155,
+    "prompt_tokens_details": {
+      "cached_tokens": 0,
+      "audio_tokens": 0
+    },
+    "completion_tokens_details": {
+      "reasoning_tokens": 0,
+      "audio_tokens": 0,
+      "accepted_prediction_tokens": 0,
+      "rejected_prediction_tokens": 0
+    }
+  },
+  "service_tier": "default",
+  "system_fingerprint": "fp_4691090a87"
+}
+","Log","644019f2-f172-4beb-97fc-8f5c0841e937","e0273c48-8c0f-4a78-9e16-14ff0305364e","log","1738036228556321"
+"
+Attempting OpenAI API call (attempt 1/3)...
+","Log","644019f2-f172-4beb-97fc-8f5c0841e937","26a18a65-da35-49c3-b58a-f46f31343683","log","1738036223555852"
+"Full OpenAI Request Payload: {
+  "model": "gpt-4o",
+  "messages": [
+    {
+      "role": "system",
+      "content": "You are a JSON generation assistant analyzing shoe catalog pages. You ONLY output valid JSON according to this exact schema:\n{\n  \"name\": \"\",\n  \"sku\": \"\",\n  \"brand\": \"\",\n  \"category\": \"shoes\",\n  \"size\": \"\",\n  \"color\": \"\",\n  \"material\": \"\",\n  \"wholesale_price\": 0,\n  \"retail_price\": 0,\n  \"product_number\": \"\",\n  \"description\": \"\",\n  \"specifications\": {},\n  \"season\": \"all\",\n  \"extracted_metadata\": {}\n}\n\nCRITICAL INSTRUCTIONS:\n1. Return ONLY the JSON object. No markdown, no code blocks, no explanations.\n2. Any text outside the JSON object is a mistake.\n3. If uncertain about a value, use null instead of omitting the field.\n4. The JSON must be valid - all strings quoted, no trailing commas.\n5. Numbers should be plain numbers without currency symbols.\n6. Page Type Analysis:\n   - Cover/intro pages: Will have brand logo/name but no product prices\n   - Product pages: Will have shoe images with specific details and prices\n7. Brand Handling:\n   - Document filename \"(FERRA) Premium_Women Shoes_Relife_AutumnWinter_2025.pdf - Page 12\" likely contains either:\n     * The full brand name\n     * An abbreviation of the brand\n   - Strongly prefer any brand name or abbreviation that appears in \"(FERRA) Premium_Women Shoes_Relife_AutumnWinter_2025.pdf - Page 12\"\n   - Brand is also shown prominently on cover/intro pages\n   - Brand name should be extracted exactly as shown\n   - Do not confuse material types for brand names\n   - Do not confuse product names for brand names\n8. Product Details:\n   - Name: The model/style name of the shoe\n   - Material: Type of material used\n   - SKU: ONLY use product codes visible in the image (e.g., \"2034 014\")\n   - NEVER generate random SKUs - if no SKU is visible, set to null\n   - Prices must be numbers only, no currency symbols\n9. Cover Pages:\n   - Set name, sku, prices to null\n   - Focus on capturing the exact brand name\n   - Store any brand taglines/info in extracted_metadata"
+    },
+    {
+      "role": "user",
+      "content": [
+        {
+          "type": "text",
+          "text": "Analyze this catalog page and return ONLY a JSON object matching this schema:\n{\n  \"name\": \"\",\n  \"sku\": \"\",\n  \"brand\": \"\",\n  \"category\": \"shoes\",\n  \"size\": \"\",\n  \"color\": \"\",\n  \"material\": \"\",\n  \"wholesale_price\": 0,\n  \"retail_price\": 0,\n  \"product_number\": \"\",\n  \"description\": \"\",\n  \"specifications\": {},\n  \"season\": \"all\",\n  \"extracted_metadata\": {}\n}\n\nRemember:\n- First determine if this is a cover/intro page or product page\n- Document filename \"(FERRA) Premium_Women Shoes_Relife_AutumnWinter_2025.pdf - Page 12\" likely contains:\n  * Either the full brand name or an abbreviation\n- Cover/intro pages:\n  * Will show brand name/logo prominently\n  * Set name, sku, prices to null\n  * Capture exact brand name as shown\n  * Strongly prefer any brand name or abbreviation found in \"(FERRA) Premium_Women Shoes_Relife_AutumnWinter_2025.pdf - Page 12\"\n  * Store brand details in extracted_metadata\n- Product pages:\n  * Must have shoe image with details\n  * Name is the model/style name\n  * Material goes in material field, not name or brand\n  * SKU must be a visible product code - NEVER generate random SKUs\n  * If no SKU is visible in the image, set it to null\n  * Extract prices as numbers only\n- For any page:\n  * Return ONLY the JSON object\n  * No additional text or formatting\n  * Every field must be present\n  * Use null for missing values"
+        },
+        {
+          "type": "image_url",
+          "image_url": {
+            "url": "https://pdf-temp-files.s3.us-west-2.amazonaws.com/OYWSEZTD1YGY2U0HGM8UPKAHZGQR2594/file.png?X-Amz-Expires=3600&X-Amz-Algorithm=AWS4-HMAC-SHA256&X-Amz-Credential=AKIAIZJDPLX6D7EHVCKA/20250128/us-west-2/s3/aws4_request&X-Amz-Date=20250128T034906Z&X-Amz-SignedHeaders=host&X-Amz-Signature=4bd0adcee4a97d6bf295455421f3334fdf34ed3fce7b1ac23e78894c3d44ff31"
+          }
+        }
+      ]
+    }
+  ],
+  "max_tokens": 4096,
+  "temperature": 0,
+  "presence_penalty": 0,
+  "frequency_penalty": 0
+}
+","Log","644019f2-f172-4beb-97fc-8f5c0841e937","96d3c67b-ddb1-41d2-a787-55c251960219","log","1738036223555719"
+"
+User Prompt: Analyze this catalog page and return ONLY a JSON object matching this schema:
+{
+  "name": "",
+  "sku": "",
+  "brand": "",
+  "category": "shoes",
+  "size": "",
+  "color": "",
+  "material": "",
+  "wholesale_price": 0,
+  "retail_price": 0,
+  "product_number": "",
+  "description": "",
+  "specifications": {},
+  "season": "all",
+  "extracted_metadata": {}
+}
+
+Remember:
+- First determine if this is a cover/intro page or product page
+- Document filename "(FERRA) Premium_Women Shoes_Relife_AutumnWinter_2025.pdf - Page 12" likely contains:
+  * Either the full brand name or an abbreviation
+- Cover/intro pages:
+  * Will show brand name/logo prominently
+  * Set name, sku, prices to null
+  * Capture exact brand name as shown
+  * Strongly prefer any brand name or abbreviation found in "(FERRA) Premium_Women Shoes_Relife_AutumnWinter_2025.pdf - Page 12"
+  * Store brand details in extracted_metadata
+- Product pages:
+  * Must have shoe image with details
+  * Name is the model/style name
+  * Material goes in material field, not name or brand
+  * SKU must be a visible product code - NEVER generate random SKUs
+  * If no SKU is visible in the image, set it to null
+  * Extract prices as numbers only
+- For any page:
+  * Return ONLY the JSON object
+  * No additional text or formatting
+  * Every field must be present
+  * Use null for missing values
+","Log","644019f2-f172-4beb-97fc-8f5c0841e937","38f53423-5d05-4b19-8583-f525b7e12e5e","log","1738036223555561"
+"System Prompt: You are a JSON generation assistant analyzing shoe catalog pages. You ONLY output valid JSON according to this exact schema:
+{
+  "name": "",
+  "sku": "",
+  "brand": "",
+  "category": "shoes",
+  "size": "",
+  "color": "",
+  "material": "",
+  "wholesale_price": 0,
+  "retail_price": 0,
+  "product_number": "",
+  "description": "",
+  "specifications": {},
+  "season": "all",
+  "extracted_metadata": {}
+}
+
+CRITICAL INSTRUCTIONS:
+1. Return ONLY the JSON object. No markdown, no code blocks, no explanations.
+2. Any text outside the JSON object is a mistake.
+3. If uncertain about a value, use null instead of omitting the field.
+4. The JSON must be valid - all strings quoted, no trailing commas.
+5. Numbers should be plain numbers without currency symbols.
+6. Page Type Analysis:
+   - Cover/intro pages: Will have brand logo/name but no product prices
+   - Product pages: Will have shoe images with specific details and prices
+7. Brand Handling:
+   - Document filename "(FERRA) Premium_Women Shoes_Relife_AutumnWinter_2025.pdf - Page 12" likely contains either:
+     * The full brand name
+     * An abbreviation of the brand
+   - Strongly prefer any brand name or abbreviation that appears in "(FERRA) Premium_Women Shoes_Relife_AutumnWinter_2025.pdf - Page 12"
+   - Brand is also shown prominently on cover/intro pages
+   - Brand name should be extracted exactly as shown
+   - Do not confuse material types for brand names
+   - Do not confuse product names for brand names
+8. Product Details:
+   - Name: The model/style name of the shoe
+   - Material: Type of material used
+   - SKU: ONLY use product codes visible in the image (e.g., "2034 014")
+   - NEVER generate random SKUs - if no SKU is visible, set to null
+   - Prices must be numbers only, no currency symbols
+9. Cover Pages:
+   - Set name, sku, prices to null
+   - Focus on capturing the exact brand name
+   - Store any brand taglines/info in extracted_metadata
+","Log","644019f2-f172-4beb-97fc-8f5c0841e937","9e1b1226-64c4-43d5-b6b9-b8dabcc5380e","log","1738036223555385"
+"OpenAI API key present: true
+","Log","644019f2-f172-4beb-97fc-8f5c0841e937","2a3bdf6d-27aa-479e-8465-480462dd3bd5","log","1738036223555189"
+"Image URL: https://pdf-temp-files.s3.us-west-2.amazonaws.com/OYWSEZTD1YGY2U0HGM8UPKAHZGQR2594/file.png?X-Amz-Expires=3600&X-Amz-Algorithm=AWS4-HMAC-SHA256&X-Amz-Credential=AKIAIZJDPLX6D7EHVCKA/20250128/us-west-2/s3/aws4_request&X-Amz-Date=20250128T034906Z&X-Amz-SignedHeaders=host&X-Amz-Signature=4bd0adcee4a97d6bf295455421f3334fdf34ed3fce7b1ac23e78894c3d44ff31
+","Log","644019f2-f172-4beb-97fc-8f5c0841e937","505c0dbb-eb8e-4d5f-be18-238524aed936","log","1738036223554995"
+"Processing: (FERRA) Premium_Women Shoes_Relife_AutumnWinter_2025.pdf - Page 12
+","Log","644019f2-f172-4beb-97fc-8f5c0841e937","0ea37dc0-1ccb-430b-85f2-342e04705354","log","1738036223554729"
+"
+=== Starting OpenAI Analysis ===
+","Log","644019f2-f172-4beb-97fc-8f5c0841e937","02183f34-8c03-4001-b3f2-ee6e7b968f28","log","1738036223554528"
+"Analyzing page 12/13
+","Log","644019f2-f172-4beb-97fc-8f5c0841e937","3a799905-b51a-4930-8411-4a86b2c1b8b6","log","1738036223554297"
+"Skipping product creation for page 11 - appears to be a cover/info page
+","Log","644019f2-f172-4beb-97fc-8f5c0841e937","57857d74-e235-4b51-9ded-52c86d01f7bb","log","1738036223554042"
+"Final parsed product data: {
+  "name": null,
+  "sku": "5717-22804B-12LR",
+  "brand": "Relife",
+  "category": "shoes",
+  "size": "36-42",
+  "color": "Khaki, Mokka",
+  "material": "Leather",
+  "wholesale_price": 85,
+  "retail_price": 190,
+  "product_number": "",
+  "description": "",
+  "specifications": {
+    "Soft Reflex System": true,
+    "Recycled PET Lining": "optional",
+    "Water Repellent Tex": true,
+    "Flexible and Lightweight": true,
+    "Width": "G",
+    "Height": "40 mm"
+  },
+  "season": "all",
+  "extracted_metadata": {}
+}
+","Log","644019f2-f172-4beb-97fc-8f5c0841e937","b0c6edae-8626-45d6-8a18-b5cd76e1fced","log","1738036223553772"
+"
+Extracted JSON string: {
+  "name": null,
+  "sku": "5717-22804B-12LR",
+  "brand": "Relife",
+  "category": "shoes",
+  "size": "36-42",
+  "color": "Khaki, Mokka",
+  "material": "Leather",
+  "wholesale_price": 85,
+  "retail_price": 190,
+  "product_number": "",
+  "description": "",
+  "specifications": {
+    "Soft Reflex System": true,
+    "Recycled PET Lining": "optional",
+    "Water Repellent Tex": true,
+    "Flexible and Lightweight": true,
+    "Width": "G",
+    "Height": "40 mm"
+  },
+  "season": "all",
+  "extracted_metadata": {}
+}
+","Log","644019f2-f172-4beb-97fc-8f5c0841e937","f9fb5f50-2cde-4e26-8321-24a1e85b65b9","log","1738036223553497"
+"No code block found, looking for raw JSON object
+","Log","644019f2-f172-4beb-97fc-8f5c0841e937","bd396e38-5114-4406-90c2-8d8d5870ad78","log","1738036223553288"
+"
+Raw content to parse: {
+  "name": null,
+  "sku": "5717-22804B-12LR",
+  "brand": "Relife",
+  "category": "shoes",
+  "size": "36-42",
+  "color": "Khaki, Mokka",
+  "material": "Leather",
+  "wholesale_price": 85,
+  "retail_price": 190,
+  "product_number": "",
+  "description": "",
+  "specifications": {
+    "Soft Reflex System": true,
+    "Recycled PET Lining": "optional",
+    "Water Repellent Tex": true,
+    "Flexible and Lightweight": true,
+    "Width": "G",
+    "Height": "40 mm"
+  },
+  "season": "all",
+  "extracted_metadata": {}
+}
+","Log","644019f2-f172-4beb-97fc-8f5c0841e937","53864976-ac65-410c-b6ef-896f0b1399a5","log","1738036223553151"
+"Raw content: {
+  "name": null,
+  "sku": "5717-22804B-12LR",
+  "brand": "Relife",
+  "category": "shoes",
+  "size": "36-42",
+  "color": "Khaki, Mokka",
+  "material": "Leather",
+  "wholesale_price": 85,
+  "retail_price": 190,
+  "product_number": "",
+  "description": "",
+  "specifications": {
+    "Soft Reflex System": true,
+    "Recycled PET Lining": "optional",
+    "Water Repellent Tex": true,
+    "Flexible and Lightweight": true,
+    "Width": "G",
+    "Height": "40 mm"
+  },
+  "season": "all",
+  "extracted_metadata": {}
+}
+","Log","644019f2-f172-4beb-97fc-8f5c0841e937","2d5d8d8a-98c7-406f-bc3d-d308cdcb1022","log","1738036223552996"
+"Status: 200
+","Log","644019f2-f172-4beb-97fc-8f5c0841e937","6b26997a-f2d7-4468-9621-622580814d44","log","1738036223552778"
+"OpenAI Response: {
+  "id": "chatcmpl-AuWu8MuasKek9fWXjiewYhrIbo8WX",
+  "object": "chat.completion",
+  "created": 1738036216,
+  "model": "gpt-4o-2024-08-06",
+  "choices": [
+    {
+      "index": 0,
+      "message": {
+        "role": "assistant",
+        "content": "{\n  \"name\": null,\n  \"sku\": \"5717-22804B-12LR\",\n  \"brand\": \"Relife\",\n  \"category\": \"shoes\",\n  \"size\": \"36-42\",\n  \"color\": \"Khaki, Mokka\",\n  \"material\": \"Leather\",\n  \"wholesale_price\": 85,\n  \"retail_price\": 190,\n  \"product_number\": \"\",\n  \"description\": \"\",\n  \"specifications\": {\n    \"Soft Reflex System\": true,\n    \"Recycled PET Lining\": \"optional\",\n    \"Water Repellent Tex\": true,\n    \"Flexible and Lightweight\": true,\n    \"Width\": \"G\",\n    \"Height\": \"40 mm\"\n  },\n  \"season\": \"all\",\n  \"extracted_metadata\": {}\n}",
+        "refusal": null
+      },
+      "logprobs": null,
+      "finish_reason": "stop"
+    }
+  ],
+  "usage": {
+    "prompt_tokens": 1990,
+    "completion_tokens": 169,
+    "total_tokens": 2159,
+    "prompt_tokens_details": {
+      "cached_tokens": 0,
+      "audio_tokens": 0
+    },
+    "completion_tokens_details": {
+      "reasoning_tokens": 0,
+      "audio_tokens": 0,
+      "accepted_prediction_tokens": 0,
+      "rejected_prediction_tokens": 0
+    }
+  },
+  "service_tier": "default",
+  "system_fingerprint": "fp_4691090a87"
+}
+","Log","644019f2-f172-4beb-97fc-8f5c0841e937","e1a1d2da-8951-4341-ac1b-15b1a8b8e15a","log","1738036223552553"
+"
+Attempting OpenAI API call (attempt 1/3)...
+","Log","644019f2-f172-4beb-97fc-8f5c0841e937","caf5bd88-dd72-4475-b539-f9bfc54dd3f9","log","1738036218559825"
+"Full OpenAI Request Payload: {
+  "model": "gpt-4o",
+  "messages": [
+    {
+      "role": "system",
+      "content": "You are a JSON generation assistant analyzing shoe catalog pages. You ONLY output valid JSON according to this exact schema:\n{\n  \"name\": \"\",\n  \"sku\": \"\",\n  \"brand\": \"\",\n  \"category\": \"shoes\",\n  \"size\": \"\",\n  \"color\": \"\",\n  \"material\": \"\",\n  \"wholesale_price\": 0,\n  \"retail_price\": 0,\n  \"product_number\": \"\",\n  \"description\": \"\",\n  \"specifications\": {},\n  \"season\": \"all\",\n  \"extracted_metadata\": {}\n}\n\nCRITICAL INSTRUCTIONS:\n1. Return ONLY the JSON object. No markdown, no code blocks, no explanations.\n2. Any text outside the JSON object is a mistake.\n3. If uncertain about a value, use null instead of omitting the field.\n4. The JSON must be valid - all strings quoted, no trailing commas.\n5. Numbers should be plain numbers without currency symbols.\n6. Page Type Analysis:\n   - Cover/intro pages: Will have brand logo/name but no product prices\n   - Product pages: Will have shoe images with specific details and prices\n7. Brand Handling:\n   - Document filename \"(FERRA) Premium_Women Shoes_Relife_AutumnWinter_2025.pdf - Page 11\" likely contains either:\n     * The full brand name\n     * An abbreviation of the brand\n   - Strongly prefer any brand name or abbreviation that appears in \"(FERRA) Premium_Women Shoes_Relife_AutumnWinter_2025.pdf - Page 11\"\n   - Brand is also shown prominently on cover/intro pages\n   - Brand name should be extracted exactly as shown\n   - Do not confuse material types for brand names\n   - Do not confuse product names for brand names\n8. Product Details:\n   - Name: The model/style name of the shoe\n   - Material: Type of material used\n   - SKU: ONLY use product codes visible in the image (e.g., \"2034 014\")\n   - NEVER generate random SKUs - if no SKU is visible, set to null\n   - Prices must be numbers only, no currency symbols\n9. Cover Pages:\n   - Set name, sku, prices to null\n   - Focus on capturing the exact brand name\n   - Store any brand taglines/info in extracted_metadata"
+    },
+    {
+      "role": "user",
+      "content": [
+        {
+          "type": "text",
+          "text": "Analyze this catalog page and return ONLY a JSON object matching this schema:\n{\n  \"name\": \"\",\n  \"sku\": \"\",\n  \"brand\": \"\",\n  \"category\": \"shoes\",\n  \"size\": \"\",\n  \"color\": \"\",\n  \"material\": \"\",\n  \"wholesale_price\": 0,\n  \"retail_price\": 0,\n  \"product_number\": \"\",\n  \"description\": \"\",\n  \"specifications\": {},\n  \"season\": \"all\",\n  \"extracted_metadata\": {}\n}\n\nRemember:\n- First determine if this is a cover/intro page or product page\n- Document filename \"(FERRA) Premium_Women Shoes_Relife_AutumnWinter_2025.pdf - Page 11\" likely contains:\n  * Either the full brand name or an abbreviation\n- Cover/intro pages:\n  * Will show brand name/logo prominently\n  * Set name, sku, prices to null\n  * Capture exact brand name as shown\n  * Strongly prefer any brand name or abbreviation found in \"(FERRA) Premium_Women Shoes_Relife_AutumnWinter_2025.pdf - Page 11\"\n  * Store brand details in extracted_metadata\n- Product pages:\n  * Must have shoe image with details\n  * Name is the model/style name\n  * Material goes in material field, not name or brand\n  * SKU must be a visible product code - NEVER generate random SKUs\n  * If no SKU is visible in the image, set it to null\n  * Extract prices as numbers only\n- For any page:\n  * Return ONLY the JSON object\n  * No additional text or formatting\n  * Every field must be present\n  * Use null for missing values"
+        },
+        {
+          "type": "image_url",
+          "image_url": {
+            "url": "https://pdf-temp-files.s3.us-west-2.amazonaws.com/W83CSJVQZXP8Z4XBJ4NX9JW7OQ9H2RBD/file.png?X-Amz-Expires=3600&X-Amz-Algorithm=AWS4-HMAC-SHA256&X-Amz-Credential=AKIAIZJDPLX6D7EHVCKA/20250128/us-west-2/s3/aws4_request&X-Amz-Date=20250128T034906Z&X-Amz-SignedHeaders=host&X-Amz-Signature=81de9e8aeb58053ee5c91b42453644c9b127b2019381966267b2df3b10dfb064"
+          }
+        }
+      ]
+    }
+  ],
+  "max_tokens": 4096,
+  "temperature": 0,
+  "presence_penalty": 0,
+  "frequency_penalty": 0
+}
+","Log","644019f2-f172-4beb-97fc-8f5c0841e937","469d0735-268a-4958-8a68-4a80e56348f2","log","1738036218559645"
+"
+User Prompt: Analyze this catalog page and return ONLY a JSON object matching this schema:
+{
+  "name": "",
+  "sku": "",
+  "brand": "",
+  "category": "shoes",
+  "size": "",
+  "color": "",
+  "material": "",
+  "wholesale_price": 0,
+  "retail_price": 0,
+  "product_number": "",
+  "description": "",
+  "specifications": {},
+  "season": "all",
+  "extracted_metadata": {}
+}
+
+Remember:
+- First determine if this is a cover/intro page or product page
+- Document filename "(FERRA) Premium_Women Shoes_Relife_AutumnWinter_2025.pdf - Page 11" likely contains:
+  * Either the full brand name or an abbreviation
+- Cover/intro pages:
+  * Will show brand name/logo prominently
+  * Set name, sku, prices to null
+  * Capture exact brand name as shown
+  * Strongly prefer any brand name or abbreviation found in "(FERRA) Premium_Women Shoes_Relife_AutumnWinter_2025.pdf - Page 11"
+  * Store brand details in extracted_metadata
+- Product pages:
+  * Must have shoe image with details
+  * Name is the model/style name
+  * Material goes in material field, not name or brand
+  * SKU must be a visible product code - NEVER generate random SKUs
+  * If no SKU is visible in the image, set it to null
+  * Extract prices as numbers only
+- For any page:
+  * Return ONLY the JSON object
+  * No additional text or formatting
+  * Every field must be present
+  * Use null for missing values
+","Log","644019f2-f172-4beb-97fc-8f5c0841e937","740236bf-9d88-4e0e-a62e-06e27e5a1bbd","log","1738036218559402"
+"System Prompt: You are a JSON generation assistant analyzing shoe catalog pages. You ONLY output valid JSON according to this exact schema:
+{
+  "name": "",
+  "sku": "",
+  "brand": "",
+  "category": "shoes",
+  "size": "",
+  "color": "",
+  "material": "",
+  "wholesale_price": 0,
+  "retail_price": 0,
+  "product_number": "",
+  "description": "",
+  "specifications": {},
+  "season": "all",
+  "extracted_metadata": {}
+}
+
+CRITICAL INSTRUCTIONS:
+1. Return ONLY the JSON object. No markdown, no code blocks, no explanations.
+2. Any text outside the JSON object is a mistake.
+3. If uncertain about a value, use null instead of omitting the field.
+4. The JSON must be valid - all strings quoted, no trailing commas.
+5. Numbers should be plain numbers without currency symbols.
+6. Page Type Analysis:
+   - Cover/intro pages: Will have brand logo/name but no product prices
+   - Product pages: Will have shoe images with specific details and prices
+7. Brand Handling:
+   - Document filename "(FERRA) Premium_Women Shoes_Relife_AutumnWinter_2025.pdf - Page 11" likely contains either:
+     * The full brand name
+     * An abbreviation of the brand
+   - Strongly prefer any brand name or abbreviation that appears in "(FERRA) Premium_Women Shoes_Relife_AutumnWinter_2025.pdf - Page 11"
+   - Brand is also shown prominently on cover/intro pages
+   - Brand name should be extracted exactly as shown
+   - Do not confuse material types for brand names
+   - Do not confuse product names for brand names
+8. Product Details:
+   - Name: The model/style name of the shoe
+   - Material: Type of material used
+   - SKU: ONLY use product codes visible in the image (e.g., "2034 014")
+   - NEVER generate random SKUs - if no SKU is visible, set to null
+   - Prices must be numbers only, no currency symbols
+9. Cover Pages:
+   - Set name, sku, prices to null
+   - Focus on capturing the exact brand name
+   - Store any brand taglines/info in extracted_metadata
+","Log","644019f2-f172-4beb-97fc-8f5c0841e937","a114b688-356a-4d07-9c1a-eaf5d551dcb8","log","1738036218559142"
+"OpenAI API key present: true
+","Log","644019f2-f172-4beb-97fc-8f5c0841e937","648b5f62-99b5-4c86-ac16-f34738e15e75","log","1738036218558930"
+"Image URL: https://pdf-temp-files.s3.us-west-2.amazonaws.com/W83CSJVQZXP8Z4XBJ4NX9JW7OQ9H2RBD/file.png?X-Amz-Expires=3600&X-Amz-Algorithm=AWS4-HMAC-SHA256&X-Amz-Credential=AKIAIZJDPLX6D7EHVCKA/20250128/us-west-2/s3/aws4_request&X-Amz-Date=20250128T034906Z&X-Amz-SignedHeaders=host&X-Amz-Signature=81de9e8aeb58053ee5c91b42453644c9b127b2019381966267b2df3b10dfb064
+","Log","644019f2-f172-4beb-97fc-8f5c0841e937","6387cdf1-4f4a-4004-a99f-cbdf7c4fe4e1","log","1738036218558782"
+"Processing: (FERRA) Premium_Women Shoes_Relife_AutumnWinter_2025.pdf - Page 11
+","Log","644019f2-f172-4beb-97fc-8f5c0841e937","c21f5f36-ce6b-4ef9-9d19-b3ccf831628a","log","1738036218558586"
+"
+=== Starting OpenAI Analysis ===
+","Log","644019f2-f172-4beb-97fc-8f5c0841e937","79c1eb4c-4632-460e-ae79-09cd72f6991f","log","1738036218558402"
+"Analyzing page 11/13
+","Log","644019f2-f172-4beb-97fc-8f5c0841e937","19f6135d-add5-41db-a2e2-4e8c4a96e0c0","log","1738036218558243"
+"Skipping product creation for page 10 - appears to be a cover/info page
+","Log","644019f2-f172-4beb-97fc-8f5c0841e937","3254be8a-f606-43c6-975f-3b3f5113a018","log","1738036218558050"
+"Final parsed product data: {
+  "name": null,
+  "sku": "5887-23803B-12LR",
+  "brand": "Relife",
+  "category": "shoes",
+  "size": "36-44",
+  "color": "Black",
+  "material": "Leather Upper",
+  "wholesale_price": 99,
+  "retail_price": 220,
+  "product_number": null,
+  "description": "Soft Reflex System, Adjustable calf Width (38 – 43 cm.), Recycled PET Lining (optional), Water Repellent Tex, Flexible and Lightweight, Width: G, Height: 30 mm.",
+  "specifications": {},
+  "season": "all",
+  "extracted_metadata": {}
+}
+","Log","644019f2-f172-4beb-97fc-8f5c0841e937","4b1355c9-1336-468b-babc-dd0b99ddc586","log","1738036218557870"
+"
+Extracted JSON string: {
+  "name": null,
+  "sku": "5887-23803B-12LR",
+  "brand": "Relife",
+  "category": "shoes",
+  "size": "36-44",
+  "color": "Black",
+  "material": "Leather Upper",
+  "wholesale_price": 99,
+  "retail_price": 220,
+  "product_number": null,
+  "description": "Soft Reflex System, Adjustable calf Width (38 – 43 cm.), Recycled PET Lining (optional), Water Repellent Tex, Flexible and Lightweight, Width: G, Height: 30 mm.",
+  "specifications": {},
+  "season": "all",
+  "extracted_metadata": {}
+}
+","Log","644019f2-f172-4beb-97fc-8f5c0841e937","1574853b-7401-4ca7-82bd-846972a47fed","log","1738036218557676"
+"No code block found, looking for raw JSON object
+","Log","644019f2-f172-4beb-97fc-8f5c0841e937","7b892b9c-3ac2-4a4a-a8b8-e824a0ac5597","log","1738036218557488"
+"
+Raw content to parse: {
+  "name": null,
+  "sku": "5887-23803B-12LR",
+  "brand": "Relife",
+  "category": "shoes",
+  "size": "36-44",
+  "color": "Black",
+  "material": "Leather Upper",
+  "wholesale_price": 99,
+  "retail_price": 220,
+  "product_number": null,
+  "description": "Soft Reflex System, Adjustable calf Width (38 – 43 cm.), Recycled PET Lining (optional), Water Repellent Tex, Flexible and Lightweight, Width: G, Height: 30 mm.",
+  "specifications": {},
+  "season": "all",
+  "extracted_metadata": {}
+}
+","Log","644019f2-f172-4beb-97fc-8f5c0841e937","848bebb2-90f7-4564-9611-1f70fee9b91f","log","1738036218557355"
+"Raw content: {
+  "name": null,
+  "sku": "5887-23803B-12LR",
+  "brand": "Relife",
+  "category": "shoes",
+  "size": "36-44",
+  "color": "Black",
+  "material": "Leather Upper",
+  "wholesale_price": 99,
+  "retail_price": 220,
+  "product_number": null,
+  "description": "Soft Reflex System, Adjustable calf Width (38 – 43 cm.), Recycled PET Lining (optional), Water Repellent Tex, Flexible and Lightweight, Width: G, Height: 30 mm.",
+  "specifications": {},
+  "season": "all",
+  "extracted_metadata": {}
+}
+","Log","644019f2-f172-4beb-97fc-8f5c0841e937","b664e5c4-b0c4-4224-8cfd-1da75e59fd65","log","1738036218557196"
+"Status: 200
+","Log","644019f2-f172-4beb-97fc-8f5c0841e937","2d62aae0-2575-473a-8db8-fe77ef25cfa6","log","1738036218557042"
+"OpenAI Response: {
+  "id": "chatcmpl-AuWu2T7oQJDQcpFHlADXfyLZbWYzI",
+  "object": "chat.completion",
+  "created": 1738036210,
+  "model": "gpt-4o-2024-08-06",
+  "choices": [
+    {
+      "index": 0,
+      "message": {
+        "role": "assistant",
+        "content": "{\n  \"name\": null,\n  \"sku\": \"5887-23803B-12LR\",\n  \"brand\": \"Relife\",\n  \"category\": \"shoes\",\n  \"size\": \"36-44\",\n  \"color\": \"Black\",\n  \"material\": \"Leather Upper\",\n  \"wholesale_price\": 99,\n  \"retail_price\": 220,\n  \"product_number\": null,\n  \"description\": \"Soft Reflex System, Adjustable calf Width (38 – 43 cm.), Recycled PET Lining (optional), Water Repellent Tex, Flexible and Lightweight, Width: G, Height: 30 mm.\",\n  \"specifications\": {},\n  \"season\": \"all\",\n  \"extracted_metadata\": {}\n}",
+        "refusal": null
+      },
+      "logprobs": null,
+      "finish_reason": "stop"
+    }
+  ],
+  "usage": {
+    "prompt_tokens": 1990,
+    "completion_tokens": 155,
+    "total_tokens": 2145,
+    "prompt_tokens_details": {
+      "cached_tokens": 0,
+      "audio_tokens": 0
+    },
+    "completion_tokens_details": {
+      "reasoning_tokens": 0,
+      "audio_tokens": 0,
+      "accepted_prediction_tokens": 0,
+      "rejected_prediction_tokens": 0
+    }
+  },
+  "service_tier": "default",
+  "system_fingerprint": "fp_4691090a87"
+}
+","Log","644019f2-f172-4beb-97fc-8f5c0841e937","75ba2449-1d52-4fe0-bb6d-4d5ec1f24c7c","log","1738036218556849"
+"
+Attempting OpenAI API call (attempt 1/3)...
+","Log","644019f2-f172-4beb-97fc-8f5c0841e937","7ea5b78e-5aa2-4128-a789-d43ba9fe45c4","log","1738036213567810"
+"Full OpenAI Request Payload: {
+  "model": "gpt-4o",
+  "messages": [
+    {
+      "role": "system",
+      "content": "You are a JSON generation assistant analyzing shoe catalog pages. You ONLY output valid JSON according to this exact schema:\n{\n  \"name\": \"\",\n  \"sku\": \"\",\n  \"brand\": \"\",\n  \"category\": \"shoes\",\n  \"size\": \"\",\n  \"color\": \"\",\n  \"material\": \"\",\n  \"wholesale_price\": 0,\n  \"retail_price\": 0,\n  \"product_number\": \"\",\n  \"description\": \"\",\n  \"specifications\": {},\n  \"season\": \"all\",\n  \"extracted_metadata\": {}\n}\n\nCRITICAL INSTRUCTIONS:\n1. Return ONLY the JSON object. No markdown, no code blocks, no explanations.\n2. Any text outside the JSON object is a mistake.\n3. If uncertain about a value, use null instead of omitting the field.\n4. The JSON must be valid - all strings quoted, no trailing commas.\n5. Numbers should be plain numbers without currency symbols.\n6. Page Type Analysis:\n   - Cover/intro pages: Will have brand logo/name but no product prices\n   - Product pages: Will have shoe images with specific details and prices\n7. Brand Handling:\n   - Document filename \"(FERRA) Premium_Women Shoes_Relife_AutumnWinter_2025.pdf - Page 10\" likely contains either:\n     * The full brand name\n     * An abbreviation of the brand\n   - Strongly prefer any brand name or abbreviation that appears in \"(FERRA) Premium_Women Shoes_Relife_AutumnWinter_2025.pdf - Page 10\"\n   - Brand is also shown prominently on cover/intro pages\n   - Brand name should be extracted exactly as shown\n   - Do not confuse material types for brand names\n   - Do not confuse product names for brand names\n8. Product Details:\n   - Name: The model/style name of the shoe\n   - Material: Type of material used\n   - SKU: ONLY use product codes visible in the image (e.g., \"2034 014\")\n   - NEVER generate random SKUs - if no SKU is visible, set to null\n   - Prices must be numbers only, no currency symbols\n9. Cover Pages:\n   - Set name, sku, prices to null\n   - Focus on capturing the exact brand name\n   - Store any brand taglines/info in extracted_metadata"
+    },
+    {
+      "role": "user",
+      "content": [
+        {
+          "type": "text",
+          "text": "Analyze this catalog page and return ONLY a JSON object matching this schema:\n{\n  \"name\": \"\",\n  \"sku\": \"\",\n  \"brand\": \"\",\n  \"category\": \"shoes\",\n  \"size\": \"\",\n  \"color\": \"\",\n  \"material\": \"\",\n  \"wholesale_price\": 0,\n  \"retail_price\": 0,\n  \"product_number\": \"\",\n  \"description\": \"\",\n  \"specifications\": {},\n  \"season\": \"all\",\n  \"extracted_metadata\": {}\n}\n\nRemember:\n- First determine if this is a cover/intro page or product page\n- Document filename \"(FERRA) Premium_Women Shoes_Relife_AutumnWinter_2025.pdf - Page 10\" likely contains:\n  * Either the full brand name or an abbreviation\n- Cover/intro pages:\n  * Will show brand name/logo prominently\n  * Set name, sku, prices to null\n  * Capture exact brand name as shown\n  * Strongly prefer any brand name or abbreviation found in \"(FERRA) Premium_Women Shoes_Relife_AutumnWinter_2025.pdf - Page 10\"\n  * Store brand details in extracted_metadata\n- Product pages:\n  * Must have shoe image with details\n  * Name is the model/style name\n  * Material goes in material field, not name or brand\n  * SKU must be a visible product code - NEVER generate random SKUs\n  * If no SKU is visible in the image, set it to null\n  * Extract prices as numbers only\n- For any page:\n  * Return ONLY the JSON object\n  * No additional text or formatting\n  * Every field must be present\n  * Use null for missing values"
+        },
+        {
+          "type": "image_url",
+          "image_url": {
+            "url": "https://pdf-temp-files.s3.us-west-2.amazonaws.com/QYX6974EA1RJN5F9DED42N02FC6UH4O8/file.png?X-Amz-Expires=3600&X-Amz-Algorithm=AWS4-HMAC-SHA256&X-Amz-Credential=AKIAIZJDPLX6D7EHVCKA/20250128/us-west-2/s3/aws4_request&X-Amz-Date=20250128T034906Z&X-Amz-SignedHeaders=host&X-Amz-Signature=b6161792bc9dd4346b5c2365673a299d34f73c1cb5ed112abfbc4ac1fe5ebc5d"
+          }
+        }
+      ]
+    }
+  ],
+  "max_tokens": 4096,
+  "temperature": 0,
+  "presence_penalty": 0,
+  "frequency_penalty": 0
+}
+","Log","644019f2-f172-4beb-97fc-8f5c0841e937","e291c6c5-9ea6-4211-9aa1-71517e6c05f6","log","1738036213567632"
+"
+User Prompt: Analyze this catalog page and return ONLY a JSON object matching this schema:
+{
+  "name": "",
+  "sku": "",
+  "brand": "",
+  "category": "shoes",
+  "size": "",
+  "color": "",
+  "material": "",
+  "wholesale_price": 0,
+  "retail_price": 0,
+  "product_number": "",
+  "description": "",
+  "specifications": {},
+  "season": "all",
+  "extracted_metadata": {}
+}
+
+Remember:
+- First determine if this is a cover/intro page or product page
+- Document filename "(FERRA) Premium_Women Shoes_Relife_AutumnWinter_2025.pdf - Page 10" likely contains:
+  * Either the full brand name or an abbreviation
+- Cover/intro pages:
+  * Will show brand name/logo prominently
+  * Set name, sku, prices to null
+  * Capture exact brand name as shown
+  * Strongly prefer any brand name or abbreviation found in "(FERRA) Premium_Women Shoes_Relife_AutumnWinter_2025.pdf - Page 10"
+  * Store brand details in extracted_metadata
+- Product pages:
+  * Must have shoe image with details
+  * Name is the model/style name
+  * Material goes in material field, not name or brand
+  * SKU must be a visible product code - NEVER generate random SKUs
+  * If no SKU is visible in the image, set it to null
+  * Extract prices as numbers only
+- For any page:
+  * Return ONLY the JSON object
+  * No additional text or formatting
+  * Every field must be present
+  * Use null for missing values
+","Log","644019f2-f172-4beb-97fc-8f5c0841e937","7b5f06b5-a2eb-4fe5-9f0c-829c173643a9","log","1738036213567482"
+"System Prompt: You are a JSON generation assistant analyzing shoe catalog pages. You ONLY output valid JSON according to this exact schema:
+{
+  "name": "",
+  "sku": "",
+  "brand": "",
+  "category": "shoes",
+  "size": "",
+  "color": "",
+  "material": "",
+  "wholesale_price": 0,
+  "retail_price": 0,
+  "product_number": "",
+  "description": "",
+  "specifications": {},
+  "season": "all",
+  "extracted_metadata": {}
+}
+
+CRITICAL INSTRUCTIONS:
+1. Return ONLY the JSON object. No markdown, no code blocks, no explanations.
+2. Any text outside the JSON object is a mistake.
+3. If uncertain about a value, use null instead of omitting the field.
+4. The JSON must be valid - all strings quoted, no trailing commas.
+5. Numbers should be plain numbers without currency symbols.
+6. Page Type Analysis:
+   - Cover/intro pages: Will have brand logo/name but no product prices
+   - Product pages: Will have shoe images with specific details and prices
+7. Brand Handling:
+   - Document filename "(FERRA) Premium_Women Shoes_Relife_AutumnWinter_2025.pdf - Page 10" likely contains either:
+     * The full brand name
+     * An abbreviation of the brand
+   - Strongly prefer any brand name or abbreviation that appears in "(FERRA) Premium_Women Shoes_Relife_AutumnWinter_2025.pdf - Page 10"
+   - Brand is also shown prominently on cover/intro pages
+   - Brand name should be extracted exactly as shown
+   - Do not confuse material types for brand names
+   - Do not confuse product names for brand names
+8. Product Details:
+   - Name: The model/style name of the shoe
+   - Material: Type of material used
+   - SKU: ONLY use product codes visible in the image (e.g., "2034 014")
+   - NEVER generate random SKUs - if no SKU is visible, set to null
+   - Prices must be numbers only, no currency symbols
+9. Cover Pages:
+   - Set name, sku, prices to null
+   - Focus on capturing the exact brand name
+   - Store any brand taglines/info in extracted_metadata
+","Log","644019f2-f172-4beb-97fc-8f5c0841e937","11033aea-831b-441a-b5ba-7e654a5cfd9a","log","1738036213567319"
+"OpenAI API key present: true
+","Log","644019f2-f172-4beb-97fc-8f5c0841e937","dec8446e-fbd1-44ff-933a-87debed4e923","log","1738036213567140"
+"Image URL: https://pdf-temp-files.s3.us-west-2.amazonaws.com/QYX6974EA1RJN5F9DED42N02FC6UH4O8/file.png?X-Amz-Expires=3600&X-Amz-Algorithm=AWS4-HMAC-SHA256&X-Amz-Credential=AKIAIZJDPLX6D7EHVCKA/20250128/us-west-2/s3/aws4_request&X-Amz-Date=20250128T034906Z&X-Amz-SignedHeaders=host&X-Amz-Signature=b6161792bc9dd4346b5c2365673a299d34f73c1cb5ed112abfbc4ac1fe5ebc5d
+","Log","644019f2-f172-4beb-97fc-8f5c0841e937","d11f7f31-3ee8-4064-9293-03939cb807d0","log","1738036213566942"
+"Processing: (FERRA) Premium_Women Shoes_Relife_AutumnWinter_2025.pdf - Page 10
+","Log","644019f2-f172-4beb-97fc-8f5c0841e937","e4352266-494c-4e5a-8902-0f3aef67caa3","log","1738036213566777"
+"
+=== Starting OpenAI Analysis ===
+","Log","644019f2-f172-4beb-97fc-8f5c0841e937","fd6cc43a-696b-49da-a96f-80e594476974","log","1738036213566592"
+"Analyzing page 10/13
+","Log","644019f2-f172-4beb-97fc-8f5c0841e937","0dccc034-27b3-4672-b62b-1f0de9d3f396","log","1738036213566427"
+"Skipping product creation for page 9 - appears to be a cover/info page
+","Log","644019f2-f172-4beb-97fc-8f5c0841e937","0e1e3026-86a3-44b8-b873-63d04c7ddc29","log","1738036213566258"
+"Final parsed product data: {
+  "name": null,
+  "sku": "5717-25805B-05LR",
+  "brand": "Relife",
+  "category": "shoes",
+  "size": "36-44",
+  "color": "Black",
+  "material": "Leather Upper",
+  "wholesale_price": 89,
+  "retail_price": 195,
+  "product_number": "",
+  "description": "Soft Reflex System, Leather Upper, Recycled PET Lining (optional), Water Repellent Tex, Flexible and Lightweight",
+  "specifications": {
+    "width": "G",
+    "height": "20 mm",
+    "size_range": "36-44"
+  },
+  "season": "all",
+  "extracted_metadata": {}
+}
+","Log","644019f2-f172-4beb-97fc-8f5c0841e937","d359ca02-2bde-4e8f-aaf7-95e92abb39e8","log","1738036213566121"
+"
+Extracted JSON string: {
+  "name": null,
+  "sku": "5717-25805B-05LR",
+  "brand": "Relife",
+  "category": "shoes",
+  "size": "36-44",
+  "color": "Black",
+  "material": "Leather Upper",
+  "wholesale_price": 89,
+  "retail_price": 195,
+  "product_number": "",
+  "description": "Soft Reflex System, Leather Upper, Recycled PET Lining (optional), Water Repellent Tex, Flexible and Lightweight",
+  "specifications": {
+    "width": "G",
+    "height": "20 mm",
+    "size_range": "36-44"
+  },
+  "season": "all",
+  "extracted_metadata": {}
+}
+","Log","644019f2-f172-4beb-97fc-8f5c0841e937","b992d38b-49e4-40ba-95aa-f39bf620c6ac","log","1738036213565959"
+"No code block found, looking for raw JSON object
+","Log","644019f2-f172-4beb-97fc-8f5c0841e937","b995af4f-b199-49fe-9605-6c461126afe6","log","1738036213565794"
+"
+Raw content to parse: {
+  "name": null,
+  "sku": "5717-25805B-05LR",
+  "brand": "Relife",
+  "category": "shoes",
+  "size": "36-44",
+  "color": "Black",
+  "material": "Leather Upper",
+  "wholesale_price": 89,
+  "retail_price": 195,
+  "product_number": "",
+  "description": "Soft Reflex System, Leather Upper, Recycled PET Lining (optional), Water Repellent Tex, Flexible and Lightweight",
+  "specifications": {
+    "width": "G",
+    "height": "20 mm",
+    "size_range": "36-44"
+  },
+  "season": "all",
+  "extracted_metadata": {}
+}
+","Log","644019f2-f172-4beb-97fc-8f5c0841e937","cc40499c-108f-4be9-b1ee-3c679a54ea55","log","1738036213565634"
+"Raw content: {
+  "name": null,
+  "sku": "5717-25805B-05LR",
+  "brand": "Relife",
+  "category": "shoes",
+  "size": "36-44",
+  "color": "Black",
+  "material": "Leather Upper",
+  "wholesale_price": 89,
+  "retail_price": 195,
+  "product_number": "",
+  "description": "Soft Reflex System, Leather Upper, Recycled PET Lining (optional), Water Repellent Tex, Flexible and Lightweight",
+  "specifications": {
+    "width": "G",
+    "height": "20 mm",
+    "size_range": "36-44"
+  },
+  "season": "all",
+  "extracted_metadata": {}
+}
+","Log","644019f2-f172-4beb-97fc-8f5c0841e937","faab428a-7e3d-4fa6-8c23-c31dfb57557a","log","1738036213565471"
+"Status: 200
+","Log","644019f2-f172-4beb-97fc-8f5c0841e937","4f8fd27a-5958-4022-a0ca-1c5e56a6019d","log","1738036213565253"
+"OpenAI Response: {
+  "id": "chatcmpl-AuWtwB7Yj9ZEyrBIkCxHNJqBEnnbJ",
+  "object": "chat.completion",
+  "created": 1738036204,
+  "model": "gpt-4o-2024-08-06",
+  "choices": [
+    {
+      "index": 0,
+      "message": {
+        "role": "assistant",
+        "content": "{\n  \"name\": null,\n  \"sku\": \"5717-25805B-05LR\",\n  \"brand\": \"Relife\",\n  \"category\": \"shoes\",\n  \"size\": \"36-44\",\n  \"color\": \"Black\",\n  \"material\": \"Leather Upper\",\n  \"wholesale_price\": 89,\n  \"retail_price\": 195,\n  \"product_number\": \"\",\n  \"description\": \"Soft Reflex System, Leather Upper, Recycled PET Lining (optional), Water Repellent Tex, Flexible and Lightweight\",\n  \"specifications\": {\n    \"width\": \"G\",\n    \"height\": \"20 mm\",\n    \"size_range\": \"36-44\"\n  },\n  \"season\": \"all\",\n  \"extracted_metadata\": {}\n}",
+        "refusal": null
+      },
+      "logprobs": null,
+      "finish_reason": "stop"
+    }
+  ],
+  "usage": {
+    "prompt_tokens": 1990,
+    "completion_tokens": 164,
+    "total_tokens": 2154,
+    "prompt_tokens_details": {
+      "cached_tokens": 0,
+      "audio_tokens": 0
+    },
+    "completion_tokens_details": {
+      "reasoning_tokens": 0,
+      "audio_tokens": 0,
+      "accepted_prediction_tokens": 0,
+      "rejected_prediction_tokens": 0
+    }
+  },
+  "service_tier": "default",
+  "system_fingerprint": "fp_4691090a87"
+}
+","Log","644019f2-f172-4beb-97fc-8f5c0841e937","70dd2cec-515b-435b-8953-b484312eeb00","log","1738036213564943"
+"
+Attempting OpenAI API call (attempt 1/3)...
+","Log","644019f2-f172-4beb-97fc-8f5c0841e937","3f533be1-a3a1-416b-aa8f-258224b6678d","log","1738036203590288"
+"Full OpenAI Request Payload: {
+  "model": "gpt-4o",
+  "messages": [
+    {
+      "role": "system",
+      "content": "You are a JSON generation assistant analyzing shoe catalog pages. You ONLY output valid JSON according to this exact schema:\n{\n  \"name\": \"\",\n  \"sku\": \"\",\n  \"brand\": \"\",\n  \"category\": \"shoes\",\n  \"size\": \"\",\n  \"color\": \"\",\n  \"material\": \"\",\n  \"wholesale_price\": 0,\n  \"retail_price\": 0,\n  \"product_number\": \"\",\n  \"description\": \"\",\n  \"specifications\": {},\n  \"season\": \"all\",\n  \"extracted_metadata\": {}\n}\n\nCRITICAL INSTRUCTIONS:\n1. Return ONLY the JSON object. No markdown, no code blocks, no explanations.\n2. Any text outside the JSON object is a mistake.\n3. If uncertain about a value, use null instead of omitting the field.\n4. The JSON must be valid - all strings quoted, no trailing commas.\n5. Numbers should be plain numbers without currency symbols.\n6. Page Type Analysis:\n   - Cover/intro pages: Will have brand logo/name but no product prices\n   - Product pages: Will have shoe images with specific details and prices\n7. Brand Handling:\n   - Document filename \"(FERRA) Premium_Women Shoes_Relife_AutumnWinter_2025.pdf - Page 9\" likely contains either:\n     * The full brand name\n     * An abbreviation of the brand\n   - Strongly prefer any brand name or abbreviation that appears in \"(FERRA) Premium_Women Shoes_Relife_AutumnWinter_2025.pdf - Page 9\"\n   - Brand is also shown prominently on cover/intro pages\n   - Brand name should be extracted exactly as shown\n   - Do not confuse material types for brand names\n   - Do not confuse product names for brand names\n8. Product Details:\n   - Name: The model/style name of the shoe\n   - Material: Type of material used\n   - SKU: ONLY use product codes visible in the image (e.g., \"2034 014\")\n   - NEVER generate random SKUs - if no SKU is visible, set to null\n   - Prices must be numbers only, no currency symbols\n9. Cover Pages:\n   - Set name, sku, prices to null\n   - Focus on capturing the exact brand name\n   - Store any brand taglines/info in extracted_metadata"
+    },
+    {
+      "role": "user",
+      "content": [
+        {
+          "type": "text",
+          "text": "Analyze this catalog page and return ONLY a JSON object matching this schema:\n{\n  \"name\": \"\",\n  \"sku\": \"\",\n  \"brand\": \"\",\n  \"category\": \"shoes\",\n  \"size\": \"\",\n  \"color\": \"\",\n  \"material\": \"\",\n  \"wholesale_price\": 0,\n  \"retail_price\": 0,\n  \"product_number\": \"\",\n  \"description\": \"\",\n  \"specifications\": {},\n  \"season\": \"all\",\n  \"extracted_metadata\": {}\n}\n\nRemember:\n- First determine if this is a cover/intro page or product page\n- Document filename \"(FERRA) Premium_Women Shoes_Relife_AutumnWinter_2025.pdf - Page 9\" likely contains:\n  * Either the full brand name or an abbreviation\n- Cover/intro pages:\n  * Will show brand name/logo prominently\n  * Set name, sku, prices to null\n  * Capture exact brand name as shown\n  * Strongly prefer any brand name or abbreviation found in \"(FERRA) Premium_Women Shoes_Relife_AutumnWinter_2025.pdf - Page 9\"\n  * Store brand details in extracted_metadata\n- Product pages:\n  * Must have shoe image with details\n  * Name is the model/style name\n  * Material goes in material field, not name or brand\n  * SKU must be a visible product code - NEVER generate random SKUs\n  * If no SKU is visible in the image, set it to null\n  * Extract prices as numbers only\n- For any page:\n  * Return ONLY the JSON object\n  * No additional text or formatting\n  * Every field must be present\n  * Use null for missing values"
+        },
+        {
+          "type": "image_url",
+          "image_url": {
+            "url": "https://pdf-temp-files.s3.us-west-2.amazonaws.com/DCLHYEYUIWXK4KUBE3TE0X52EFINLW1C/file.png?X-Amz-Expires=3600&X-Amz-Algorithm=AWS4-HMAC-SHA256&X-Amz-Credential=AKIAIZJDPLX6D7EHVCKA/20250128/us-west-2/s3/aws4_request&X-Amz-Date=20250128T034906Z&X-Amz-SignedHeaders=host&X-Amz-Signature=9ff77ea86322181095b4f5e31acd4a9ee63f86eefdb5f2ae43b66981d4d132c8"
+          }
+        }
+      ]
+    }
+  ],
+  "max_tokens": 4096,
+  "temperature": 0,
+  "presence_penalty": 0,
+  "frequency_penalty": 0
+}
+","Log","644019f2-f172-4beb-97fc-8f5c0841e937","4f4bf058-8ca2-4519-ac09-98128b80c245","log","1738036203590123"
+"
+User Prompt: Analyze this catalog page and return ONLY a JSON object matching this schema:
+{
+  "name": "",
+  "sku": "",
+  "brand": "",
+  "category": "shoes",
+  "size": "",
+  "color": "",
+  "material": "",
+  "wholesale_price": 0,
+  "retail_price": 0,
+  "product_number": "",
+  "description": "",
+  "specifications": {},
+  "season": "all",
+  "extracted_metadata": {}
+}
+
+Remember:
+- First determine if this is a cover/intro page or product page
+- Document filename "(FERRA) Premium_Women Shoes_Relife_AutumnWinter_2025.pdf - Page 9" likely contains:
+  * Either the full brand name or an abbreviation
+- Cover/intro pages:
+  * Will show brand name/logo prominently
+  * Set name, sku, prices to null
+  * Capture exact brand name as shown
+  * Strongly prefer any brand name or abbreviation found in "(FERRA) Premium_Women Shoes_Relife_AutumnWinter_2025.pdf - Page 9"
+  * Store brand details in extracted_metadata
+- Product pages:
+  * Must have shoe image with details
+  * Name is the model/style name
+  * Material goes in material field, not name or brand
+  * SKU must be a visible product code - NEVER generate random SKUs
+  * If no SKU is visible in the image, set it to null
+  * Extract prices as numbers only
+- For any page:
+  * Return ONLY the JSON object
+  * No additional text or formatting
+  * Every field must be present
+  * Use null for missing values
+","Log","644019f2-f172-4beb-97fc-8f5c0841e937","d5b08089-9910-4777-a03a-5b423c30b918","log","1738036203589973"
+"System Prompt: You are a JSON generation assistant analyzing shoe catalog pages. You ONLY output valid JSON according to this exact schema:
+{
+  "name": "",
+  "sku": "",
+  "brand": "",
+  "category": "shoes",
+  "size": "",
+  "color": "",
+  "material": "",
+  "wholesale_price": 0,
+  "retail_price": 0,
+  "product_number": "",
+  "description": "",
+  "specifications": {},
+  "season": "all",
+  "extracted_metadata": {}
+}
+
+CRITICAL INSTRUCTIONS:
+1. Return ONLY the JSON object. No markdown, no code blocks, no explanations.
+2. Any text outside the JSON object is a mistake.
+3. If uncertain about a value, use null instead of omitting the field.
+4. The JSON must be valid - all strings quoted, no trailing commas.
+5. Numbers should be plain numbers without currency symbols.
+6. Page Type Analysis:
+   - Cover/intro pages: Will have brand logo/name but no product prices
+   - Product pages: Will have shoe images with specific details and prices
+7. Brand Handling:
+   - Document filename "(FERRA) Premium_Women Shoes_Relife_AutumnWinter_2025.pdf - Page 9" likely contains either:
+     * The full brand name
+     * An abbreviation of the brand
+   - Strongly prefer any brand name or abbreviation that appears in "(FERRA) Premium_Women Shoes_Relife_AutumnWinter_2025.pdf - Page 9"
+   - Brand is also shown prominently on cover/intro pages
+   - Brand name should be extracted exactly as shown
+   - Do not confuse material types for brand names
+   - Do not confuse product names for brand names
+8. Product Details:
+   - Name: The model/style name of the shoe
+   - Material: Type of material used
+   - SKU: ONLY use product codes visible in the image (e.g., "2034 014")
+   - NEVER generate random SKUs - if no SKU is visible, set to null
+   - Prices must be numbers only, no currency symbols
+9. Cover Pages:
+   - Set name, sku, prices to null
+   - Focus on capturing the exact brand name
+   - Store any brand taglines/info in extracted_metadata
+","Log","644019f2-f172-4beb-97fc-8f5c0841e937","657c496c-5fcd-400c-8ddb-3e46da9febd0","log","1738036203589792"
+"OpenAI API key present: true
+","Log","644019f2-f172-4beb-97fc-8f5c0841e937","5892823e-2b2e-4490-9dc0-1d590222954d","log","1738036203589590"
+"Image URL: https://pdf-temp-files.s3.us-west-2.amazonaws.com/DCLHYEYUIWXK4KUBE3TE0X52EFINLW1C/file.png?X-Amz-Expires=3600&X-Amz-Algorithm=AWS4-HMAC-SHA256&X-Amz-Credential=AKIAIZJDPLX6D7EHVCKA/20250128/us-west-2/s3/aws4_request&X-Amz-Date=20250128T034906Z&X-Amz-SignedHeaders=host&X-Amz-Signature=9ff77ea86322181095b4f5e31acd4a9ee63f86eefdb5f2ae43b66981d4d132c8
+","Log","644019f2-f172-4beb-97fc-8f5c0841e937","a731de60-1047-4a1c-946e-5bdc2dd5845f","log","1738036203589458"
+"Processing: (FERRA) Premium_Women Shoes_Relife_AutumnWinter_2025.pdf - Page 9
+","Log","644019f2-f172-4beb-97fc-8f5c0841e937","ebbd9b38-890c-41a9-8db8-e5fd1f1786db","log","1738036203589319"
+"
+=== Starting OpenAI Analysis ===
+","Log","644019f2-f172-4beb-97fc-8f5c0841e937","7c7ae965-d22d-483b-a637-588b50987b63","log","1738036203589147"
+"Analyzing page 9/13
+","Log","644019f2-f172-4beb-97fc-8f5c0841e937","9eb58bba-42a4-43e0-94de-b72cb28e84e4","log","1738036203589012"
+"Skipping product creation for page 8 - appears to be a cover/info page
+","Log","644019f2-f172-4beb-97fc-8f5c0841e937","37c97b0a-6d77-4d25-a742-5b0da8d71a95","log","1738036203588868"
+"Final parsed product data: {
+  "name": null,
+  "sku": "5717-25805B-04LR",
+  "brand": "Relife",
+  "category": "shoes",
+  "size": "36-44",
+  "color": "Black",
+  "material": "Leather",
+  "wholesale_price": 89,
+  "retail_price": 195,
+  "product_number": "",
+  "description": "",
+  "specifications": {
+    "Soft Reflex System": true,
+    "Recycled PET Lining": "optional",
+    "Water Repellent Tex": true,
+    "Flexible and Lightweight": true,
+    "Width": "G",
+    "Height": "20 mm"
+  },
+  "season": "all",
+  "extracted_metadata": {}
+}
+","Log","644019f2-f172-4beb-97fc-8f5c0841e937","84f44039-b49f-4553-88b9-f019fe6f0a59","log","1738036203588705"
