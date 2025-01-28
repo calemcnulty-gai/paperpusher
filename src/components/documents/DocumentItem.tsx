@@ -1,8 +1,10 @@
 import { Button } from "@/components/ui/button"
-import { FileText, RefreshCw, Loader2 } from "lucide-react"
+import { FileText, RefreshCw, Loader2, AlertCircle } from "lucide-react"
 import { useToast } from "@/hooks/use-toast"
 import { supabase } from "@/integrations/supabase/client"
 import { useQueryClient } from "@tanstack/react-query"
+import { Progress } from "@/components/ui/progress"
+import { Alert, AlertDescription } from "@/components/ui/alert"
 
 interface DocumentItemProps {
   id: string
@@ -10,9 +12,10 @@ interface DocumentItemProps {
   file_path: string
   created_at: string
   content: string | null
-  isProcessing: boolean
-  onProcessingStart: (id: string) => void
-  onProcessingEnd: (id: string) => void
+  processing_status: 'pending' | 'processing' | 'completed' | 'failed'
+  processing_error?: string | null
+  pages_processed?: number
+  total_pages?: number
 }
 
 export const DocumentItem = ({
@@ -21,40 +24,23 @@ export const DocumentItem = ({
   file_path,
   created_at,
   content,
-  isProcessing,
-  onProcessingStart,
-  onProcessingEnd
+  processing_status,
+  processing_error,
+  pages_processed = 0,
+  total_pages = 0
 }: DocumentItemProps) => {
   const { toast } = useToast()
   const queryClient = useQueryClient()
 
   const handleRetryProcessing = async () => {
-    if (isProcessing) {
+    if (processing_status === 'processing') {
       console.log('Document already processing, ignoring request:', id)
       return
     }
 
     console.log('Starting processing for document:', id)
-    onProcessingStart(id)
     
     try {
-      // First check if document is already processed
-      const { data: doc } = await supabase
-        .from('document_embeddings')
-        .select('content')
-        .eq('id', id)
-        .single()
-
-      if (doc?.content) {
-        console.log('Document already processed:', id)
-        toast({
-          title: "Already processed",
-          description: "This document has already been processed.",
-          variant: "default"
-        })
-        return
-      }
-
       console.log('Invoking process-pdf function with file path:', file_path)
       const { error: processError, data: processData } = await supabase.functions.invoke('process-pdf', {
         body: { file_path: file_path }
@@ -77,9 +63,6 @@ export const DocumentItem = ({
       }
 
       console.log('Processing triggered successfully')
-      // Only invalidate the specific document instead of the whole list
-      await queryClient.invalidateQueries({ queryKey: ['documents', id] })
-
       toast({
         title: "Processing started",
         description: "The document is being processed. This may take a few moments."
@@ -91,42 +74,87 @@ export const DocumentItem = ({
         description: error instanceof Error ? error.message : "There was an error processing the document. Please try again.",
         variant: "destructive"
       })
-    } finally {
-      onProcessingEnd(id)
-      console.log('Processing completed for:', id)
+    }
+  }
+
+  const getStatusColor = () => {
+    switch (processing_status) {
+      case 'completed':
+        return 'text-green-600 bg-green-50'
+      case 'failed':
+        return 'text-red-600 bg-red-50'
+      case 'processing':
+        return 'text-blue-600 bg-blue-50'
+      default:
+        return 'text-gray-600 bg-gray-50'
+    }
+  }
+
+  const getStatusText = () => {
+    switch (processing_status) {
+      case 'completed':
+        return 'Processed'
+      case 'failed':
+        return 'Failed'
+      case 'processing':
+        return total_pages > 0 
+          ? `Processing (${pages_processed}/${total_pages} pages)`
+          : 'Processing...'
+      case 'pending':
+        return 'Pending'
+      default:
+        return 'Unknown'
     }
   }
 
   return (
-    <div className="flex items-center justify-between p-4 border rounded-lg">
-      <div className="flex items-center gap-3">
-        <FileText className="h-5 w-5 text-blue-500" />
-        <div>
-          <p className="font-medium">{filename}</p>
-          <p className="text-sm text-muted-foreground">
-            {new Date(created_at).toLocaleDateString()}
-          </p>
+    <div className="space-y-2">
+      <div className="flex items-center justify-between p-4 border rounded-lg">
+        <div className="flex items-center gap-3">
+          <FileText className="h-5 w-5 text-blue-500" />
+          <div>
+            <p className="font-medium">{filename}</p>
+            <p className="text-sm text-muted-foreground">
+              {new Date(created_at).toLocaleDateString()}
+            </p>
+          </div>
+        </div>
+        <div className="flex items-center gap-2">
+          <span className={`text-sm px-2 py-1 rounded ${getStatusColor()}`}>
+            {getStatusText()}
+          </span>
+          <Button
+            variant="ghost"
+            size="sm"
+            onClick={handleRetryProcessing}
+            disabled={processing_status === 'processing'}
+          >
+            {processing_status === 'processing' ? (
+              <Loader2 className="h-4 w-4 animate-spin" />
+            ) : (
+              <RefreshCw className="h-4 w-4" />
+            )}
+          </Button>
         </div>
       </div>
-      <div className="flex items-center gap-2">
-        {content && (
-          <span className="text-sm text-green-600 bg-green-50 px-2 py-1 rounded">
-            Processed
-          </span>
-        )}
-        <Button
-          variant="ghost"
-          size="sm"
-          onClick={handleRetryProcessing}
-          disabled={isProcessing}
-        >
-          {isProcessing ? (
-            <Loader2 className="h-4 w-4 animate-spin" />
-          ) : (
-            <RefreshCw className="h-4 w-4" />
-          )}
-        </Button>
-      </div>
+
+      {processing_status === 'processing' && total_pages > 0 && (
+        <div className="px-4">
+          <Progress 
+            value={(pages_processed / total_pages) * 100} 
+            className="h-2"
+          />
+        </div>
+      )}
+
+      {processing_status === 'failed' && processing_error && (
+        <div className="px-4">
+          <Alert variant="destructive">
+            <AlertCircle className="h-4 w-4" />
+            <AlertDescription>{processing_error}</AlertDescription>
+          </Alert>
+        </div>
+      )}
     </div>
   )
 }

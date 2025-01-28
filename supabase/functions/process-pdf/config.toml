@@ -1,1 +1,4 @@
+[functions.process-pdf]
 project_id = "gukvkyekmmdlmliomxtj"
+verify_jwt = false
+max_timeout = 60

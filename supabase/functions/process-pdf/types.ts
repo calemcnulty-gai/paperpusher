@@ -15,18 +15,37 @@ export interface OpenAIResponse {
 }
 
 export interface ProductData {
-  name: string;
-  sku: string;
+  name: string | null;
+  sku: string | null;
   brand: string | null;
-  category: string;
-  size: string | null;
-  color: string | null;
-  material: string | null;
-  wholesale_price: number | null;
-  retail_price: number | null;
-  product_number: string | null;
-  description: string | null;
-  specifications: Record<string, any>;
-  season: string;
-  extracted_metadata: Record<string, any>;
+  category?: string;
+  size?: string;
+  color?: string;
+  material?: string;
+  wholesale_price?: number | null;
+  retail_price?: number | null;
+  product_number?: string;
+  description?: string;
+  specifications?: Record<string, any>;
+  season?: string;
+  extracted_metadata?: Record<string, any>;
+}
+
+export interface DocumentEmbedding {
+  id: string;
+  content: string | null;
+  filename: string;
+  file_path: string;
+  processing_status: 'pending' | 'processing' | 'completed' | 'failed';
+  processing_started_at?: string;
+  processing_completed_at?: string;
+  processing_error?: string | null;
+  pages_processed?: number;
+  total_pages?: number;
+}
+
+export interface ProcessingResult {
+  success: boolean;
+  pages_processed: number;
+  products_created: number;
 }

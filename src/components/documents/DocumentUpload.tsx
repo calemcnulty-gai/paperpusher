@@ -52,12 +52,15 @@ export const DocumentUpload = () => {
 
       console.log('File uploaded successfully to storage')
 
-      // First create the document record
+      // Create the document record with initial processing status
       const { data: docData, error: dbError } = await supabase
         .from('document_embeddings')
         .insert({
           filename: file.name,
           file_path: filePath,
+          processing_status: 'pending',
+          pages_processed: 0,
+          total_pages: 0
         })
         .select()
         .single()
@@ -84,7 +87,7 @@ export const DocumentUpload = () => {
       console.log('Processing response:', processData)
       toast({
         title: "Document uploaded",
-        description: "The document has been uploaded and is being processed"
+        description: "The document has been uploaded and is being processed. You can track the progress below."
       })
 
       // Invalidate queries to refresh the document list
@@ -134,7 +137,7 @@ export const DocumentUpload = () => {
             ) : (
               <Upload className="h-4 w-4 mr-2" />
             )}
-            {isUploading ? "Processing..." : "Upload Document"}
+            {isUploading ? "Uploading..." : "Upload Document"}
           </Button>
         </div>
       </CardContent>

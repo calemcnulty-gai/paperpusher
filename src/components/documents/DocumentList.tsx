@@ -9,9 +9,13 @@ import { Alert, AlertDescription } from "@/components/ui/alert"
 interface DocumentEmbedding {
   id: string
   filename: string
-  file_path: string  // Added this field
+  file_path: string
   content: string | null
   created_at: string
+  processing_status: 'pending' | 'processing' | 'completed' | 'failed'
+  processing_error?: string | null
+  pages_processed?: number
+  total_pages?: number
 }
 
 export const DocumentList = () => {
@@ -31,6 +35,14 @@ export const DocumentList = () => {
       
       console.log('Documents fetched successfully:', data?.length || 0, 'documents')
       return data as DocumentEmbedding[]
+    },
+    // Refresh every 5 seconds while documents are processing
+    refetchInterval: (data) => {
+      const hasProcessingDocs = data?.some(doc => 
+        doc.processing_status === 'processing' || 
+        doc.processing_status === 'pending'
+      )
+      return hasProcessingDocs ? 5000 : false
     }
   })
 
