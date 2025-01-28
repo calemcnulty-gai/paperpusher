@@ -103,31 +103,34 @@ serve(async (req) => {
         allAnalyses.push(productData)
         
         // Track brand information if found
-        if (productData.brand && !catalogBrand) {
-          console.log(`Found catalog brand on page ${index + 1}:`, productData.brand)
-          catalogBrand = productData.brand
+        if (productData.brand) {
+          // If this page has no product details (name/sku null), it's likely a cover page
+          // so we trust its brand information more
+          if (!productData.name && !productData.sku) {
+            console.log(`Found brand "${productData.brand}" on cover page ${index + 1}`)
+            catalogBrand = productData.brand
+          } else if (!catalogBrand) {
+            // If we haven't found a brand from a cover page yet, use this one
+            console.log(`Found brand "${productData.brand}" on product page ${index + 1}`)
+            catalogBrand = productData.brand
+          }
         }
         
-        // Only create products that have both name and SKU
-        if (productData.name && productData.sku && productData.name.trim() !== '' && productData.sku.trim() !== '') {
-          // Apply catalog brand if product has no brand
-          if (catalogBrand && (!productData.brand || productData.brand.trim() === '')) {
-            console.log(`Applying catalog brand "${catalogBrand}" to product:`, productData.name)
-            productData.brand = catalogBrand
-          }
-          
-          console.log(`Creating product from page ${index + 1} - Name: ${productData.name}, SKU: ${productData.sku}, Brand: ${productData.brand}`)
-          const product = await createProduct(supabase, doc.id, productData, imageUrl)
-          products.push(product)
-        } else {
-          console.log(`Skipping product creation for page ${index + 1} - Missing required fields:`, {
-            hasName: !!productData.name && productData.name.trim() !== '',
-            hasSku: !!productData.sku && productData.sku.trim() !== '',
-            name: productData.name,
-            sku: productData.sku,
-            brand: productData.brand || catalogBrand || null
-          })
+        // Skip product creation for pages without product details
+        if (!productData.name || !productData.sku || productData.name.trim() === '' || productData.sku.trim() === '') {
+          console.log(`Skipping product creation for page ${index + 1} - appears to be a cover/info page`)
+          continue
         }
+        
+        // Apply catalog brand if product has no brand
+        if (catalogBrand && (!productData.brand || productData.brand.trim() === '')) {
+          console.log(`Applying catalog brand "${catalogBrand}" to product:`, productData.name)
+          productData.brand = catalogBrand
+        }
+        
+        console.log(`Creating product from page ${index + 1} - Name: ${productData.name}, SKU: ${productData.sku}, Brand: ${productData.brand}`)
+        const product = await createProduct(supabase, doc.id, productData, imageUrl)
+        products.push(product)
       }
 
       // Combine all analyses into one document

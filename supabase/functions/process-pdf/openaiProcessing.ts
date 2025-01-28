@@ -86,7 +86,7 @@ export async function analyzeImageWithOpenAI(imageUrl: string, filename: string)
   }
 
   // Log the system prompt
-  const systemPrompt = `You are a JSON generation assistant. You ONLY output valid JSON according to this exact schema:
+  const systemPrompt = `You are a JSON generation assistant analyzing shoe catalog pages. You ONLY output valid JSON according to this exact schema:
 ${JSON.stringify(schema, null, 2)}
 
 CRITICAL INSTRUCTIONS:
@@ -95,18 +95,23 @@ CRITICAL INSTRUCTIONS:
 3. If uncertain about a value, use null instead of omitting the field.
 4. The JSON must be valid - all strings quoted, no trailing commas.
 5. Numbers should be plain numbers without currency symbols.
-6. For prices:
-   - wholesale_price is the cost to the retailer
-   - retail_price is the suggested selling price to customers
-   - Both should be numbers only, no currency symbols
-   - If only one price is found, use it as wholesale_price
-7. Arrays and nested objects are allowed in specifications and extracted_metadata.
-8. SKU Rules:
-   - Look for existing product codes, SKUs, or article numbers in the image
-   - SKUs are often found near product details, prices, or in headers
+6. Page Type Analysis:
+   - Cover/intro pages: Will have brand info but no specific products
+   - Product pages: Will always have shoe images and product details
+7. For Cover Pages:
+   - Set name, sku, and prices to null
+   - Focus on capturing the brand name accurately
+   - Store any additional brand info in extracted_metadata
+8. For Product Pages:
+   - Product must have visible shoe image to be considered valid
+   - Look for SKU/product code near product details
+   - Prices should be numbers only, no currency symbols
+   - If only one price found, use it as wholesale_price
+9. SKU Rules:
+   - Look for existing product codes or SKUs in the image
+   - SKUs are often found near product details or prices
    - Only generate a SKU if you cannot find one in the image
-   - Generated SKUs should be based on visible product information
-   - SKUs must be unique per product variant`
+   - Generated SKUs should be based on visible product information`
 
   console.log('\nSystem Prompt:')
   console.log('='.repeat(80))
@@ -114,24 +119,25 @@ CRITICAL INSTRUCTIONS:
   console.log('='.repeat(80))
 
   // Log the user prompt
-  const userPrompt = `Extract product data from this image and return ONLY a JSON object matching this schema:
+  const userPrompt = `Analyze this catalog page and return ONLY a JSON object matching this schema:
 ${JSON.stringify(schema, null, 2)}
 
 Remember:
-- Return ONLY the JSON object
-- No additional text or formatting
-- Every field must be present
-- Use null for missing values
-- Extract both wholesale and retail prices if available
-- If only one price is found, use it as wholesale_price
-- For SKU:
-  1. Find any existing product codes, SKUs, or article numbers in the image
-  2. Look near product details, prices, or in headers
-  3. Only if no SKU is found:
-     - Use product name or model number as base
-     - Remove special characters
-     - Keep it simple and readable
-  4. SKU field must not be null or empty`
+- First determine if this is a cover page or product page
+- Cover pages:
+  * Will have brand information but no specific products
+  * Set name, sku, prices to null
+  * Focus on capturing brand name and any brand details
+- Product pages:
+  * Must have visible shoe image to be valid
+  * Extract all product details (name, SKU, prices, etc.)
+  * Look for SKU/product code near product details
+- For any page:
+  * Return ONLY the JSON object
+  * No additional text or formatting
+  * Every field must be present
+  * Use null for missing values
+  * Numbers only for prices, no currency symbols`
 
   console.log('\nUser Prompt:')
   console.log('='.repeat(80))
