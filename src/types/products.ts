@@ -1,3 +1,5 @@
+import { Json } from "@/integrations/supabase/types"
+
 export interface Product {
   id: string
   name: string
@@ -12,7 +14,7 @@ export interface Product {
   supplier_id: string | null
   stock_quantity: number | null
   description: string | null
-  specifications: Record<string, any> | null
+  specifications: Json | null
   created_at: string
   updated_at: string
   season: string
@@ -20,4 +22,8 @@ export interface Product {
   profiles?: {
     full_name: string
   }
+  document_id: string | null
+  extracted_metadata: Json | null
+  processing_status: string | null
+  product_number: string | null
 }
