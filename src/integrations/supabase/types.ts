@@ -375,6 +375,19 @@ export type Database = {
             }
             Returns: unknown
           }
+      search_documents: {
+        Args: {
+          query_embedding: string
+          match_threshold: number
+          match_count: number
+        }
+        Returns: {
+          id: string
+          content: string
+          metadata: Json
+          similarity: number
+        }[]
+      }
       sparsevec_out: {
         Args: {
           "": unknown
