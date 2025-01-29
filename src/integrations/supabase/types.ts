@@ -71,6 +71,44 @@ export type Database = {
           },
         ]
       }
+      product_embeddings: {
+        Row: {
+          content: string | null
+          created_at: string
+          embedding: string | null
+          id: string
+          metadata: Json | null
+          product_id: string
+          updated_at: string
+        }
+        Insert: {
+          content?: string | null
+          created_at?: string
+          embedding?: string | null
+          id?: string
+          metadata?: Json | null
+          product_id: string
+          updated_at?: string
+        }
+        Update: {
+          content?: string | null
+          created_at?: string
+          embedding?: string | null
+          id?: string
+          metadata?: Json | null
+          product_id?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "product_embeddings_product_id_fkey"
+            columns: ["product_id"]
+            isOneToOne: true
+            referencedRelation: "products"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       products: {
         Row: {
           brand: string | null
@@ -383,6 +421,20 @@ export type Database = {
         }
         Returns: {
           id: string
+          content: string
+          metadata: Json
+          similarity: number
+        }[]
+      }
+      search_products: {
+        Args: {
+          query_embedding: string
+          match_threshold: number
+          match_count: number
+        }
+        Returns: {
+          id: string
+          product_id: string
           content: string
           metadata: Json
           similarity: number
