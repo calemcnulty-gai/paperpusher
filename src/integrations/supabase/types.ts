@@ -11,6 +11,7 @@ export type Database = {
     Tables: {
       chat_logs: {
         Row: {
+          accuracy: number
           created_at: string
           id: string
           input: string
@@ -20,6 +21,7 @@ export type Database = {
           user_id: string
         }
         Insert: {
+          accuracy?: number
           created_at?: string
           id?: string
           input: string
@@ -29,6 +31,7 @@ export type Database = {
           user_id: string
         }
         Update: {
+          accuracy?: number
           created_at?: string
           id?: string
           input?: string
