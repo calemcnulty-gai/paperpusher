@@ -1,17 +1,16 @@
 import { ColumnDef } from "@tanstack/react-table"
+import { useNavigate } from "react-router-dom"
 import { Profile } from "@/types/profiles"
 import { Badge } from "@/components/ui/badge"
-import { formatDate } from "@/lib/utils"
-import { useNavigate } from "react-router-dom"
 
-export const columns: ColumnDef<Profile>[] = [
-  {
-    accessorKey: "email",
-    header: "Email",
-  },
+export const userColumns: ColumnDef<Profile>[] = [
   {
     accessorKey: "full_name",
     header: "Name",
+  },
+  {
+    accessorKey: "email",
+    header: "Email",
   },
   {
     accessorKey: "role",
@@ -20,16 +19,9 @@ export const columns: ColumnDef<Profile>[] = [
       const role = row.getValue("role") as string
       return (
         <Badge variant="outline" className="capitalize">
-          {role || "N/A"}
+          {role}
         </Badge>
       )
-    },
-  },
-  {
-    accessorKey: "created_at",
-    header: "Joined",
-    cell: ({ row }) => {
-      return formatDate(row.getValue("created_at"))
     },
   },
 ]
