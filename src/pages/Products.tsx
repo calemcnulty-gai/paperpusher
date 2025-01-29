@@ -16,7 +16,7 @@ export default function Products() {
   const [page, setPage] = useState(1)
   const pageSize = 10
 
-  const { selectedBrand, selectedCategory, selectedSeason } = useSelector(
+  const { selectedSupplier, selectedSeason } = useSelector(
     (state: RootState) => state.productFilters
   )
 
@@ -36,7 +36,7 @@ export default function Products() {
   })
 
   const { data, isLoading } = useQuery({
-    queryKey: ['products', selectedBrand, selectedCategory, selectedSeason, page],
+    queryKey: ['products', selectedSupplier, selectedSeason, page],
     queryFn: async () => {
       let query = supabase
         .from('products')
@@ -49,12 +49,8 @@ export default function Products() {
           )
         `)
 
-      if (selectedBrand) {
-        query = query.eq('brand', selectedBrand)
-      }
-
-      if (selectedCategory) {
-        query = query.eq('category', selectedCategory)
+      if (selectedSupplier) {
+        query = query.eq('brand', selectedSupplier)
       }
 
       if (selectedSeason) {
@@ -83,7 +79,7 @@ export default function Products() {
   // Reset page when filters change
   useEffect(() => {
     setPage(1)
-  }, [selectedBrand, selectedCategory, selectedSeason])
+  }, [selectedSupplier, selectedSeason])
 
   return (
     <div className="container mx-auto py-6">

@@ -3,7 +3,7 @@ import { useNavigate } from "react-router-dom"
 import { Profile } from "@/types/profiles"
 import { Badge } from "@/components/ui/badge"
 
-export const userColumns: ColumnDef<Profile>[] = [
+export const columns: ColumnDef<Profile>[] = [
   {
     accessorKey: "full_name",
     header: "Name",
