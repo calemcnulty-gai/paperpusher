@@ -34,7 +34,6 @@ export default function Products() {
     (state) => state.productFilters
   )
 
-  // Query to check if user is a principal
   const { data: userProfile } = useQuery({
     queryKey: ['profile', user?.id],
     queryFn: async () => {
@@ -68,7 +67,6 @@ export default function Products() {
         query = query.eq('season', selectedSeason)
       }
 
-      // Add pagination
       const start = (page - 1) * pageSize
       const end = start + pageSize - 1
       
@@ -139,8 +137,10 @@ export default function Products() {
         <DataTable 
           columns={productColumns} 
           data={data?.data || []} 
-          isLoading={isLoading}
-          onRowClick={handleRowClick}
+          rowProps={(row) => ({
+            className: "cursor-pointer hover:bg-muted",
+            onClick: () => handleRowClick(row)
+          })}
         />
       </div>
 

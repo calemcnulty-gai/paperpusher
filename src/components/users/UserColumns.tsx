@@ -37,10 +37,8 @@ export const columns: ColumnDef<Profile>[] = [
 export const useUserRowProps = () => {
   const navigate = useNavigate()
 
-  return {
+  return (row: Profile) => ({
     className: "cursor-pointer hover:bg-gray-50",
-    onClick: (row: Profile) => {
-      navigate(`/${row.role}s/${row.id}`)
-    },
-  }
+    onClick: () => navigate(`/${row.role}s/${row.id}`)
+  })
 }
