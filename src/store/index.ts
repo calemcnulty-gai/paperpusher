@@ -4,6 +4,7 @@ import authReducer from "./authSlice"
 import realtimeReducer from "./realtimeSlice"
 import profilesReducer from "./profilesSlice"
 import productFiltersReducer from "./productFiltersSlice"
+import chatReducer from "./chatSlice"
 
 export const store = configureStore({
   reducer: {
@@ -11,6 +12,7 @@ export const store = configureStore({
     realtime: realtimeReducer,
     profiles: profilesReducer,
     productFilters: productFiltersReducer,
+    chat: chatReducer,
   },
 })
 

@@ -1,9 +1,5 @@
 import { cn } from "@/lib/utils"
-
-interface Message {
-  role: 'user' | 'assistant'
-  content: string
-}
+import type { Message } from "@/store/chatSlice"
 
 interface ChatMessageProps {
   message: Message
@@ -14,8 +10,8 @@ export function ChatMessage({ message }: ChatMessageProps) {
   
   return (
     <div className={cn(
-      "flex",
-      isUser ? "justify-end" : "justify-start"
+      "flex flex-col",
+      isUser ? "items-end" : "items-start"
     )}>
       <div className={cn(
         "max-w-[80%] rounded-lg px-4 py-2",
@@ -23,6 +19,11 @@ export function ChatMessage({ message }: ChatMessageProps) {
       )}>
         {message.content}
       </div>
+      {message.timestamp && (
+        <span className="text-xs text-muted-foreground mt-1">
+          {new Date(message.timestamp).toLocaleTimeString()}
+        </span>
+      )}
     </div>
   )
 }
