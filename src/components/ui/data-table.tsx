@@ -1,6 +1,3 @@
-"use client"
-
-import * as React from "react"
 import {
   ColumnDef,
   flexRender,
@@ -16,62 +13,23 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/ui/table"
-import { Skeleton } from "@/components/ui/skeleton"
 
 interface DataTableProps<TData> {
   columns: ColumnDef<TData, any>[]
   data: TData[]
-  isLoading?: boolean
-  onRowClick?: (row: TData) => void
+  rowProps?: (row: TData) => Record<string, unknown>
 }
 
 export function DataTable<TData>({
   columns,
   data,
-  isLoading,
-  onRowClick,
+  rowProps
 }: DataTableProps<TData>) {
   const table = useReactTable({
     data,
     columns,
     getCoreRowModel: getCoreRowModel(),
   })
-
-  if (isLoading) {
-    return (
-      <div className="rounded-md border">
-        <Table>
-          <TableHeader>
-            {table.getHeaderGroups().map((headerGroup) => (
-              <TableRow key={headerGroup.id}>
-                {headerGroup.headers.map((header) => (
-                  <TableHead key={header.id}>
-                    {header.isPlaceholder
-                      ? null
-                      : flexRender(
-                          header.column.columnDef.header,
-                          header.getContext()
-                        )}
-                  </TableHead>
-                ))}
-              </TableRow>
-            ))}
-          </TableHeader>
-          <TableBody>
-            {Array.from({ length: 5 }).map((_, index) => (
-              <TableRow key={index}>
-                {Array.from({ length: columns.length }).map((_, cellIndex) => (
-                  <TableCell key={cellIndex}>
-                    <Skeleton className="h-4 w-full" />
-                  </TableCell>
-                ))}
-              </TableRow>
-            ))}
-          </TableBody>
-        </Table>
-      </div>
-    )
-  }
 
   return (
     <div className="rounded-md border">
@@ -100,8 +58,7 @@ export function DataTable<TData>({
               <TableRow
                 key={row.id}
                 data-state={row.getIsSelected() && "selected"}
-                onClick={() => onRowClick?.(row.original)}
-                className={onRowClick ? "cursor-pointer hover:bg-muted" : ""}
+                {...(rowProps ? rowProps(row.original) : {})}
               >
                 {row.getVisibleCells().map((cell) => (
                   <TableCell key={cell.id}>

@@ -4,7 +4,7 @@ import { Dialog, DialogContent, DialogTrigger } from "@/components/ui/dialog"
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar"
 import { ImageIcon } from "lucide-react"
 
-export const productColumns: ColumnDef<Product>[] = [
+export const productColumns: ColumnDef<Product, unknown>[] = [
   {
     accessorKey: "image_url",
     header: "Thumbnail",

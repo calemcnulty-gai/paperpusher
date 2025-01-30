@@ -35,6 +35,8 @@ const productSchema = z.object({
 
 // Define the input type (what the form accepts)
 export type ProductFormInput = z.input<typeof productSchema>
+// This is what the form components need
+export type ProductFormValues = ProductFormInput
 
 // Define the output type (after transformation)
 export type ProductFormOutput = z.output<typeof productSchema>
@@ -49,7 +51,7 @@ export interface Product extends ProductFormOutput {
 interface ProductFormProps {
   onSuccess: () => void
   userId: string | undefined
-  product?: Product // Optional product for editing
+  product?: Product
 }
 
 export function ProductForm({ onSuccess, userId, product }: ProductFormProps) {
