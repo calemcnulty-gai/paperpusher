@@ -10,30 +10,6 @@ export { createProduct } from './productProcessing.ts'
 
 // Add any small utility functions here if needed
 
-export const downloadAndConvertPDF = async (supabase: any, filePath: string) => {
-  console.log('Downloading PDF from storage bucket:', filePath)
-  const { data: fileData, error: fileError } = await supabase
-    .storage
-    .from('product_docs')
-    .download(filePath)
-
-  if (fileError) {
-    console.error('Storage error when downloading file:', fileError)
-    throw fileError
-  }
-
-  if (!fileData) {
-    console.error('No file data received from storage')
-    throw new Error('File data is empty')
-  }
-
-  console.log('Successfully downloaded PDF file')
-  
-  // Convert to Uint8Array for upload
-  const uint8Array = new Uint8Array(await fileData.arrayBuffer())
-  return uint8Array
-}
-
 export const createProduct = async (supabase: any, documentId: string, productData: ProductData, imageUrl?: string) => {
   console.log('\n=== Creating Product ===')
   console.log('Document ID:', documentId)
