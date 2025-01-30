@@ -1,0 +1,1 @@
+{"errorMessage": "Unable to import module 'lambda_function': No module named 'jiter.jiter'", "errorType": "Runtime.ImportModuleError", "requestId": "", "stackTrace": []}

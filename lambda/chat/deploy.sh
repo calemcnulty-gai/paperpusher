@@ -26,6 +26,9 @@ pip install -r requirements.txt -t "$BUILD_DIR/package"
 # Copy source files to package directory
 cp -r src/* "$BUILD_DIR/package/"
 
+# Rename index.py to lambda_function.py
+mv "$BUILD_DIR/package/index.py" "$BUILD_DIR/package/lambda_function.py"
+
 # Create deployment package
 cd "$BUILD_DIR/package"
 zip -r ../deployment.zip ./*
