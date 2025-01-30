@@ -1,3 +1,5 @@
+/// <reference types="https://deno.land/x/types/index.d.ts" />
+
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts"
 import { corsHeaders, initSupabaseClient } from './supabaseClient.ts'
 

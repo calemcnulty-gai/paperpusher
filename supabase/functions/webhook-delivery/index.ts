@@ -1,3 +1,5 @@
+/// <reference types="https://deno.land/x/types/index.d.ts" />
+
 // @ts-ignore: Deno types not available in Node.js project
 /// <reference lib="deno.ns" />
 

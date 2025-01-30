@@ -1,6 +1,11 @@
+/// <reference types="https://deno.land/x/types/index.d.ts" />
+/// @ts-ignore: Deno types not available in Node.js project
+/// <reference lib="deno.ns" />
+
 import { OpenAIResponse, ProductData } from './types.ts'
 
 export async function analyzeImageWithOpenAI(imageUrl: string, filename: string): Promise<ProductData> {
+  // @ts-ignore: Deno env only available at runtime
   const openAiApiKey = Deno.env.get('OPENAI_API_KEY')
   console.log('\n=== Starting OpenAI Analysis ===')
   console.log('Processing:', filename)
@@ -39,7 +44,7 @@ CRITICAL INSTRUCTIONS:
 4. The JSON must be valid - all strings quoted, no trailing commas.
 5. Numbers should be plain numbers without currency symbols.
 6. Page Type Analysis:
-   - Cover/intro pages: Will have brand logo/name but no product prices
+   - Cover/intro pages: Will have brand logo/name but do not have 
    - Product pages: Will have shoe images with specific details and prices
 7. Brand Handling:
    - Document filename "${filename}" likely contains either:
@@ -73,7 +78,6 @@ Remember:
   * Either the full brand name or an abbreviation
 - Cover/intro pages:
   * Will show brand name/logo prominently
-  * Set name, sku, prices to null
   * Capture exact brand name as shown
   * Strongly prefer any brand name or abbreviation found in "${filename}"
   * Store brand details in extracted_metadata
@@ -125,7 +129,7 @@ Remember:
   
   const maxRetries = 3
   const retryDelay = 2000 // 2 seconds
-  let lastError = null
+  let lastError: Error | null = null
 
   for (let attempt = 1; attempt <= maxRetries; attempt++) {
     try {
