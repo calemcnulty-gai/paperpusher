@@ -28,9 +28,7 @@ export async function analyzeImageWithOpenAI(imageUrl: string, filename: string)
     retail_price: 0,     // Retail price as number only
     product_number: "",   // Product model/number
     description: "",     // Product description
-    specifications: {},  // Additional specs
-    season: "all",      // Season information
-    extracted_metadata: {} // Any other data
+    season: "all"      // Season information
   }
 
   // Log the system prompt
@@ -232,9 +230,6 @@ Remember:
             } else {
               result[key] = value
             }
-          } else {
-            // Put unknown fields in extracted_metadata
-            result.extracted_metadata[key] = value
           }
         }
         

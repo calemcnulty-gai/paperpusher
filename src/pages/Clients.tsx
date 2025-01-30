@@ -35,7 +35,6 @@ export default function Clients() {
       <DataTable 
         columns={columns} 
         data={clients || []} 
-        rowProps={rowProps}
       />
     </div>
   )

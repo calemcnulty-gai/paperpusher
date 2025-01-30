@@ -36,6 +36,11 @@ export const createProduct = async (supabase: any, documentId: string, productDa
   console.log('Product Data:', JSON.stringify(productData, null, 2))
   console.log('Source Image URL:', imageUrl)
 
+  // Ensure SKU is present (the only truly required field)
+  if (!productData.sku) {
+    throw new Error('Product SKU is required')
+  }
+
   // If we have an image URL, store it in Supabase
   let storedImageUrl: string | null = null
   if (imageUrl && productData.sku) {
@@ -51,7 +56,7 @@ export const createProduct = async (supabase: any, documentId: string, productDa
   // Extract only the essential data we need
   const productInsert = {
     document_id: documentId,
-    name: productData.name,
+    name: productData.name || productData.sku, // Use SKU as name if name is null
     sku: productData.sku,
     brand: productData.brand,
     category: productData.category || 'shoes',
@@ -69,33 +74,64 @@ export const createProduct = async (supabase: any, documentId: string, productDa
 
   try {
     console.log('Attempting to insert product:', JSON.stringify(productInsert, null, 2))
-    const { data: product, error } = await supabase
+    
+    // First, check if product with this SKU already exists
+    const { data: existingProduct, error: checkError } = await supabase
+      .from('products')
+      .select('id, sku')
+      .eq('sku', productData.sku)
+      .single()
+
+    if (checkError && checkError.code !== 'PGRST116') { // PGRST116 is "no rows returned"
+      console.error('Error checking for existing product:', checkError)
+      throw checkError
+    }
+
+    if (existingProduct) {
+      console.log(`Product with SKU "${productData.sku}" already exists (id: ${existingProduct.id}), skipping...`)
+      return null
+    }
+
+    // If we get here, the product doesn't exist, so try to insert it
+    console.log('No existing product found, proceeding with insert...')
+    const { data: product, error: insertError } = await supabase
       .from('products')
       .insert(productInsert)
       .select()
       .single()
 
-    if (error) {
-      // Check if this is a unique constraint violation on SKU
-      if (error.code === '23505' && error.message.includes('products_sku_key')) {
-        console.log(`Product with SKU "${productData.sku}" already exists, skipping...`)
-        // Return null to indicate product was skipped
-        return null
-      }
-      // For any other error, throw it
-      console.error('Error creating product:', error)
-      throw error
+    if (insertError) {
+      console.error('Error inserting product:', {
+        error: insertError,
+        code: insertError.code,
+        message: insertError.message,
+        details: insertError.details,
+        hint: insertError.hint
+      })
+      throw insertError
     }
 
-    console.log('Product created successfully:', product.id)
+    if (!product) {
+      console.error('No product returned after successful insert')
+      throw new Error('Product insert succeeded but no data returned')
+    }
+
+    console.log('Product created successfully:', {
+      id: product.id,
+      sku: product.sku,
+      name: product.name
+    })
     console.log('=== End Product Creation ===\n')
     return product
   } catch (error) {
-    // Handle any other unexpected errors
-    if (error.code === '23505' && error.message.includes('products_sku_key')) {
-      console.log(`Product with SKU "${productData.sku}" already exists, skipping...`)
-      return null
-    }
+    console.error('Unexpected error in createProduct:', {
+      error: error,
+      code: error.code,
+      message: error.message,
+      details: error.details,
+      hint: error.hint,
+      stack: error.stack
+    })
     throw error
   }
 } 
