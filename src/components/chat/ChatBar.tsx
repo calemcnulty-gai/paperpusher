@@ -6,13 +6,13 @@ import { MessageSquare, X } from "lucide-react"
 import { cn } from "@/lib/utils"
 import { ChatMessage } from "./ChatMessage"
 import { useToast } from "@/hooks/use-toast"
-import { RootState } from "@/store"
+import { RootState, AppDispatch } from "@/store"
 import { toggleChat, sendMessage, addMessage } from "@/store/chatSlice"
 import type { Message } from "@/store/chatSlice"
 
 export function ChatBar() {
-  const dispatch = useDispatch()
-  const { messages, isOpen, isLoading } = useSelector((state: RootState) => state.state)
+  const dispatch = useDispatch<AppDispatch>()
+  const { messages, isOpen, isLoading } = useSelector((state: RootState) => state.chat)
   const { user } = useSelector((state: RootState) => state.auth)
   const [input, setInput] = useState("")
   const { toast } = useToast()
@@ -31,7 +31,10 @@ export function ChatBar() {
     setInput("")
 
     try {
-      await dispatch(sendMessage([...messages, userMessage])).unwrap()
+      const resultAction = await dispatch(sendMessage([...messages, userMessage]))
+      if (sendMessage.rejected.match(resultAction)) {
+        throw new Error(resultAction.error.message)
+      }
     } catch (error) {
       console.error('Chat error:', error)
       toast({

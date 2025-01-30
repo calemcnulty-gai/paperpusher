@@ -2,8 +2,8 @@ import { Json } from "@/integrations/supabase/types"
 
 export interface Product {
   id: string
-  name: string
-  sku: string
+  name: string | null
+  sku: string | null
   brand: string | null
   category: string | null
   size: string | null
@@ -17,10 +17,10 @@ export interface Product {
   specifications: Json | null
   created_at: string
   updated_at: string
-  season: string
+  season: string | null
   image_url: string | null
   profiles?: {
-    full_name: string
+    full_name: string | null
   }
   document_id: string | null
   extracted_metadata: Json | null

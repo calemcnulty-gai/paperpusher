@@ -21,16 +21,24 @@ const initialState: ChatState = {
   error: null,
 };
 
-export const sendMessage = createAsyncThunk(
+export const sendMessage = createAsyncThunk<
+  { content: string },
+  Message[],
+  { rejectValue: { message: string } }
+>(
   'chat/sendMessage',
-  async (messages: Message[]) => {
-    console.log('Sending chat message:', messages);
-    const { data, error } = await supabase.functions.invoke('chat', {
-      body: { messages }
-    });
+  async (messages, { rejectWithValue }) => {
+    try {
+      console.log('Sending chat message:', messages);
+      const { data, error } = await supabase.functions.invoke('chat', {
+        body: { messages }
+      });
 
-    if (error) throw error;
-    return data;
+      if (error) throw error;
+      return data;
+    } catch (error) {
+      return rejectWithValue({ message: (error as Error).message });
+    }
   }
 );
 
@@ -66,7 +74,7 @@ const chatSlice = createSlice({
       })
       .addCase(sendMessage.rejected, (state, action) => {
         state.isLoading = false;
-        state.error = action.error.message || 'Failed to send message';
+        state.error = action.payload?.message || 'Failed to send message';
       });
   },
 });
