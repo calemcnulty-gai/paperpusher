@@ -7,10 +7,13 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { useQueryClient } from "@tanstack/react-query"
 
 // Separate function to request processing
-const requestProcessing = async (filePath: string) => {
+const requestProcessing = async (documentId: string) => {
   try {
-    const { error } = await supabase.functions.invoke('process-pdf', {
-      body: { file_path: filePath }
+    const { error } = await supabase.functions.invoke('process-pdf-queue', {
+      body: { 
+        document_id: documentId,
+        action: 'CREATE'
+      }
     })
     
     if (error) {
@@ -83,8 +86,8 @@ export const DocumentUpload = () => {
         throw new Error(`Failed to create document record: ${dbError.message}`)
       }
 
-      // 3. Request processing
-      await requestProcessing(filePath)
+      // 3. Request processing with document ID
+      await requestProcessing(doc.id)
 
       // 4. Return control to UI immediately
       toast({
