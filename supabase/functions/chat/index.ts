@@ -11,6 +11,9 @@ import { ChatRequest, ChatResponse, Message, ProductContext } from './types.ts'
 const corsHeaders = {
   'Access-Control-Allow-Origin': '*',
   'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type',
+  'Access-Control-Allow-Methods': 'POST, OPTIONS',
+  'Access-Control-Max-Age': '86400',
+  'Access-Control-Expose-Headers': '*'
 }
 
 // Initialize clients
@@ -135,34 +138,44 @@ const handleChatRequest = traceable(async function handleChatRequest(req: Reques
   // Handle CORS preflight requests
   if (req.method === 'OPTIONS') {
     console.log('Handling CORS preflight request')
-    return new Response(null, { headers: corsHeaders })
+    return new Response(null, { 
+      headers: {
+        ...corsHeaders,
+        'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type',
+      }
+    })
+  }
+
+  // Verify auth header
+  const authHeader = req.headers.get('authorization')
+  const apiKey = req.headers.get('apikey')
+  console.log('Auth header:', authHeader)
+  console.log('API key:', apiKey)
+
+  if (!authHeader || !apiKey) {
+    console.error('Missing authorization header or API key')
+    return new Response(
+      JSON.stringify({ error: 'Missing authorization' }),
+      { 
+        status: 401,
+        headers: { ...corsHeaders, 'Content-Type': 'application/json' }
+      }
+    )
   }
 
   try {
     const body = await req.json()
     console.log('Request body:', body)
     
-    const { messages, productId } = body as ChatRequest
-    
-    // Get product context if productId is provided
-    const productContext = productId ? await getProductContext(productId) : null
-    console.log('Product context:', productContext)
-    
-    // Get relevant context from vector store
-    const relevantContext = productId && messages.length > 0 
-      ? await getRelevantContext(messages[messages.length - 1].content, productId)
-      : ''
-    console.log('Relevant context:', relevantContext)
-    
-    // Construct system prompt
-    let systemPrompt = `You are a helpful AI assistant.`
-    if (productContext) {
-      systemPrompt += `\n\nYou are helping with questions about the following product:\n${JSON.stringify(productContext, null, 2)}`
+    if (!body.messages || !Array.isArray(body.messages)) {
+      throw new Error('Invalid request body: messages must be an array')
     }
-    if (relevantContext) {
-      systemPrompt += `\n\nHere is some relevant context from the product documentation:\n${relevantContext}`
-    }
-    console.log('Final system prompt:', systemPrompt)
+    
+    const { messages } = body as ChatRequest
+    
+    // Construct system prompt - keeping it simple for general chat
+    const systemPrompt = `You are a helpful AI assistant. You help users understand and work with their data and documents.`
+    console.log('System prompt:', systemPrompt)
     
     // Convert messages to LangChain format
     const langChainMessages = convertToLangChainMessages(messages, systemPrompt)
