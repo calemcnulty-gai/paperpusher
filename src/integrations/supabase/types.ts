@@ -67,6 +67,7 @@ export type Database = {
           product_id: string | null
           total_pages: number | null
           updated_at: string
+          uploaded_by: string | null
         }
         Insert: {
           content?: string | null
@@ -84,6 +85,7 @@ export type Database = {
           product_id?: string | null
           total_pages?: number | null
           updated_at?: string
+          uploaded_by?: string | null
         }
         Update: {
           content?: string | null
@@ -101,6 +103,7 @@ export type Database = {
           product_id?: string | null
           total_pages?: number | null
           updated_at?: string
+          uploaded_by?: string | null
         }
         Relationships: [
           {
@@ -158,18 +161,16 @@ export type Database = {
           created_at: string
           description: string | null
           document_id: string | null
-          extracted_metadata: Json | null
           id: string
           image_url: string | null
           material: string | null
-          name: string
+          name: string | null
           processing_status: string | null
           product_number: string | null
           retail_price: number | null
           season: string | null
           size: string | null
           sku: string | null
-          specifications: Json | null
           stock_quantity: number | null
           supplier_id: string | null
           updated_at: string
@@ -182,18 +183,16 @@ export type Database = {
           created_at?: string
           description?: string | null
           document_id?: string | null
-          extracted_metadata?: Json | null
           id?: string
           image_url?: string | null
           material?: string | null
-          name: string
+          name?: string | null
           processing_status?: string | null
           product_number?: string | null
           retail_price?: number | null
           season?: string | null
           size?: string | null
           sku?: string | null
-          specifications?: Json | null
           stock_quantity?: number | null
           supplier_id?: string | null
           updated_at?: string
@@ -206,18 +205,16 @@ export type Database = {
           created_at?: string
           description?: string | null
           document_id?: string | null
-          extracted_metadata?: Json | null
           id?: string
           image_url?: string | null
           material?: string | null
-          name?: string
+          name?: string | null
           processing_status?: string | null
           product_number?: string | null
           retail_price?: number | null
           season?: string | null
           size?: string | null
           sku?: string | null
-          specifications?: Json | null
           stock_quantity?: number | null
           supplier_id?: string | null
           updated_at?: string
@@ -454,6 +451,18 @@ export type Database = {
             }
             Returns: unknown
           }
+      match_products: {
+        Args: {
+          query_embedding: string
+          match_count?: number
+        }
+        Returns: {
+          id: string
+          product_id: string
+          content: string
+          similarity: number
+        }[]
+      }
       search_documents: {
         Args: {
           query_embedding: string

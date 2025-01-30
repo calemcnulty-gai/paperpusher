@@ -3,8 +3,9 @@ import { AppSidebar } from "@/components/layout/AppSidebar"
 import { Button } from "@/components/ui/button"
 import { LogOut } from "lucide-react"
 import { supabase } from "@/integrations/supabase/client"
-import { useToast } from "@/components/ui/use-toast"
+import { useToast } from "@/hooks/use-toast"
 import { useNavigate } from "react-router-dom"
+import { ChatBar } from "@/components/chat/ChatBar"
 
 export function MainLayout({ children }: { children: React.ReactNode }) {
   const { toast } = useToast()
@@ -38,6 +39,7 @@ export function MainLayout({ children }: { children: React.ReactNode }) {
             {children}
           </div>
         </main>
+        <ChatBar />
       </div>
     </SidebarProvider>
   )
