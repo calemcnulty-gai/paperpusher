@@ -14,7 +14,6 @@ export interface Product {
   supplier_id: string | null
   stock_quantity: number | null
   description: string | null
-  specifications: Json | null
   created_at: string
   updated_at: string
   season: string | null
@@ -23,7 +22,6 @@ export interface Product {
     full_name: string | null
   }
   document_id: string | null
-  extracted_metadata: Json | null
   processing_status: string | null
   product_number: string | null
 }

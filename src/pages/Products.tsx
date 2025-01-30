@@ -20,21 +20,6 @@ export default function Products() {
     (state: RootState) => state.productFilters
   )
 
-  const { data: userProfile } = useQuery({
-    queryKey: ['profile', user?.id],
-    queryFn: async () => {
-      const { data, error } = await supabase
-        .from('profiles')
-        .select('*')
-        .eq('id', user?.id)
-        .single()
-
-      if (error) throw error
-      return data
-    },
-    enabled: !!user
-  })
-
   const { data, isLoading } = useQuery({
     queryKey: ['products', selectedSupplier, selectedSeason, page],
     queryFn: async () => {
@@ -68,14 +53,7 @@ export default function Products() {
         throw error
       }
 
-      // Transform the data to match the Product type
-      const transformedData: Product[] = data.map(item => ({
-        ...item,
-        specifications: item.specifications || null,
-        extracted_metadata: item.extracted_metadata || null
-      }))
-
-      return { data: transformedData, count }
+      return { data: data as Product[], count }
     }
   })
 
