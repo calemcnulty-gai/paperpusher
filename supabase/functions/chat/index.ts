@@ -4,6 +4,7 @@ import { Pinecone } from 'https://esm.sh/@pinecone-database/pinecone@2.0.0'
 import { ChatOpenAI } from 'https://esm.sh/@langchain/openai@0.0.14'
 import { OpenAIEmbeddings } from 'https://esm.sh/@langchain/openai@0.0.14'
 import { HumanMessage, SystemMessage, AIMessage } from 'https://esm.sh/@langchain/core@0.1.32/messages'
+import { traceable } from 'https://esm.sh/langsmith@0.1.21/traceable'
 import { ChatRequest, ChatResponse, Message, ProductContext } from './types.ts'
 
 // Define CORS headers
@@ -51,7 +52,7 @@ const embeddings = new OpenAIEmbeddings({
 })
 console.log('OpenAI Embeddings initialized')
 
-async function getProductContext(productId: string): Promise<ProductContext | null> {
+const getProductContext = traceable(async function getProductContext(productId: string): Promise<ProductContext | null> {
   console.log(`Getting product context for productId: ${productId}`)
   const supabase = createClient(
     Deno.env.get('SUPABASE_URL') ?? '',
@@ -78,9 +79,9 @@ async function getProductContext(productId: string): Promise<ProductContext | nu
 
   console.log('Product found:', data)
   return data as ProductContext
-}
+})
 
-async function getRelevantContext(query: string, productId: string): Promise<string> {
+const getRelevantContext = traceable(async function getRelevantContext(query: string, productId: string): Promise<string> {
   console.log(`Getting relevant context for query: "${query}" and productId: ${productId}`)
   
   console.log('Generating query embedding...')
@@ -103,9 +104,9 @@ async function getRelevantContext(query: string, productId: string): Promise<str
 
   console.log('Found contexts:', contexts)
   return contexts.join('\n\n')
-}
+})
 
-function convertToLangChainMessages(messages: Message[], systemPrompt: string) {
+const convertToLangChainMessages = traceable(function convertToLangChainMessages(messages: Message[], systemPrompt: string) {
   console.log('Converting messages to LangChain format')
   console.log('System prompt:', systemPrompt)
   console.log('Input messages:', messages)
@@ -122,9 +123,9 @@ function convertToLangChainMessages(messages: Message[], systemPrompt: string) {
   
   console.log('Converted messages:', result)
   return result
-}
+})
 
-Deno.serve(async (req) => {
+const handleChatRequest = traceable(async function handleChatRequest(req: Request) {
   console.log('Received request:', {
     method: req.method,
     url: req.url,
@@ -213,4 +214,8 @@ Deno.serve(async (req) => {
       }
     )
   }
+})
+
+Deno.serve(async (req) => {
+  return await handleChatRequest(req)
 })
