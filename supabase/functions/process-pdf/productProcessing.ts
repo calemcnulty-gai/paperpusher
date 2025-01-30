@@ -1,6 +1,35 @@
 import { ProductData } from './types.ts'
 import { storeProductImage } from './imageProcessing.ts'
 
+const simplifyJson = (obj: any): any => {
+  if (typeof obj !== 'object' || obj === null) {
+    return obj
+  }
+  
+  if (Array.isArray(obj)) {
+    return obj.map(simplifyJson)
+  }
+  
+  const result: any = {}
+  for (const [key, value] of Object.entries(obj)) {
+    // Skip null values
+    if (value === null) continue
+    
+    // Convert nested objects to string if they're too deep
+    if (typeof value === 'object' && Object.keys(value).length > 0) {
+      const depth = JSON.stringify(value).split('{').length - 1
+      if (depth > 2) {
+        result[key] = JSON.stringify(value)
+      } else {
+        result[key] = simplifyJson(value)
+      }
+    } else {
+      result[key] = value
+    }
+  }
+  return result
+}
+
 export const createProduct = async (supabase: any, documentId: string, productData: ProductData, imageUrl?: string) => {
   console.log('\n=== Creating Product ===')
   console.log('Document ID:', documentId)
@@ -9,7 +38,7 @@ export const createProduct = async (supabase: any, documentId: string, productDa
 
   // If we have an image URL, store it in Supabase
   let storedImageUrl: string | null = null
-  if (imageUrl) {
+  if (imageUrl && productData.sku) {
     try {
       storedImageUrl = await storeProductImage(supabase, imageUrl, productData.sku)
       console.log('Image stored in Supabase:', storedImageUrl)
@@ -19,6 +48,7 @@ export const createProduct = async (supabase: any, documentId: string, productDa
     }
   }
 
+  // Extract only the essential data we need
   const productInsert = {
     document_id: documentId,
     name: productData.name,
@@ -32,9 +62,7 @@ export const createProduct = async (supabase: any, documentId: string, productDa
     retail_price: productData.retail_price ? Number(productData.retail_price) : null,
     product_number: productData.product_number,
     description: productData.description,
-    specifications: productData.specifications || {},
     season: productData.season || 'all',
-    extracted_metadata: productData.extracted_metadata || {},
     processing_status: 'processed',
     image_url: storedImageUrl
   }

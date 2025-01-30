@@ -51,9 +51,17 @@ serve(async (req) => {
       })
       .eq('id', document_id)
 
-    // Fire and forget the processing function
-    supabase.functions.invoke('process-pdf', {
-      body: { file_path: doc.file_path }
+    // Make direct HTTP call to process-pdf function
+    const functionUrl = `${supabaseUrl}/functions/v1/process-pdf`
+    fetch(functionUrl, {
+      method: 'POST',
+      headers: {
+        'Authorization': `Bearer ${supabaseKey}`,
+        'Content-Type': 'application/json'
+      },
+      body: JSON.stringify({ file_path: doc.file_path })
+    }).catch(error => {
+      console.error('Error calling process-pdf function:', error)
     })
 
     // Return immediately
