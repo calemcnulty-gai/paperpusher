@@ -68,7 +68,14 @@ export default function Products() {
         throw error
       }
 
-      return { data, count }
+      // Transform the data to match the Product type
+      const transformedData: Product[] = data.map(item => ({
+        ...item,
+        specifications: item.specifications || null,
+        extracted_metadata: item.extracted_metadata || null
+      }))
+
+      return { data: transformedData, count }
     }
   })
 
