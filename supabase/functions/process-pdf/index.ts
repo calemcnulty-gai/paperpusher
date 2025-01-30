@@ -4,8 +4,8 @@ import { serve } from "https://deno.land/std@0.168.0/http/server.ts"
 import { corsHeaders, initSupabaseClient } from './supabaseClient.ts'
 import { downloadAndConvertPDF } from './documentProcessing.ts'
 import { convertPDFToImage } from './pdfProcessing.ts'
-import { processImages } from './imageProcessing.ts'
-import { extractProductData } from './openaiProcessing.ts'
+import { storeProductImage } from './imageProcessing.ts'
+import { analyzeImageWithOpenAI } from './openaiProcessing.ts'
 
 serve(async (req) => {
   // Handle CORS
@@ -58,21 +58,19 @@ serve(async (req) => {
       console.log('Converting PDF to images...')
       const imageUrls = await convertPDFToImage(pdfData)
 
-      // 3. Process images to extract text and data
+      // 3. Process each image and extract product data
       console.log('Processing images...')
-      const processedData = await processImages(imageUrls)
+      const productData = await Promise.all(
+        imageUrls.map(url => analyzeImageWithOpenAI(url, doc.filename))
+      )
 
-      // 4. Extract product data using OpenAI
-      console.log('Extracting product data...')
-      const productData = await extractProductData(processedData)
-
-      // 5. Update document with success status
+      // 4. Store the processed data
       await supabase
         .from('document_embeddings')
         .update({
           processing_status: 'completed',
           processing_completed_at: new Date().toISOString(),
-          content: processedData,
+          content: JSON.stringify(productData),
           metadata: {
             processed: true,
             processed_at: new Date().toISOString(),

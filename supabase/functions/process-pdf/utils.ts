@@ -3,6 +3,7 @@ import { encode } from "https://deno.land/std@0.208.0/encoding/base64.ts"
 import { createClient } from 'https://esm.sh/@supabase/supabase-js@2.39.3'
 import { ProductData } from './types.ts'
 
+// Re-export utilities from their respective modules
 export { corsHeaders, initSupabaseClient } from './supabaseClient.ts'
 export { downloadAndConvertPDF, updateDocumentContent } from './documentProcessing.ts'
 export { storeProductImage } from './imageProcessing.ts'

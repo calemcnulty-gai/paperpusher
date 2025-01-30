@@ -2,3 +2,8 @@
 entry = "index.ts"
 command = ""
 hook = ""
+
+[functions.process-pdf-queue]
+project_id = "gukvkyekmmdlmliomxtj"
+verify_jwt = false
+max_timeout = 300
