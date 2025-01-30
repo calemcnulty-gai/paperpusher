@@ -13,51 +13,81 @@ const corsHeaders = {
 }
 
 // Initialize clients
+console.log('Initializing OpenAI client...')
 const openai = new OpenAI({
   apiKey: Deno.env.get('OPENAI_API_KEY')
 })
+console.log('OpenAI client initialized')
 
+console.log('Initializing Pinecone client...')
 const pinecone = new Pinecone({
   apiKey: Deno.env.get('PINECONE_API_KEY') ?? ''
 })
+console.log('Pinecone client initialized')
 
+console.log('Initializing ChatOpenAI...')
 const chatModel = new ChatOpenAI({
   modelName: 'gpt-4-turbo-preview',
   temperature: 0.7,
   streaming: true,
-  openAIApiKey: Deno.env.get('OPENAI_API_KEY')
+  openAIApiKey: Deno.env.get('OPENAI_API_KEY'),
+  configuration: {
+    baseOptions: {
+      adapter: 'fetch'  // Use fetch adapter to avoid Node.js dependencies
+    }
+  }
 })
+console.log('ChatOpenAI initialized')
 
+console.log('Initializing OpenAI Embeddings...')
 const embeddings = new OpenAIEmbeddings({
   modelName: 'text-embedding-3-large',
-  openAIApiKey: Deno.env.get('OPENAI_API_KEY')
+  openAIApiKey: Deno.env.get('OPENAI_API_KEY'),
+  configuration: {
+    baseOptions: {
+      adapter: 'fetch'  // Use fetch adapter to avoid Node.js dependencies
+    }
+  }
 })
+console.log('OpenAI Embeddings initialized')
 
 async function getProductContext(productId: string): Promise<ProductContext | null> {
+  console.log(`Getting product context for productId: ${productId}`)
   const supabase = createClient(
     Deno.env.get('SUPABASE_URL') ?? '',
     Deno.env.get('SUPABASE_SERVICE_ROLE_KEY') ?? ''
   )
+  console.log('Supabase client initialized')
 
+  console.log('Querying products table...')
   const { data, error } = await supabase
     .from('products')
     .select('*')
     .eq('id', productId)
     .single()
 
-  if (error || !data) {
+  if (error) {
     console.error('Error fetching product:', error)
     return null
   }
 
+  if (!data) {
+    console.log('No product found')
+    return null
+  }
+
+  console.log('Product found:', data)
   return data as ProductContext
 }
 
 async function getRelevantContext(query: string, productId: string): Promise<string> {
-  // Get embeddings for the query
-  const queryEmbedding = await embeddings.embedQuery(query)
+  console.log(`Getting relevant context for query: "${query}" and productId: ${productId}`)
   
-  // Get relevant context from Pinecone
+  console.log('Generating query embedding...')
+  const queryEmbedding = await embeddings.embedQuery(query)
+  console.log('Query embedding generated')
+  
+  console.log('Querying Pinecone...')
   const index = pinecone.index(Deno.env.get('PINECONE_INDEX') ?? '')
   const queryResponse = await index.query({
     vector: queryEmbedding,
@@ -65,15 +95,21 @@ async function getRelevantContext(query: string, productId: string): Promise<str
     topK: 3,
     includeMetadata: true
   })
+  console.log('Pinecone response:', queryResponse)
 
-  // Combine the contexts
-  return queryResponse.matches
+  const contexts = queryResponse.matches
     .map(match => match.metadata?.text as string)
     .filter(Boolean)
-    .join('\n\n')
+
+  console.log('Found contexts:', contexts)
+  return contexts.join('\n\n')
 }
 
 function convertToLangChainMessages(messages: Message[], systemPrompt: string) {
+  console.log('Converting messages to LangChain format')
+  console.log('System prompt:', systemPrompt)
+  console.log('Input messages:', messages)
+  
   const result = [new SystemMessage(systemPrompt)]
   
   for (const msg of messages) {
@@ -84,25 +120,38 @@ function convertToLangChainMessages(messages: Message[], systemPrompt: string) {
     }
   }
   
+  console.log('Converted messages:', result)
   return result
 }
 
 Deno.serve(async (req) => {
+  console.log('Received request:', {
+    method: req.method,
+    url: req.url,
+    headers: Object.fromEntries(req.headers.entries())
+  })
+
   // Handle CORS preflight requests
   if (req.method === 'OPTIONS') {
+    console.log('Handling CORS preflight request')
     return new Response(null, { headers: corsHeaders })
   }
 
   try {
-    const { messages, productId } = await req.json() as ChatRequest
+    const body = await req.json()
+    console.log('Request body:', body)
+    
+    const { messages, productId } = body as ChatRequest
     
     // Get product context if productId is provided
     const productContext = productId ? await getProductContext(productId) : null
+    console.log('Product context:', productContext)
     
     // Get relevant context from vector store
     const relevantContext = productId && messages.length > 0 
       ? await getRelevantContext(messages[messages.length - 1].content, productId)
       : ''
+    console.log('Relevant context:', relevantContext)
     
     // Construct system prompt
     let systemPrompt = `You are a helpful AI assistant.`
@@ -112,22 +161,27 @@ Deno.serve(async (req) => {
     if (relevantContext) {
       systemPrompt += `\n\nHere is some relevant context from the product documentation:\n${relevantContext}`
     }
+    console.log('Final system prompt:', systemPrompt)
     
     // Convert messages to LangChain format
     const langChainMessages = convertToLangChainMessages(messages, systemPrompt)
     
     // Create streaming response
+    console.log('Creating streaming response...')
     const stream = new TransformStream()
     const writer = stream.writable.getWriter()
     const encoder = new TextEncoder()
     
     // Call chat model with streaming
+    console.log('Calling chat model...')
     chatModel.call(langChainMessages, {
       callbacks: [{
         handleLLMNewToken: async (token: string) => {
+          console.log('New token:', token)
           await writer.write(encoder.encode(`data: ${JSON.stringify({ content: token })}\n\n`))
         },
         handleLLMEnd: async () => {
+          console.log('LLM stream ended')
           await writer.write(encoder.encode('data: [DONE]\n\n'))
           await writer.close()
         },
@@ -139,6 +193,7 @@ Deno.serve(async (req) => {
       }]
     })
     
+    console.log('Returning streaming response')
     return new Response(stream.readable, {
       headers: {
         ...corsHeaders,
@@ -149,7 +204,7 @@ Deno.serve(async (req) => {
     })
     
   } catch (error) {
-    console.error('Error:', error)
+    console.error('Error in request handler:', error)
     return new Response(
       JSON.stringify({ error: error.message }),
       { 
