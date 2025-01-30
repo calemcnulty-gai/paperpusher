@@ -4,71 +4,6 @@ import { serve } from "https://deno.land/std@0.168.0/http/server.ts"
 import { corsHeaders } from '../process-pdf/corsHeaders.ts'
 import { createClient } from 'https://esm.sh/@supabase/supabase-js@2.38.4'
 
-const processDocument = async (supabase: any, documentId: string) => {
-  console.log('Processing document:', documentId)
-  
-  try {
-    // Get document details
-    const { data: doc, error: fetchError } = await supabase
-      .from('document_embeddings')
-      .select('*')
-      .eq('id', documentId)
-      .single()
-
-    if (fetchError) {
-      throw new Error(`Failed to fetch document: ${fetchError.message}`)
-    }
-
-    if (!doc) {
-      throw new Error('Document not found')
-    }
-
-    // Update status to processing
-    await supabase
-      .from('document_embeddings')
-      .update({
-        processing_status: 'processing',
-        processing_started_at: new Date().toISOString()
-      })
-      .eq('id', documentId)
-
-    // Call the main processing function
-    const { error: processingError } = await supabase.functions.invoke('process-pdf', {
-      body: { file_path: doc.file_path }
-    })
-
-    if (processingError) {
-      throw processingError
-    }
-
-    // Update final status
-    await supabase
-      .from('document_embeddings')
-      .update({
-        processing_status: 'completed',
-        processing_completed_at: new Date().toISOString()
-      })
-      .eq('id', documentId)
-
-    return { success: true }
-
-  } catch (error) {
-    console.error('Error processing document:', error)
-    
-    // Update error status
-    await supabase
-      .from('document_embeddings')
-      .update({
-        processing_status: 'failed',
-        processing_completed_at: new Date().toISOString(),
-        processing_error: error instanceof Error ? error.message : 'Unknown error'
-      })
-      .eq('id', documentId)
-
-    throw error
-  }
-}
-
 serve(async (req) => {
   // Handle CORS
   if (req.method === 'OPTIONS') {
@@ -84,17 +19,50 @@ serve(async (req) => {
     }
 
     const supabase = createClient(supabaseUrl, supabaseKey)
-
     const { document_id } = await req.json()
     
     if (!document_id) {
       throw new Error('Missing document_id in request body')
     }
 
-    const result = await processDocument(supabase, document_id)
+    // Get document details
+    const { data: doc, error: fetchError } = await supabase
+      .from('document_embeddings')
+      .select('file_path')
+      .eq('id', document_id)
+      .single()
 
+    if (fetchError) {
+      throw new Error(`Failed to fetch document: ${fetchError.message}`)
+    }
+
+    if (!doc) {
+      throw new Error('Document not found')
+    }
+
+    // Update status to queued
+    await supabase
+      .from('document_embeddings')
+      .update({
+        processing_status: 'queued',
+        processing_started_at: new Date().toISOString(),
+        processing_completed_at: null,
+        processing_error: null
+      })
+      .eq('id', document_id)
+
+    // Fire and forget the processing function
+    supabase.functions.invoke('process-pdf', {
+      body: { file_path: doc.file_path }
+    })
+
+    // Return immediately
     return new Response(
-      JSON.stringify(result),
+      JSON.stringify({ 
+        success: true, 
+        message: 'Document queued for processing',
+        document_id 
+      }),
       { 
         headers: { ...corsHeaders, 'Content-Type': 'application/json' },
         status: 200 

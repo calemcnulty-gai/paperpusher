@@ -6,6 +6,7 @@ import { downloadAndConvertPDF } from './documentProcessing.ts'
 import { convertPDFToImage } from './pdfProcessing.ts'
 import { storeProductImage } from './imageProcessing.ts'
 import { analyzeImageWithOpenAI } from './openaiProcessing.ts'
+import { createProduct } from './productProcessing.ts'
 
 serve(async (req) => {
   // Handle CORS
@@ -14,14 +15,14 @@ serve(async (req) => {
   }
 
   try {
+    const supabase = initSupabaseClient()
     const { file_path } = await req.json()
+    
     if (!file_path) {
-      throw new Error('file_path is required')
+      throw new Error('Missing file_path in request body')
     }
 
-    const supabase = initSupabaseClient()
-
-    // Get existing document record
+    // Get document details
     const { data: doc, error: fetchError } = await supabase
       .from('document_embeddings')
       .select('*')
@@ -32,22 +33,20 @@ serve(async (req) => {
       throw new Error(`Failed to fetch document: ${fetchError.message}`)
     }
 
+    if (!doc) {
+      throw new Error('Document not found')
+    }
+
     // Update status to processing
-    const { error: updateError } = await supabase
+    await supabase
       .from('document_embeddings')
       .update({
         processing_status: 'processing',
-        processing_error: null,
         processing_started_at: new Date().toISOString(),
         processing_completed_at: null,
-        pages_processed: 0,
-        total_pages: 0
+        processing_error: null
       })
       .eq('id', doc.id)
-
-    if (updateError) {
-      throw new Error(`Failed to update document status: ${updateError.message}`)
-    }
 
     try {
       // 1. Download and convert the PDF to Uint8Array
@@ -64,7 +63,28 @@ serve(async (req) => {
         imageUrls.map(url => analyzeImageWithOpenAI(url, doc.filename))
       )
 
-      // 4. Store the processed data
+      // 4. Create products in database
+      console.log('Creating products...')
+      const products = await Promise.all(
+        productData.map(async (data, index) => {
+          // Skip if this is a cover page (no SKU)
+          if (!data.sku) {
+            console.log('Skipping page - appears to be a cover or info page')
+            return null
+          }
+          try {
+            return await createProduct(supabase, doc.id, data, imageUrls[index])
+          } catch (error) {
+            console.error('Failed to create product:', error)
+            return null
+          }
+        })
+      )
+
+      // Filter out nulls and count successful creations
+      const createdProducts = products.filter(p => p !== null)
+
+      // 5. Store the processed data
       await supabase
         .from('document_embeddings')
         .update({
@@ -76,6 +96,7 @@ serve(async (req) => {
             processed_at: new Date().toISOString(),
             pages_processed: imageUrls.length,
             total_pages: imageUrls.length,
+            products_created: createdProducts.length,
             product_data: productData
           }
         })
@@ -85,7 +106,8 @@ serve(async (req) => {
         JSON.stringify({ 
           success: true, 
           message: 'Document processed successfully',
-          document: doc 
+          document: doc,
+          products_created: createdProducts.length
         }),
         { 
           headers: { ...corsHeaders, 'Content-Type': 'application/json' },
@@ -93,29 +115,30 @@ serve(async (req) => {
         }
       )
 
-    } catch (processingError) {
-      // Update document with error status
+    } catch (error) {
+      // Update document status to failed
       await supabase
         .from('document_embeddings')
         .update({
           processing_status: 'failed',
           processing_completed_at: new Date().toISOString(),
-          processing_error: processingError instanceof Error ? processingError.message : 'Unknown error'
+          processing_error: error.message
         })
         .eq('id', doc.id)
 
-      throw processingError
+      throw error
     }
 
   } catch (error) {
-    console.error('Error:', error)
+    console.error('Error in process-pdf function:', error)
     return new Response(
       JSON.stringify({ 
-        error: error instanceof Error ? error.message : 'Unknown error occurred' 
+        success: false, 
+        error: error instanceof Error ? error.message : 'Unknown error'
       }),
       { 
         headers: { ...corsHeaders, 'Content-Type': 'application/json' },
-        status: 400 
+        status: 500 
       }
     )
   }
