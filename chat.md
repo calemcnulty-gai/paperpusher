@@ -14,8 +14,9 @@
   - [x] Create Pinecone account
   - [x] Get API key
   - [x] Add PINECONE_API_KEY to environment variables
-  - [x] Configure GCP starter environment
-- [ ] Migrate existing product embeddings to Pinecone (if any)
+  - [x] Configure AWS us-east-1 environment
+- [x] Fix Edge Function Pinecone client initialization
+- [x] Migrate existing product embeddings to Pinecone (if any)
 
 ## 3. Lambda Function Setup ✅
 - [x] Create Python Lambda structure
@@ -33,12 +34,12 @@
 - [x] Implement streaming response handler
 - [x] Add error handling and logging
 - [x] Set up deployment script
-- [ ] Configure Lambda environment variables:
+- [x] Configure Lambda environment variables:
   - [x] OPENAI_API_KEY
   - [x] PINECONE_API_KEY
   - [x] PINECONE_INDEX
-  - [ ] SUPABASE_URL
-  - [ ] SUPABASE_SERVICE_ROLE_KEY
+  - [x] SUPABASE_URL
+  - [x] SUPABASE_SERVICE_ROLE_KEY
 
 ## 4. Edge Function Setup ✅
 - [x] Create update-embeddings function
@@ -48,6 +49,8 @@
 - [x] Add error handling
 - [x] Deploy Edge Function
 - [x] Set up environment variables in Supabase dashboard
+- [x] Fix Pinecone SDK v2.0.0 integration issues
+- [x] Test end-to-end embedding updates
 
 ## 5. LangChain RAG Pipeline ✅
 - [x] Define base prompt templates
@@ -57,7 +60,7 @@
 - [x] Add product context injection
 - [x] Set up response formatting
 
-## 6. Redux Integration
+## 6. Redux Integration ⏳
 - [ ] Create chatSlice with:
   ```typescript
   interface ChatState {
@@ -77,7 +80,7 @@
 - [ ] Add chat persistence logic
 - [ ] Implement error handling
 
-## 7. UI Components
+## 7. UI Components ⏳
 - [ ] Create ChatBar component (footer)
 - [ ] Add ChatMessage components
 - [ ] Implement ChatInput
@@ -86,7 +89,7 @@
 - [ ] Make mobile responsive
 - [ ] Add animations
 
-## 8. API Integration
+## 8. API Integration ⏳
 - [ ] Set up WebSocket connection
 - [ ] Add chat endpoints to Supabase
 - [ ] Configure CORS and security
@@ -109,16 +112,20 @@
 ## Implementation Order
 1. ✅ Lambda Function & RAG Pipeline
 2. ✅ Pinecone Integration
-3. ⏳ Environment Setup & Deployment
-4. Basic UI Components
-5. Redux Integration
-6. Streaming & WebSocket
+3. ✅ Environment Setup & Deployment
+4. ⏳ Basic UI Components
+5. ⏳ Redux Integration
+6. ⏳ Streaming & WebSocket
 7. Polish & Optimization
 
 ## Notes
-- Using Pinecone for vector search due to high dimensionality (3072D)
+- Using Pinecone for vector search (3072D)
 - Streaming responses for better UX
 - Mobile-first design with footer placement
-- Focus on development speed over perfect security for demo
 - Using OpenAI's text-embedding-3-large model for embeddings
-- Using gpt-4-turbo-preview for chat responses 
+- Using gpt-4-turbo-preview for chat responses
+- Edge Function deployment successful and tested
+- Next steps:
+  1. Begin UI development with ChatBar component
+  2. Implement Redux chat slice
+  3. Set up WebSocket connection for streaming 

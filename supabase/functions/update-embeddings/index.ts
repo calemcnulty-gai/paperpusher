@@ -1,12 +1,18 @@
 import { serve } from 'https://deno.land/std@0.168.0/http/server.ts'
 import { createClient } from 'https://esm.sh/@supabase/supabase-js@2'
-import { Configuration, OpenAIApi } from 'https://esm.sh/openai@3.1.0'
-import { PineconeClient } from 'https://esm.sh/@pinecone-database/pinecone@2.0.0'
+import OpenAI from 'https://esm.sh/openai@4.28.0'
+import { Pinecone } from 'https://esm.sh/@pinecone-database/pinecone@2.0.0'
 
-const openAiConfig = new Configuration({
+// Define the expected record structure
+interface Record {
+  id: string
+  name: string
+  description: string
+}
+
+const openai = new OpenAI({
   apiKey: Deno.env.get('OPENAI_API_KEY')
 })
-const openai = new OpenAIApi(openAiConfig)
 
 // Create a Supabase client using runtime environment variables
 const supabaseClient = createClient(
@@ -15,32 +21,45 @@ const supabaseClient = createClient(
 )
 
 // Initialize Pinecone client
-const pinecone = new PineconeClient()
-await pinecone.init({
-  apiKey: Deno.env.get('PINECONE_API_KEY') ?? '',
-  environment: 'gcp-starter'
+const pinecone = new Pinecone({
+  apiKey: Deno.env.get('PINECONE_API_KEY') ?? ''
 })
 
+// Get the index
 const indexName = Deno.env.get('PINECONE_INDEX') ?? 'paperpusher'
-const index = pinecone.Index(indexName)
+const index = pinecone.index(indexName)
 
 async function generateEmbedding(text: string): Promise<number[]> {
   try {
-    const response = await openai.createEmbedding({
+    const response = await openai.embeddings.create({
       model: 'text-embedding-3-large',
-      input: text,
-      dimensions: 3072
+      input: text
     })
-    return response.data.data[0].embedding
+    return response.data[0].embedding
   } catch (error) {
     console.error('Error generating embedding:', error)
     throw error
   }
 }
 
+// Validate the record structure
+function validateRecord(record: any): record is Record {
+  return (
+    typeof record === 'object' &&
+    typeof record.id === 'string' &&
+    typeof record.name === 'string' &&
+    typeof record.description === 'string'
+  )
+}
+
 serve(async (req) => {
   try {
     const { record } = await req.json()
+    
+    // Validate the record
+    if (!validateRecord(record)) {
+      throw new Error('Invalid record structure')
+    }
     
     // Generate text for embedding
     const textForEmbedding = `${record.name}\n${record.description}`
@@ -49,16 +68,14 @@ serve(async (req) => {
     const embedding = await generateEmbedding(textForEmbedding)
     
     // Update embedding in Pinecone
-    await index.upsert({
-      vectors: [{
-        id: record.id,
-        values: embedding,
-        metadata: {
-          name: record.name,
-          description: record.description
-        }
-      }]
-    })
+    await index.upsert([{
+      id: record.id,
+      values: embedding,
+      metadata: {
+        name: record.name,
+        description: record.description
+      }
+    }])
     
     return new Response(JSON.stringify({ success: true }), {
       headers: { 'Content-Type': 'application/json' }
