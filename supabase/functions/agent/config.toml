@@ -1,0 +1,3 @@
+[functions.agent]
+verify_jwt = false
+internal_only = true 
