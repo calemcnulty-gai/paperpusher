@@ -29,8 +29,9 @@ export default function AuthPage() {
     )
   }
 
-  // Properly construct the redirect URL without potential port issues
-  const redirectTo = new URL("/auth/v1/callback", window.location.origin).toString()
+  // Use REDIRECT_URL from env, or construct it from SITE_URL, or use window.location.origin as last resort
+  const redirectTo = process.env.REDIRECT_URL || 
+    (process.env.SITE_URL ? `${process.env.SITE_URL}/auth/v1/callback` : new URL("/auth/v1/callback", window.location.origin).toString())
   console.log("AuthPage - Setting redirect URL to:", redirectTo)
 
   return (

@@ -1,34 +1,54 @@
-import { createClient } from 'https://esm.sh/@supabase/supabase-js@2.39.3'
-import OpenAI from 'https://esm.sh/openai@4.28.0'
-import { Pinecone } from 'https://esm.sh/@pinecone-database/pinecone@2.0.0'
-import { ChatOpenAI } from 'https://esm.sh/@langchain/openai@0.0.14'
-import { OpenAIEmbeddings } from 'https://esm.sh/@langchain/openai@0.0.14'
-import { HumanMessage, SystemMessage, AIMessage } from 'https://esm.sh/@langchain/core@0.1.32/messages'
-import { traceable } from 'https://esm.sh/langsmith@0.1.21/traceable'
+import "jsr:@supabase/functions-js/edge-runtime.d.ts"
+
+import { serve } from "jsr:@std/http@^0.224.0"
+import { createClient } from 'npm:@supabase/supabase-js'
+import { ChatOpenAI } from 'npm:@langchain/openai'
+import { ChatPromptTemplate } from 'npm:@langchain/core/prompts'
+import { Client } from 'npm:langsmith'
+import { HumanMessage, SystemMessage, AIMessage } from 'npm:@langchain/core/messages'
+import { PineconeStore } from 'npm:@langchain/pinecone'
+import { Pinecone } from 'npm:@pinecone-database/pinecone'
 import { ChatRequest, ChatResponse, Message, ProductContext } from './types.ts'
+import { StringOutputParser } from 'npm:@langchain/core/output_parsers'
+import { RunnableSequence, RunnablePassthrough } from 'npm:@langchain/core/runnables'
+import { formatDocumentsAsString } from 'npm:@langchain/core/documents'
+import { OpenAIEmbeddings } from 'npm:@langchain/openai'
+
+declare const Deno: {
+  env: {
+    get(key: string): string | undefined;
+  };
+};
 
 // Define CORS headers
 const corsHeaders = {
   'Access-Control-Allow-Origin': '*',
-  'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type, x-supabase-client',
-  'Access-Control-Allow-Methods': 'POST, GET, OPTIONS',
-  'Access-Control-Max-Age': '86400',
-  'Access-Control-Expose-Headers': '*'
+  'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type',
+  'Access-Control-Allow-Methods': 'POST, OPTIONS',
+  'Access-Control-Max-Age': '86400'
 }
 
-// Initialize clients
-console.log('Initializing OpenAI client...')
-const openai = new OpenAI({
-  apiKey: Deno.env.get('OPENAI_API_KEY')
+// Initialize OpenAI embeddings
+const embeddings = new OpenAIEmbeddings({
+  openAIApiKey: Deno.env.get('OPENAI_API_KEY'),
+  modelName: 'text-embedding-3-large',
+  dimensions: 3072,
+  batchSize: 512,
+  stripNewLines: true
 })
-console.log('OpenAI client initialized')
 
-console.log('Initializing Pinecone client...')
+// Initialize Pinecone client
 const pinecone = new Pinecone({
-  apiKey: Deno.env.get('PINECONE_API_KEY') ?? ''
-})
-console.log('Pinecone client initialized')
+  apiKey: Deno.env.get('PINECONE_API_KEY')!,
+});
 
+// Initialize LangSmith client
+const client = new Client({
+  apiUrl: Deno.env.get('LANGSMITH_ENDPOINT'),
+  apiKey: Deno.env.get('LANGSMITH_API_KEY'),
+})
+
+// Initialize chat model
 console.log('Initializing ChatOpenAI...')
 const chatModel = new ChatOpenAI({
   modelName: 'gpt-4-turbo-preview',
@@ -37,98 +57,108 @@ const chatModel = new ChatOpenAI({
   openAIApiKey: Deno.env.get('OPENAI_API_KEY'),
   configuration: {
     baseOptions: {
-      adapter: 'fetch'  // Use fetch adapter to avoid Node.js dependencies
+      adapter: 'fetch'
     }
   }
 })
 console.log('ChatOpenAI initialized')
 
-console.log('Initializing OpenAI Embeddings...')
-const embeddings = new OpenAIEmbeddings({
-  modelName: 'text-embedding-3-large',
-  openAIApiKey: Deno.env.get('OPENAI_API_KEY'),
-  configuration: {
-    baseOptions: {
-      adapter: 'fetch'  // Use fetch adapter to avoid Node.js dependencies
-    }
+// Initialize both vector stores
+const productIndex = pinecone.Index(Deno.env.get('PINECONE_INDEX')!);
+const productVectorStore = await PineconeStore.fromExistingIndex(
+  embeddings,
+  {
+    pineconeIndex: productIndex,
+    textKey: 'text',
+    metadataKeys: ['name', 'sku', 'description', 'price', 'category']
   }
-})
-console.log('OpenAI Embeddings initialized')
+);
 
-const getProductContext = traceable(async function getProductContext(productId: string): Promise<ProductContext | null> {
-  console.log(`Getting product context for productId: ${productId}`)
-  const supabase = createClient(
-    Deno.env.get('SUPABASE_URL') ?? '',
-    Deno.env.get('SUPABASE_SERVICE_ROLE_KEY') ?? ''
-  )
-  console.log('Supabase client initialized')
-
-  console.log('Querying products table...')
-  const { data, error } = await supabase
-    .from('products')
-    .select('*')
-    .eq('id', productId)
-    .single()
-
-  if (error) {
-    console.error('Error fetching product:', error)
-    return null
+const productIndex2 = pinecone.Index(Deno.env.get('PINECONE_INDEX_TWO')!);
+const productVectorStore2 = await PineconeStore.fromExistingIndex(
+  embeddings,
+  {
+    pineconeIndex: productIndex2,
+    textKey: 'text',
+    metadataKeys: ['name', 'sku', 'description', 'price', 'category']
   }
+);
 
-  if (!data) {
-    console.log('No product found')
-    return null
-  }
+// Create retrievers for both stores
+const retriever1 = productVectorStore.asRetriever({ k: 3 });
+const retriever2 = productVectorStore2.asRetriever({ k: 3 });
 
-  console.log('Product found:', data)
-  return data as ProductContext
-})
+// Create the RAG prompt
+const TEMPLATE = `You are a knowledgeable fashion retail assistant specializing in shoes and accessories.
+You help customers find products and understand their features, materials, and styles.
 
-const getRelevantContext = traceable(async function getRelevantContext(query: string, productId: string): Promise<string> {
-  console.log(`Getting relevant context for query: "${query}" and productId: ${productId}`)
-  
-  console.log('Generating query embedding...')
-  const queryEmbedding = await embeddings.embedQuery(query)
-  console.log('Query embedding generated')
-  
-  console.log('Querying Pinecone...')
-  const index = pinecone.index(Deno.env.get('PINECONE_INDEX') ?? '')
-  const queryResponse = await index.query({
-    vector: queryEmbedding,
-    filter: { productId },
-    topK: 3,
-    includeMetadata: true
-  })
-  console.log('Pinecone response:', queryResponse)
+Use the following product information to answer the question. If you don't know the answer, just say that 
+you don't know - don't try to make up an answer.
 
-  const contexts = queryResponse.matches
-    .map(match => match.metadata?.text as string)
-    .filter(Boolean)
+When discussing products:
+- Always include SKU and price if available
+- Format prices as currency with 2 decimal places
+- Mention materials and colors when relevant
+- If multiple similar products exist, help compare them
 
-  console.log('Found contexts:', contexts)
-  return contexts.join('\n\n')
-})
+Available product information:
+{context}
 
-const convertToLangChainMessages = traceable(function convertToLangChainMessages(messages: Message[], systemPrompt: string) {
-  console.log('Converting messages to LangChain format')
-  console.log('System prompt:', systemPrompt)
-  console.log('Input messages:', messages)
-  
-  const result = [new SystemMessage(systemPrompt)]
-  
-  for (const msg of messages) {
-    if (msg.role === 'user') {
-      result.push(new HumanMessage(msg.content))
-    } else {
-      result.push(new AIMessage(msg.content))
-    }
-  }
-  
-  console.log('Converted messages:', result)
-  return result
-})
+Current conversation:
+{chat_history}
 
-const handleChatRequest = traceable(async function handleChatRequest(req: Request) {
+Human question: {question}
+
+`;
+
+// Create the RAG chain
+const prompt = ChatPromptTemplate.fromTemplate(TEMPLATE);
+
+// Create the RAG chain
+const ragChain = RunnableSequence.from([
+  {
+    context: async (input: { question: string; chat_history: string }) => {
+      // Search both indexes
+      const [docs1, docs2] = await Promise.all([
+        retriever1.getRelevantDocuments(input.question),
+        retriever2.getRelevantDocuments(input.question)
+      ]);
+
+      // Combine and deduplicate results by SKU
+      const seenSkus = new Set();
+      const allDocs = [...docs1, ...docs2].filter(doc => {
+        if (!doc.metadata.sku) return true;
+        if (seenSkus.has(doc.metadata.sku)) return false;
+        seenSkus.add(doc.metadata.sku);
+        return true;
+      });
+
+      // Format documents with metadata
+      return allDocs.map(doc => {
+        const meta = doc.metadata;
+        return `Product: ${meta.name || 'Unknown'}
+SKU: ${meta.sku || 'N/A'}
+Price: ${meta.price ? `$${Number(meta.price).toFixed(2)}` : 'N/A'}
+Category: ${meta.category || 'N/A'}
+Description: ${meta.description || doc.pageContent || 'No description available'}
+---`;
+      }).join('\n\n');
+    },
+    chat_history: (input: { question: string; chat_history: string }) => input.chat_history,
+    question: (input: { question: string; chat_history: string }) => input.question,
+  },
+  prompt,
+  chatModel,
+  new StringOutputParser(),
+]);
+
+async function formatChatHistory(messages: Message[]): Promise<string> {
+  return messages.map(msg => 
+    `${msg.role === 'user' ? 'Human' : 'Assistant'}: ${msg.content}`
+  ).join('\n');
+}
+
+async function handleChatRequest(req: Request) {
   console.log('Received request:', {
     method: req.method,
     url: req.url,
@@ -137,100 +167,48 @@ const handleChatRequest = traceable(async function handleChatRequest(req: Reques
 
   // Handle CORS preflight requests
   if (req.method === 'OPTIONS') {
-    console.log('Handling CORS preflight request')
-    return new Response(null, { 
-      status: 200,
-      headers: {
-        ...corsHeaders,
-        'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type, x-supabase-client',
-        'Access-Control-Allow-Origin': req.headers.get('origin') || '*',
-      }
-    })
-  }
-
-  // Verify auth header
-  const authHeader = req.headers.get('authorization')
-  const apiKey = req.headers.get('apikey')
-  console.log('Auth header:', authHeader)
-  console.log('API key:', apiKey)
-
-  if (!authHeader || !apiKey) {
-    console.error('Missing authorization header or API key')
-    return new Response(
-      JSON.stringify({ error: 'Missing authorization' }),
-      { 
-        status: 401,
-        headers: { ...corsHeaders, 'Content-Type': 'application/json' }
-      }
-    )
+    return new Response('ok', { headers: corsHeaders })
   }
 
   try {
     const body = await req.json()
     console.log('Request body:', body)
     
-    if (!body.messages || !Array.isArray(body.messages)) {
-      throw new Error('Invalid request body: messages must be an array')
+    const messages = body.messages
+    if (!Array.isArray(messages)) {
+      throw new Error('Invalid request body: expected messages to be an array')
     }
     
-    const { messages } = body as ChatRequest
+    const currentMessage = messages[messages.length - 1];
+    const previousMessages = messages.slice(0, -1);
     
-    // Construct system prompt - keeping it simple for general chat
-    const systemPrompt = `You are a helpful AI assistant. You help users understand and work with their data and documents.`
-    console.log('System prompt:', systemPrompt)
-    
-    // Convert messages to LangChain format
-    const langChainMessages = convertToLangChainMessages(messages, systemPrompt)
-    
-    // Create streaming response
-    console.log('Creating streaming response...')
-    const stream = new TransformStream()
-    const writer = stream.writable.getWriter()
-    const encoder = new TextEncoder()
-    
-    // Call chat model with streaming
-    console.log('Calling chat model...')
-    chatModel.call(langChainMessages, {
-      callbacks: [{
-        handleLLMNewToken: async (token: string) => {
-          console.log('New token:', token)
-          await writer.write(encoder.encode(`data: ${JSON.stringify({ content: token })}\n\n`))
-        },
-        handleLLMEnd: async () => {
-          console.log('LLM stream ended')
-          await writer.write(encoder.encode('data: [DONE]\n\n'))
-          await writer.close()
-        },
-        handleLLMError: async (error: Error) => {
-          console.error('LLM error:', error)
-          await writer.write(encoder.encode(`data: ${JSON.stringify({ error: error.message })}\n\n`))
-          await writer.close()
+    // Call RAG chain without streaming
+    const response = await ragChain.invoke({
+      question: currentMessage.content,
+      chat_history: await formatChatHistory(previousMessages)
+    });
+
+    return new Response(
+      JSON.stringify({ content: response }),
+      { 
+        headers: { 
+          ...corsHeaders,
+          'Content-Type': 'application/json'
         }
-      }]
-    })
-    
-    console.log('Returning streaming response')
-    return new Response(stream.readable, {
-      headers: {
-        ...corsHeaders,
-        'Content-Type': 'text/event-stream',
-        'Cache-Control': 'no-cache',
-        'Connection': 'keep-alive'
       }
-    })
+    )
     
   } catch (error) {
     console.error('Error in request handler:', error)
     return new Response(
       JSON.stringify({ error: error.message }),
       { 
-        status: 500,
-        headers: { ...corsHeaders, 'Content-Type': 'application/json' }
+        headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+        status: 500 
       }
     )
   }
-})
+}
 
-Deno.serve(async (req) => {
-  return await handleChatRequest(req)
-})
+console.log('Starting chat function...')
+serve(handleChatRequest)

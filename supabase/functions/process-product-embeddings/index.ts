@@ -3,6 +3,7 @@
 import "https://deno.land/x/xhr@0.1.0/mod.ts"
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts"
 import { createClient } from 'https://esm.sh/@supabase/supabase-js@2.39.3'
+import { Pinecone } from 'https://esm.sh/@pinecone-database/pinecone@2.0.0'
 
 const corsHeaders = {
   'Access-Control-Allow-Origin': '*',
@@ -25,7 +26,7 @@ async function generateEmbedding(text: string): Promise<number[]> {
         'Content-Type': 'application/json',
       },
       body: JSON.stringify({
-        model: 'text-embedding-3-small',
+        model: 'text-embedding-3-large',
         input: text,
       }),
     })
@@ -60,6 +61,15 @@ serve(async (req) => {
     }
 
     const supabase = createClient(supabaseUrl, supabaseKey)
+
+    // Initialize Pinecone client
+    const pinecone = new Pinecone({
+      apiKey: Deno.env.get('PINECONE_API_KEY') ?? ''
+    })
+
+    // Get the index
+    const indexName = Deno.env.get('PINECONE_INDEX') ?? 'paperpusher'
+    const index = pinecone.index(indexName)
     
     // Get pending products
     console.log('Fetching pending products...')
@@ -107,19 +117,32 @@ serve(async (req) => {
         // Generate embedding
         const embedding = await generateEmbedding(textToEmbed)
 
-        // Update product with embedding and status
-        const { error: updateError } = await supabase
+        // Update embedding in Pinecone
+        await index.upsert([{
+          id: product.id,
+          values: embedding,
+          metadata: {
+            name: product.name,
+            sku: product.sku,
+            description: product.description,
+            brand: product.brand,
+            category: product.category,
+            material: product.material,
+            color: product.color,
+            season: product.season,
+            wholesale_price: product.wholesale_price,
+            retail_price: product.retail_price
+          }
+        }])
+
+        // Mark as completed in Supabase
+        await supabase
           .from('products')
           .update({
-            embedding,
             processing_status: 'completed',
             updated_at: new Date().toISOString()
           })
           .eq('id', product.id)
-
-        if (updateError) {
-          throw updateError
-        }
 
         console.log(`Successfully processed product ${product.id}`)
 

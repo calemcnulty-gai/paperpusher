@@ -22,21 +22,48 @@ const initialState: ChatState = {
 };
 
 export const sendMessage = createAsyncThunk<
-  { content: string },
+  void,
   Message[],
   { rejectValue: { message: string } }
 >(
   'chat/sendMessage',
-  async (messages, { rejectWithValue }) => {
+  async (messages, { dispatch, rejectWithValue }) => {
     try {
-      console.log('Sending chat message:', messages);
-      const { data, error } = await supabase.functions.invoke('chat', {
-        body: { messages }
+      console.log('Sending chat message. Raw messages:', messages);
+      
+      const { data: { session } } = await supabase.auth.getSession();
+      if (!session?.access_token) {
+        throw new Error('No auth session found');
+      }
+
+      const response = await fetch('https://gukvkyekmmdlmliomxtj.supabase.co/functions/v1/chat', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${session.access_token}`
+        },
+        body: JSON.stringify({ messages })
       });
 
-      if (error) throw error;
-      return data;
+      if (!response.ok) {
+        const errorText = await response.text();
+        throw new Error(`HTTP error! status: ${response.status}, body: ${errorText}`);
+      }
+
+      const data = await response.json();
+      console.log('Response data:', data);
+      
+      if (!data || !data.content) {
+        throw new Error('Invalid response from server');
+      }
+
+      dispatch(updateAssistantMessage({
+        content: data.content,
+        timestamp: new Date().toISOString()
+      }));
+
     } catch (error) {
+      console.error('Chat error:', error);
       return rejectWithValue({ message: (error as Error).message });
     }
   }
@@ -52,6 +79,19 @@ const chatSlice = createSlice({
     addMessage: (state, action: PayloadAction<Message>) => {
       state.messages.push(action.payload);
     },
+    updateAssistantMessage: (state, action: PayloadAction<{ content: string, timestamp: string }>) => {
+      const lastMessage = state.messages[state.messages.length - 1];
+      if (lastMessage && lastMessage.role === 'assistant') {
+        lastMessage.content = action.payload.content;
+        lastMessage.timestamp = action.payload.timestamp;
+      } else {
+        state.messages.push({
+          role: 'assistant',
+          content: action.payload.content,
+          timestamp: action.payload.timestamp
+        });
+      }
+    },
     clearChat: (state) => {
       state.messages = [];
     },
@@ -62,15 +102,8 @@ const chatSlice = createSlice({
         state.isLoading = true;
         state.error = null;
       })
-      .addCase(sendMessage.fulfilled, (state, action) => {
+      .addCase(sendMessage.fulfilled, (state) => {
         state.isLoading = false;
-        if (action.payload) {
-          state.messages.push({
-            role: 'assistant',
-            content: action.payload.content,
-            timestamp: new Date().toISOString(),
-          });
-        }
       })
       .addCase(sendMessage.rejected, (state, action) => {
         state.isLoading = false;
@@ -79,5 +112,5 @@ const chatSlice = createSlice({
   },
 });
 
-export const { toggleChat, addMessage, clearChat } = chatSlice.actions;
+export const { toggleChat, addMessage, updateAssistantMessage, clearChat } = chatSlice.actions;
 export default chatSlice.reducer;

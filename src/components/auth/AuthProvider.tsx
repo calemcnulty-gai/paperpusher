@@ -1,14 +1,15 @@
 import { useEffect } from "react"
-import { useDispatch } from "react-redux"
+import { useDispatch, useSelector } from "react-redux"
 import { supabase } from "@/integrations/supabase/client"
-import { loadSession, setSession, fetchProfile } from "@/store/authSlice"
-import { AppDispatch } from "@/store"
+import { loadSession, setSession, fetchProfile, setInitialized } from "@/store/authSlice"
+import { AppDispatch, RootState } from "@/store"
 import { useToast } from "@/components/ui/use-toast"
-import type { Session } from "@supabase/supabase-js"
+import { Loader2 } from "lucide-react"
 
 export function AuthProvider({ children }: { children: React.ReactNode }) {
   const dispatch = useDispatch<AppDispatch>()
   const { toast } = useToast()
+  const { isInitializing, error } = useSelector((state: RootState) => state.auth)
 
   useEffect(() => {
     console.log("AuthProvider - Initializing...")
@@ -24,9 +25,10 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
             email: session.user.email,
             lastSignInAt: session.user.last_sign_in_at
           })
-          dispatch(fetchProfile(session.user.id))
+          return dispatch(fetchProfile(session.user.id))
         } else {
           console.log("AuthProvider - No session found")
+          dispatch(setInitialized())
         }
       })
       .catch((error) => {
@@ -65,6 +67,25 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       subscription.unsubscribe()
     }
   }, [dispatch, toast])
+
+  if (isInitializing) {
+    return (
+      <div className="min-h-screen flex items-center justify-center">
+        <Loader2 className="h-8 w-8 animate-spin text-primary" />
+      </div>
+    )
+  }
+
+  if (error) {
+    return (
+      <div className="min-h-screen flex items-center justify-center">
+        <div className="text-center">
+          <h2 className="text-lg font-semibold text-red-600">Authentication Error</h2>
+          <p className="text-gray-600">{error}</p>
+        </div>
+      </div>
+    )
+  }
 
   return children
 }

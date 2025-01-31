@@ -2,7 +2,6 @@ import { QueryClient, QueryClientProvider } from "@tanstack/react-query"
 import { Provider } from "react-redux"
 import { store } from "@/store"
 import { TooltipProvider } from "@/components/ui/tooltip"
-import { BrowserRouter } from "react-router-dom"
 
 const queryClient = new QueryClient()
 
@@ -15,7 +14,7 @@ export const RootProvider = ({ children }: RootProviderProps) => {
     <Provider store={store}>
       <QueryClientProvider client={queryClient}>
         <TooltipProvider>
-          <BrowserRouter>{children}</BrowserRouter>
+          {children}
         </TooltipProvider>
       </QueryClientProvider>
     </Provider>

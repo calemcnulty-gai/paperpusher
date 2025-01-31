@@ -15,6 +15,7 @@ interface AuthState {
   profile: Profile | null;
   loading: boolean;
   error: string | null;
+  isInitializing: boolean;
 }
 
 const initialState: AuthState = {
@@ -23,6 +24,7 @@ const initialState: AuthState = {
   profile: null,
   loading: true,
   error: null,
+  isInitializing: true,
 };
 
 export const fetchProfile = createAsyncThunk(
@@ -112,6 +114,9 @@ const authSlice = createSlice({
       state.profile = null;
       state.error = null;
     },
+    setInitialized: (state) => {
+      state.isInitializing = false;
+    },
   },
   extraReducers: (builder) => {
     builder
@@ -127,14 +132,17 @@ const authSlice = createSlice({
       .addCase(loadSession.rejected, (state, action) => {
         state.loading = false;
         state.error = action.error.message ?? 'Failed to load session';
+        state.isInitializing = false;
       })
       .addCase(fetchProfile.fulfilled, (state, action) => {
         state.profile = action.payload;
         state.loading = false;
+        state.isInitializing = false;
       })
       .addCase(fetchProfile.rejected, (state, action) => {
         state.error = action.error.message ?? 'Failed to fetch profile';
         state.loading = false;
+        state.isInitializing = false;
       })
       .addCase(signOut.fulfilled, (state) => {
         state.session = null;
@@ -145,5 +153,5 @@ const authSlice = createSlice({
   },
 });
 
-export const { setSession, clearAuth } = authSlice.actions;
+export const { setSession, clearAuth, setInitialized } = authSlice.actions;
 export default authSlice.reducer;

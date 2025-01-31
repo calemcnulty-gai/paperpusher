@@ -10,9 +10,12 @@
   },
   "importMap": {
     "imports": {
-      "@supabase/supabase-js": "https://esm.sh/@supabase/supabase-js@2.39.3",
-      "openai": "https://esm.sh/openai@4.28.0",
-      "@pinecone-database/pinecone": "https://esm.sh/@pinecone-database/pinecone@2.0.0"
+      "@supabase/supabase-js": "npm:@supabase/supabase-js@2.39.3",
+      "@langchain/community": "npm:@langchain/community@0.3.27",
+      "@langchain/core": "npm:@langchain/core@0.3.37",
+      "@langchain/openai": "npm:@langchain/openai@0.4.2",
+      "langchain": "npm:langchain@0.3.14",
+      "langsmith": "npm:langsmith@0.3.3"
     }
   }
 } 
