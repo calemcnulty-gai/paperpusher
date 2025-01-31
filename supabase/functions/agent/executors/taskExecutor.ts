@@ -18,7 +18,7 @@ class TaskExecutorImpl implements TaskExecutor {
   }
 
   private isUpdateTaskPayload(payload: any): payload is UpdateTaskPayload {
-    return payload && 'id' in payload && 'status' in payload
+    return payload && 'id' in payload
   }
 
   async execute(action: Action, userProfile: UserProfile): Promise<AgentResponse> {
@@ -63,6 +63,13 @@ class TaskExecutorImpl implements TaskExecutor {
         links: {
           task: `/tasks/${data.id}`
         }
+      },
+      metadata: {
+        taskContext: {
+          taskId: data.id,
+          taskTitle: data.title,
+          action: 'created'
+        }
       }
     }
   }
@@ -74,15 +81,24 @@ class TaskExecutorImpl implements TaskExecutor {
 
     console.log('🔄 Updating task', {
       taskId: action.payload.id,
-      newStatus: action.payload.status
+      updates: action.payload
     })
+
+    const updates: Record<string, any> = {
+      updated_at: new Date().toISOString()
+    }
+
+    if (action.payload.status) {
+      updates.status = action.payload.status
+    }
+
+    if (action.payload.priority) {
+      updates.priority = action.payload.priority
+    }
 
     const { data, error } = await this.supabase
       .from('tasks')
-      .update({
-        status: action.payload.status,
-        updated_at: new Date().toISOString()
-      })
+      .update(updates)
       .eq('id', action.payload.id)
       .select()
       .single()
@@ -94,17 +110,24 @@ class TaskExecutorImpl implements TaskExecutor {
 
     console.log('✅ Task updated successfully', {
       taskId: data.id,
-      newStatus: data.status
+      updates
     })
 
     return {
-      message: `Task status updated to "${data.status}".`,
+      message: `Task "${data.title}" updated successfully.`,
       action: {
         type: 'UPDATE_TASK',
         status: 'success',
         data,
         links: {
           task: `/tasks/${data.id}`
+        }
+      },
+      metadata: {
+        taskContext: {
+          taskId: data.id,
+          taskTitle: data.title,
+          action: 'updated'
         }
       }
     }

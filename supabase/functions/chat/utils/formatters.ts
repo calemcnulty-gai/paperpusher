@@ -4,9 +4,21 @@ export async function formatChatHistory(messages: Message[]): Promise<string> {
   console.log('📜 Formatting chat history', {
     messageCount: messages.length
   })
-  const formatted = messages.map(msg => 
-    `${msg.role === 'user' ? 'Human' : 'Assistant'}: ${msg.content}`
-  ).join('\n')
+  const formatted = messages.map(msg => {
+    if (msg.role === 'assistant') {
+      // Handle task context through metadata
+      if (msg.metadata?.taskContext) {
+        const { taskId, taskTitle, action } = msg.metadata.taskContext
+        if (action === 'created') {
+          return `Assistant: Created task "${taskTitle}"`
+        } else if (action === 'updated') {
+          return `Assistant: Updated task "${taskTitle}"`
+        }
+      }
+    }
+    return `${msg.role === 'user' ? 'Human' : 'Assistant'}: ${msg.content}`
+  }).join('\n')
+  
   console.log('📜 Formatted chat history', {
     formattedLength: formatted.length
   })

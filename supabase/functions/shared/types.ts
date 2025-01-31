@@ -38,7 +38,8 @@ export interface CreateTaskPayload {
 
 export interface UpdateTaskPayload {
   id: string;
-  status: 'pending' | 'in_progress' | 'completed';
+  status?: 'pending' | 'in_progress' | 'completed';
+  priority?: 'low' | 'medium' | 'high';
 }
 
 export interface UpdateProductPayload {
@@ -82,6 +83,13 @@ export interface Message {
   role: 'user' | 'assistant';
   content: string;
   timestamp?: string;
+  metadata?: {
+    taskContext?: {
+      taskId?: string;
+      taskTitle?: string;
+      action?: 'created' | 'updated';
+    };
+  };
 }
 
 export interface ChatRequest {

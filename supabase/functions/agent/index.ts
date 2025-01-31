@@ -4,6 +4,11 @@ import { createTaskExecutor } from './executors/taskExecutor.ts'
 import { createProductExecutor } from './executors/productExecutor.ts'
 import { AgentRequest, AgentResponse, Action } from '../shared/types.ts'
 
+// Type guard for normal response payload
+function isNormalResponsePayload(payload: any): payload is { message?: string } {
+  return typeof payload === 'object' && (!('message' in payload) || typeof payload.message === 'string')
+}
+
 serve(async (req: Request) => {
   // Handle CORS preflight
   if (req.method === 'OPTIONS') {
@@ -42,7 +47,10 @@ serve(async (req: Request) => {
         result = await productExecutor.execute(action, userProfile)
         break
       }
-      case 'NORMAL_RESPONSE':
+      case 'NORMAL_RESPONSE': {
+        if (!isNormalResponsePayload(action.payload)) {
+          throw new Error('Invalid payload for NORMAL_RESPONSE')
+        }
         result = {
           message: action.payload.message || 'No action needed',
           action: {
@@ -52,6 +60,7 @@ serve(async (req: Request) => {
           }
         }
         break
+      }
       default:
         throw new Error(`Unsupported action type: ${action.type}`)
     }

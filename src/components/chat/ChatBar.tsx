@@ -1,99 +1,99 @@
-import { useState, useRef, useEffect } from 'react'
-import { Send } from 'lucide-react'
-import { useAppDispatch, useAppSelector } from '@/store'
-import { sendMessage, Message } from '@/store/chatSlice'
-import { useToast } from '@/components/ui/use-toast'
-import { ChatMessage } from './ChatMessage'
+import { useState } from "react"
+import { useDispatch, useSelector } from "react-redux"
+import { Button } from "@/components/ui/button"
+import { Input } from "@/components/ui/input"
+import { MessageSquare, X } from "lucide-react"
+import { cn } from "@/lib/utils"
+import { ChatMessage } from "./ChatMessage"
+import { useToast } from "@/hooks/use-toast"
+import { RootState, AppDispatch } from "@/store"
+import { toggleChat, sendMessage, addMessage } from "@/store/chatSlice"
+import type { Message } from "@/store/chatSlice"
 
 export function ChatBar() {
-  const dispatch = useAppDispatch()
-  const [input, setInput] = useState('')
+  const dispatch = useDispatch<AppDispatch>()
+  const { messages, isOpen, isLoading } = useSelector((state: RootState) => state.chat)
+  const { user } = useSelector((state: RootState) => state.auth)
+  const [input, setInput] = useState("")
   const { toast } = useToast()
-
-  const messages = useAppSelector(state => state.chat.messages)
-  const isLoading = useAppSelector(state => state.chat.isLoading)
-  const error = useAppSelector(state => state.chat.error)
-  const lastAction = useAppSelector(state => state.agent.lastAction)
-
-  const messagesEndRef = useRef<HTMLDivElement>(null)
-
-  useEffect(() => {
-    if (messagesEndRef.current) {
-      messagesEndRef.current.scrollIntoView({ behavior: 'smooth' })
-    }
-  }, [messages])
-
-  useEffect(() => {
-    if (lastAction && lastAction.metadata.status === 'success') {
-      toast({
-        title: 'Action Completed',
-        description: lastAction.payload?.message || 'Operation completed successfully',
-        action: lastAction.payload?.links && (
-          <Link
-            to={Object.values(lastAction.payload.links)[0]}
-            className="text-sm font-medium text-primary hover:opacity-90"
-          >
-            {`View ${lastAction.type.split('_')[1].toLowerCase()}`} →
-          </Link>
-        )
-      })
-    } else if (error) {
-      toast({
-        variant: 'destructive',
-        title: 'Error',
-        description: error
-      })
-    }
-  }, [lastAction, error, toast])
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
-    if (!input.trim() || isLoading) return
+    if (!input.trim() || !user) return
 
-    const newMessage: Message = {
+    const userMessage: Message = {
       role: 'user',
       content: input,
       timestamp: new Date().toISOString()
     }
 
-    setInput('')
-    await dispatch(sendMessage([...messages, newMessage]))
+    dispatch(addMessage(userMessage))
+    setInput("")
+
+    try {
+      const resultAction = await dispatch(sendMessage([...messages, userMessage]))
+      if (sendMessage.rejected.match(resultAction)) {
+        throw new Error(resultAction.error.message)
+      }
+    } catch (error) {
+      console.error('Chat error:', error)
+      toast({
+        variant: "destructive",
+        title: "Error",
+        description: "Failed to send message. Please try again."
+      })
+    }
   }
 
-  return (
-    <div className="fixed bottom-0 left-0 right-0 bg-background border-t">
-      <div className="max-w-4xl mx-auto p-4">
-        <div className="max-h-[60vh] overflow-y-auto mb-4">
-          {messages.map((message, i) => (
-            <ChatMessage
-              key={i}
-              role={message.role}
-              content={message.content}
-              isLoading={i === messages.length - 1 && message.role === 'assistant' && isLoading}
-              action={i === messages.length - 1 ? lastAction : undefined}
-            />
-          ))}
-          <div ref={messagesEndRef} />
-        </div>
+  // Don't show chat if user is not authenticated
+  if (!user) return null;
 
-        <form onSubmit={handleSubmit} className="flex gap-2">
-          <input
-            type="text"
-            value={input}
-            onChange={e => setInput(e.target.value)}
-            placeholder="Type a message..."
-            className="flex-1 rounded-lg border border-input px-4 py-2 focus:outline-none focus:ring-2 focus:ring-ring"
-            disabled={isLoading}
-          />
-          <button
-            type="submit"
-            disabled={!input.trim() || isLoading}
-            className="rounded-lg bg-primary px-4 py-2 text-primary-foreground hover:bg-primary/90 disabled:opacity-50 disabled:cursor-not-allowed"
-          >
-            <Send className="h-5 w-5" />
-          </button>
-        </form>
+  return (
+    <div className={cn(
+      "fixed bottom-4 right-4 w-[400px] bg-background border rounded-lg shadow-lg transition-all duration-300 ease-in-out",
+      isOpen ? "h-[500px]" : "h-[48px]"
+    )}>
+      <div className="p-2 border-b flex items-center justify-between cursor-pointer bg-primary/5 rounded-t-lg"
+        onClick={() => dispatch(toggleChat())}>
+        <div className="flex items-center gap-2">
+          <MessageSquare className="h-5 w-5" />
+          <span className="font-medium">Chat Assistant</span>
+        </div>
+        <Button variant="ghost" size="icon" onClick={(e) => {
+          e.stopPropagation()
+          dispatch(toggleChat())
+        }}>
+          <X className="h-4 w-4" />
+        </Button>
       </div>
+
+      {isOpen && (
+        <div className="flex flex-col h-[calc(500px-48px)]">
+          <div className="flex-1 overflow-y-auto p-4 space-y-4">
+            {messages.map((message, index) => (
+              <ChatMessage key={index} message={message} />
+            ))}
+            {isLoading && (
+              <div className="flex justify-center">
+                <span className="animate-pulse">...</span>
+              </div>
+            )}
+          </div>
+
+          <form onSubmit={handleSubmit} className="p-4 border-t flex gap-2">
+            <Input
+              value={input}
+              onChange={(e) => setInput(e.target.value)}
+              placeholder="Type your message..."
+              disabled={isLoading}
+              className="flex-1"
+            />
+            <Button type="submit" disabled={isLoading}>
+              Send
+            </Button>
+          </form>
+        </div>
+      )}
     </div>
   )
 }

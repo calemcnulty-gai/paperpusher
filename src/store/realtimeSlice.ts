@@ -2,6 +2,9 @@ import { createSlice } from "@reduxjs/toolkit"
 import { supabase } from "@/integrations/supabase/client"
 import { AppDispatch } from "@/store"
 import { QueryClient } from "@tanstack/react-query"
+import { fetchTasks } from "./tasksSlice"
+import { fetchProducts } from "./productsSlice"
+import { fetchProfiles } from "./profilesSlice"
 
 const queryClient = new QueryClient()
 
@@ -15,36 +18,89 @@ export const setupRealtimeSubscriptions = () => {
         'postgres_changes',
         { event: '*', schema: 'public', table: 'products' },
         (payload) => {
-          console.log('RealtimeSlice - Products change received:', {
-            eventType: payload.eventType,
-            oldRecord: payload.old,
-            newRecord: payload.new
-          })
-          queryClient.invalidateQueries({ queryKey: ['products'] })
+          console.group('RealtimeSlice - Products Change')
+          console.log('Event type:', payload.eventType)
+          console.log('Old record:', payload.old)
+          console.log('New record:', payload.new)
+          console.log('Full payload:', payload)
+          console.log('Dispatching fetchProducts action...')
+          console.groupEnd()
+          
+          dispatch(fetchProducts())
+            .then((result) => {
+              console.group('RealtimeSlice - Products Fetch Result')
+              console.log('Action type:', result.type)
+              console.log('Action payload:', result.payload)
+              console.groupEnd()
+            })
+            .catch(error => {
+              console.error('RealtimeSlice - Error fetching products:', error)
+            })
         }
       )
       .on(
         'postgres_changes',
         { event: '*', schema: 'public', table: 'profiles' },
         (payload) => {
-          console.log('RealtimeSlice - Profiles change received:', {
-            eventType: payload.eventType,
-            oldRecord: payload.old,
-            newRecord: payload.new
-          })
-          queryClient.invalidateQueries({ queryKey: ['profiles'] })
+          console.group('RealtimeSlice - Profiles Change')
+          console.log('Event type:', payload.eventType)
+          console.log('Old record:', payload.old)
+          console.log('New record:', payload.new)
+          console.log('Full payload:', payload)
+          console.log('Dispatching fetchProfiles action...')
+          console.groupEnd()
+          
+          dispatch(fetchProfiles())
+            .then((result) => {
+              console.group('RealtimeSlice - Profiles Fetch Result')
+              console.log('Action type:', result.type)
+              console.log('Action payload:', result.payload)
+              console.groupEnd()
+            })
+            .catch(error => {
+              console.error('RealtimeSlice - Error fetching profiles:', error)
+            })
+        }
+      )
+      .on(
+        'postgres_changes',
+        { event: '*', schema: 'public', table: 'tasks' },
+        (payload) => {
+          console.group('RealtimeSlice - Tasks Change')
+          console.log('Event type:', payload.eventType)
+          console.log('Old record:', payload.old)
+          console.log('New record:', payload.new)
+          console.log('Full payload:', payload)
+          console.log('Dispatching fetchTasks action...')
+          console.groupEnd()
+          
+          dispatch(fetchTasks())
+            .then((result) => {
+              console.group('RealtimeSlice - Tasks Fetch Result')
+              console.log('Action type:', result.type)
+              console.log('Action payload:', result.payload)
+              console.groupEnd()
+            })
+            .catch(error => {
+              console.error('RealtimeSlice - Error fetching tasks:', error)
+            })
         }
       )
 
     channel.subscribe((status) => {
-      console.log("RealtimeSlice - Realtime subscription status:", status)
+      console.group('RealtimeSlice - Subscription Status Change')
+      console.log('Status:', status)
       if (status === 'SUBSCRIBED') {
-        console.log("RealtimeSlice - Successfully subscribed to all channels")
+        console.log('Successfully subscribed to all channels')
+        dispatch(setSubscribed(true))
       } else if (status === 'CLOSED') {
-        console.log("RealtimeSlice - Channel closed")
+        console.log('Channel closed')
+        dispatch(setSubscribed(false))
       } else if (status === 'CHANNEL_ERROR') {
-        console.error("RealtimeSlice - Channel error occurred")
+        console.error('Channel error occurred')
+        dispatch(setSubscribed(false))
       }
+      console.groupEnd()
     })
   }
 }

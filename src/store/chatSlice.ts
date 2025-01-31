@@ -1,5 +1,8 @@
 import { createSlice, createAsyncThunk, PayloadAction } from '@reduxjs/toolkit';
 import { supabase } from '@/integrations/supabase/client';
+import { AppDispatch } from '@/store';
+import { fetchTasks } from './tasksSlice';
+import { fetchProducts } from './productsSlice';
 
 export interface Message {
   role: 'user' | 'assistant';
@@ -24,7 +27,7 @@ const initialState: ChatState = {
 export const sendMessage = createAsyncThunk<
   void,
   Message[],
-  { rejectValue: { message: string } }
+  { rejectValue: { message: string }; dispatch: AppDispatch }
 >(
   'chat/sendMessage',
   async (messages, { dispatch, rejectWithValue }) => {
@@ -53,14 +56,26 @@ export const sendMessage = createAsyncThunk<
       const data = await response.json();
       console.log('Response data:', data);
       
-      if (!data || !data.content) {
+      if (!data || !data.message) {
         throw new Error('Invalid response from server');
       }
 
       dispatch(updateAssistantMessage({
-        content: data.content,
+        content: data.message,
         timestamp: new Date().toISOString()
       }));
+
+      if (data.action) {
+        switch (data.action.type) {
+          case 'CREATE_TASK':
+          case 'UPDATE_TASK':
+            dispatch(fetchTasks());
+            break;
+          case 'UPDATE_PRODUCT':
+            dispatch(fetchProducts());
+            break;
+        }
+      }
 
     } catch (error) {
       console.error('Chat error:', error);

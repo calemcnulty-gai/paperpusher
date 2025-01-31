@@ -71,10 +71,20 @@ serve(async (req: Request) => {
         const actionResult = await executeAgentAction(agentResponse, userProfile)
         console.log('✅ Action executed', actionResult)
 
-        // Update response with action result
+        // Add task metadata to the response
+        const taskMetadata = actionResult.action.data ? {
+          taskContext: {
+            taskId: actionResult.action.data.id,
+            taskTitle: actionResult.action.data.title,
+            action: actionResult.action.type === 'CREATE_TASK' ? 'created' : 'updated'
+          }
+        } : undefined
+
+        // Return response with metadata
         response = {
-          message: `${ragResponse}\n\n${actionResult.message}`,
-          action: agentResponse
+          message: actionResult.message,
+          action: agentResponse,
+          metadata: taskMetadata
         }
       }
     }

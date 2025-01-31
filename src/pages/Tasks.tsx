@@ -15,47 +15,21 @@ import {
   DialogTrigger,
 } from "@/components/ui/dialog"
 import { CreateTaskForm } from "@/components/tasks/CreateTaskForm"
+import { useAppDispatch, useAppSelector } from "@/store"
+import { fetchTasks } from "@/store/tasksSlice"
 
 const Tasks = () => {
-  const [tasks, setTasks] = useState<Task[]>([])
-  const [loading, setLoading] = useState(true)
   const [dialogOpen, setDialogOpen] = useState(false)
   const { toast } = useToast()
   const { user } = useAuth()
-
-  const fetchTasks = async () => {
-    try {
-      console.log("Fetching tasks for user:", user?.id)
-      const { data, error } = await supabase
-        .from("tasks")
-        .select("*")
-        .eq("creator_id", user?.id)
-        .order("priority", { ascending: false })
-
-      if (error) {
-        console.error("Error fetching tasks:", error)
-        throw error
-      }
-
-      console.log("Tasks fetched:", data)
-      setTasks(data || [])
-    } catch (error) {
-      console.error("Error in fetchTasks:", error)
-      toast({
-        title: "Error",
-        description: "Failed to load tasks",
-        variant: "destructive",
-      })
-    } finally {
-      setLoading(false)
-    }
-  }
+  const dispatch = useAppDispatch()
+  const { items: tasks, isLoading: loading } = useAppSelector((state) => state.tasks)
 
   useEffect(() => {
     if (user?.id) {
-      fetchTasks()
+      dispatch(fetchTasks())
     }
-  }, [toast, user?.id])
+  }, [dispatch, user?.id])
 
   const onDragEnd = async (result: any) => {
     if (!result.destination) return
@@ -69,14 +43,6 @@ const Tasks = () => {
       return
     }
 
-    const newTasks = Array.from(tasks)
-    const task = newTasks.find(t => t.id === draggableId)
-    if (!task) return
-
-    task.status = destination.droppableId
-
-    setTasks(newTasks)
-
     try {
       const { error } = await supabase
         .from("tasks")
@@ -84,6 +50,9 @@ const Tasks = () => {
         .eq("id", draggableId)
 
       if (error) throw error
+      
+      // Fetch updated tasks after status change
+      dispatch(fetchTasks())
     } catch (error) {
       console.error("Error updating task:", error)
       toast({
@@ -134,7 +103,7 @@ const Tasks = () => {
             </DialogHeader>
             <CreateTaskForm onSuccess={() => {
               setDialogOpen(false)
-              fetchTasks()
+              dispatch(fetchTasks())
             }} />
           </DialogContent>
         </Dialog>

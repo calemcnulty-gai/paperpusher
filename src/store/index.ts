@@ -6,6 +6,8 @@ import profilesReducer from "./profilesSlice"
 import productFiltersReducer from "./productFiltersSlice"
 import chatReducer from "./chatSlice"
 import agentReducer from "./agentSlice"
+import tasksReducer from "./tasksSlice"
+import productsReducer from "./productsSlice"
 
 export const store = configureStore({
   reducer: {
@@ -15,6 +17,8 @@ export const store = configureStore({
     productFilters: productFiltersReducer,
     chat: chatReducer,
     agent: agentReducer,
+    tasks: tasksReducer,
+    products: productsReducer,
   },
 })
 
