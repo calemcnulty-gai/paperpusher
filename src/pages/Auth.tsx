@@ -29,10 +29,11 @@ export default function AuthPage() {
     )
   }
 
-  // Use REDIRECT_URL from env, or construct it from SITE_URL, or use window.location.origin as last resort
+  // Always use the REDIRECT_URL from env if available
   const redirectTo = process.env.REDIRECT_URL || 
-    (process.env.SITE_URL ? `${process.env.SITE_URL}/auth/v1/callback` : new URL("/auth/v1/callback", window.location.origin).toString())
-  console.log("AuthPage - Setting redirect URL to:", redirectTo)
+    (process.env.SITE_URL ? `${process.env.SITE_URL}/auth/v1/callback` : `${window.location.origin}/auth/v1/callback`)
+  
+  console.log("AuthPage - Using redirect URL:", redirectTo)
 
   return (
     <div className="min-h-screen flex items-center justify-center bg-gray-50 p-4">
@@ -42,6 +43,7 @@ export default function AuthPage() {
           appearance={{ theme: ThemeSupa }}
           providers={["google"]}
           redirectTo={redirectTo}
+          onlyThirdPartyProviders
         />
       </div>
     </div>

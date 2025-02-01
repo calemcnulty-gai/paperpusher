@@ -8,6 +8,16 @@ export default defineConfig(({ mode }) => ({
   server: {
     host: "::",
     port: 8080,
+    headers: {
+      'Content-Security-Policy': `
+        default-src 'self' https://*.supabase.co https://*.openai.com;
+        connect-src 'self' https://*.supabase.co wss://*.supabase.co https://*.openai.com;
+        script-src 'self' 'unsafe-inline' 'unsafe-eval';
+        style-src 'self' 'unsafe-inline';
+        img-src 'self' data: https://* http://*;
+        font-src 'self' data:;
+      `.replace(/\s+/g, ' ').trim()
+    }
   },
   plugins: [
     react(),
