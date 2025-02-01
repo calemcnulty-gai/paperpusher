@@ -22,5 +22,6 @@ export default defineConfig(({ mode }) => ({
   define: {
     'process.env.SITE_URL': JSON.stringify(process.env.SITE_URL),
     'process.env.REDIRECT_URL': JSON.stringify(process.env.REDIRECT_URL),
+    'process.env.TEST': JSON.stringify('TEST')
   }
 }))
