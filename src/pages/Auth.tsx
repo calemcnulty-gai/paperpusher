@@ -43,7 +43,6 @@ export default function AuthPage() {
           appearance={{ theme: ThemeSupa }}
           providers={["google"]}
           redirectTo={redirectTo}
-          onlyThirdPartyProviders
         />
       </div>
     </div>
